@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#808080"
+    android:orientation="vertical">
+
+    <!-- 툴바 포함 -->
+    <include layout="@layout/activity_main_toolbar"/>
+
+    <FrameLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#808080"
+        android:orientation="vertical">
+<!--    스크롤 안돼서 변경-->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:id="@+id/scrollView">
+
+        .<!--썸네일 레이아웃-->
+        <GridLayout
+            android:id="@+id/pdfContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="4"
+            android:padding="16dp"
+            android:background="#808080"/>
+
+    </ScrollView>
+
+
+
+    <!-- 가장 앞에 배치할 버튼 -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/addBtn"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:background="@drawable/yellow_circle_ripple_effect"
+        android:text="+"
+        android:gravity="center"
+        android:textSize="36sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_gravity="bottom|end"
+        tools:ignore="HardcodedText" />
+
+    <!-- 최신화 버튼 추가 -->
+    <Button
+        android:id="@+id/refreshBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="최신화"
+        android:layout_margin="10dp"
+        android:layout_gravity="bottom|start"/>
+
+    </FrameLayout>
+
+</LinearLayout>

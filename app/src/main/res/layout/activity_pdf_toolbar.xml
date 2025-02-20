@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.Toolbar
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/pdfToolbar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#383838">
+
+
+    <!-- 좌측: 뒤로 가기 버튼 -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_arrow_back"
+        android:layout_gravity="start"
+        android:contentDescription="뒤로가기"/>
+
+    <!-- 우측: 저장 버튼 -->
+    <ImageButton
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_archive"
+        android:layout_gravity="end"
+        android:padding="20dp"
+        android:contentDescription="저장하기"/>
+
+    <!-- 우측: 저장 버튼 -->
+    <ImageButton
+        android:id="@+id/btnEraser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_eraser"
+        android:layout_gravity="end"
+        android:padding="20dp"
+        android:contentDescription="지우기"/>
+
+    <!-- 우측: 녹음 버튼 -->
+    <ImageButton
+        android:id="@+id/btnRecord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_record"
+        android:padding="20dp"
+        android:layout_gravity="end"
+        android:contentDescription="음성 녹음" />
+
+
+</androidx.appcompat.widget.Toolbar>
