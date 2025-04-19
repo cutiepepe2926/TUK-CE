@@ -16,22 +16,22 @@
         android:background="#808080"
         android:orientation="vertical">
 <!--    스크롤 안돼서 변경-->
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
-        android:id="@+id/scrollView">
+        android:id="@+id/recyclerView">
 
-        .<!--썸네일 레이아웃-->
-        <GridLayout
-            android:id="@+id/pdfContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:columnCount="4"
-            android:padding="16dp"
-            android:background="#808080"/>
+        <!--썸네일 레이아웃-->
+<!--        <GridLayout-->
+<!--            android:id="@+id/pdfContainer"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:columnCount="4"-->
+<!--            android:padding="16dp"-->
+<!--            android:background="#808080"/>-->
 
-    </ScrollView>
+    </androidx.recyclerview.widget.RecyclerView>
 
 
 
@@ -51,13 +51,13 @@
         tools:ignore="HardcodedText" />
 
     <!-- 최신화 버튼 추가 -->
-    <Button
-        android:id="@+id/refreshBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="최신화"
-        android:layout_margin="10dp"
-        android:layout_gravity="bottom|start"/>
+<!--    <Button-->
+<!--        android:id="@+id/refreshBtn"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="최신화"-->
+<!--        android:layout_margin="10dp"-->
+<!--        android:layout_gravity="bottom|start"/>-->
 
     </FrameLayout>
 

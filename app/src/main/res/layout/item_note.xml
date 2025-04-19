@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- 노트 제목 표시 -->
+    <TextView
+        android:id="@+id/noteTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:text="노트 제목 예시" />
+
+    <!-- 필요하다면 썸네일, 날짜, 기타 정보 등을 추가 -->
+</LinearLayout>
