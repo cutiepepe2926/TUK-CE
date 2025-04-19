@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/menu_import_pdf"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📄 PDF 불러오기"
+        android:textSize="18sp"
+        android:padding="12dp" />
+
+    <TextView
+        android:id="@+id/menu_create_new_note"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📝 새 노트 만들기"
+        android:textSize="18sp"
+        android:padding="12dp" />
+
+</LinearLayout>

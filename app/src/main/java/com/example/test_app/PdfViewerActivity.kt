@@ -19,6 +19,8 @@ import android.graphics.pdf.PdfRenderer
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
+import android.widget.Toast
+import android.widget.Toast.makeText
 import com.example.test_app.view.DrawingView
 import com.example.test_app.model.Stroke
 import com.example.test_app.utils.MyDocManager
@@ -166,6 +168,7 @@ class PdfViewerActivity : AppCompatActivity() {
                 strokes = allStrokes
             )
             super.onBackPressed()
+            Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show();
         }
 
         // 툴바 버튼 설정(저장하기)
@@ -179,6 +182,7 @@ class PdfViewerActivity : AppCompatActivity() {
                 pdfFilePath = getBasePdfPath(),
                 strokes = allStrokes
             )
+            Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show();
         }
 
         // 툴바 버튼 설정(필기삭제)
@@ -187,8 +191,13 @@ class PdfViewerActivity : AppCompatActivity() {
         btnEraser.setOnClickListener {
             println("🧽 현재 페이지 ($currentPage) 필기 삭제")
 
-            // 🔹 현재 페이지의 필기만 삭제기능 개발 필요
-            
+            // 현재 페이지 필기 데이터 삭제
+            pageStrokes[currentPage]?.clear()
+
+            // DrawingView에서 화면도 갱신
+            drawingView.setStrokes(emptyList())
+
+            Toast.makeText(this, "현재 페이지 필기가 삭제되었습니다.", Toast.LENGTH_SHORT).show()
         }
 
 
