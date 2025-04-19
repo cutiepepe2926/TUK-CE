@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.test_app"
-        minSdk = 24
+        minSdk = 34
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -44,7 +44,6 @@ android {
 dependencies {
 
     // 필기 어플 라이브러리
-    implementation ("com.github.mhiew:android-pdf-viewer:3.2.0-beta.3")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
@@ -55,9 +54,17 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    // PDF 렌더링 라이브러리 (예: Barteksc의 android-pdf-viewer)
+    //implementation("com.github.mhiew:AndroidPdfViewer:3.1.0-beta.1")
+    implementation("com.github.mhiew:android-pdf-viewer:3.2.0-beta.3")
+    // (빈 PDF 생성, PDF 합성 시 iText / PdfBox 등 추가 가능)
+    implementation("com.itextpdf:itextpdf:5.0.6")
+    // JSON 파싱 (Gson)
+    implementation ("com.google.code.gson:gson:2.8.8")
+
     // 명시적 버전으로 androidx 라이브러리 설정(OCR 설정)
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.core:core-ktx:1.10.1") // compileSdkVersion 34과 호환
+    implementation("androidx.core:core-ktx:1.10.1") // compileS1dkVersion 34과 호환
     implementation("androidx.activity:activity:1.7.2") // compileSdkVersion 34과 호환
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
