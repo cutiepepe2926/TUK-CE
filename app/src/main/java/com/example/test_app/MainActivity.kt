@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import android.widget.EditText
 import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -17,6 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.recyclerview.widget.GridLayoutManager
 import com.example.test_app.databinding.ActivityMainBinding
 import com.example.test_app.databinding.ActivityMainToolbarBinding
 import com.example.test_app.utils.PdfUtils
@@ -38,8 +40,8 @@ import com.example.test_app.model.Note
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.test_app.adapter.NoteAdapter
-
-
+import com.example.test_app.utils.MyDocManager
+import com.google.android.material.bottomsheet.BottomSheetDialog
 
 
 class MainActivity : AppCompatActivity() {
@@ -57,7 +59,8 @@ class MainActivity : AppCompatActivity() {
     private val pdfPickerLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let {
-                createNoteFromPdf(uri)
+                //createNoteFromPdf(uri)
+                showTitleDialogThenCreateNote(it) // ✅ 아래 함수로 분리
             }
         }
     
@@ -73,6 +76,8 @@ class MainActivity : AppCompatActivity() {
         //로그인 상태 유지 (토큰 확인) (서버 닫힌경우에는 주석처리하기)
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val accessToken = sharedPreferences.getString("access_token", null)
+
+
 
         /*if (accessToken == null) {
             // 로그인 정보가 없으면 로그인 화면으로 이동
@@ -90,6 +95,7 @@ class MainActivity : AppCompatActivity() {
         // 툴바 설정
         setSupportActionBar(toolbarBinding.mainToolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false) // 타이틀 비설정
+
 
         // 툴바 버튼 설정(로그인)
         val userBtn = findViewById<ImageButton>(R.id.btnUser)
@@ -115,21 +121,37 @@ class MainActivity : AppCompatActivity() {
 
         // 리사이클러뷰 & 어댑터 설정
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        //recyclerView.layoutManager = LinearLayoutManager(this)
+        val spanCount = 3 // 태블릿은 3도 추천 가능
+        recyclerView.layoutManager = GridLayoutManager(this, spanCount)
+
         noteAdapter = NoteAdapter(noteList) { note ->
             openNote(note)
         }
         recyclerView.adapter = noteAdapter
 
-        // PDF 불러오기 버튼
-        findViewById<Button>(R.id.addBtn).setOnClickListener {
-            pdfPickerLauncher.launch(arrayOf("application/pdf"))
-        }
+        //BottomSheetDialog 생성 버튼
+        val btnAdd = findViewById<Button>(R.id.addBtn)
+        btnAdd.setOnClickListener {
+            val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_add_menu, null)
+            val dialog = BottomSheetDialog(this)
+            dialog.setContentView(bottomSheetView)
 
-        // 새 파일 버튼
-//        findViewById<Button>(R.id.btnNewFile).setOnClickListener {
-//            showNewNoteDialog()
-//        }
+            val importPdf = bottomSheetView.findViewById<TextView>(R.id.menu_import_pdf)
+            val createNote = bottomSheetView.findViewById<TextView>(R.id.menu_create_new_note)
+
+            importPdf.setOnClickListener {
+                pdfPickerLauncher.launch(arrayOf("application/pdf"))
+                dialog.dismiss()
+            }
+
+            createNote.setOnClickListener {
+                showNewNoteDialog()
+                dialog.dismiss()
+            }
+
+            dialog.show()
+        }
 
         // 앱 실행 시 저장된 노트 목록 불러오기 (notes.json)
         loadNoteList()
@@ -249,10 +271,12 @@ class MainActivity : AppCompatActivity() {
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565) //Bitmap.Config.ARGB_8888)
             pdfiumCore.renderPageBitmap(pdfDocument, bitmap, 0, 0, 0, width, height)
 
+            println("🖼️ PDF 첫 페이지 렌더링 완료: ${bitmap.width}x${bitmap.height}")  // ✅ 추가
+
             pdfiumCore.closeDocument(pdfDocument) // 리소스 해제
             parcelFileDescriptor.close() //파일 탐색 닫기
 
-            Bitmap.createScaledBitmap(bitmap, 500, 600, true) // 썸네일 크기 조정
+            Bitmap.createScaledBitmap(bitmap, 300, 400, true) // 썸네일 크기 조정
 
             return bitmap
         } catch (e: FileNotFoundException) {
@@ -362,6 +386,46 @@ class MainActivity : AppCompatActivity() {
     }
 
     //!!신규!! 아래는 통합될 함수 목록들임.
+
+    private fun showTitleDialogThenCreateNote(uri: Uri) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("노트 이름을 입력하세요")
+        val input = EditText(this)
+        builder.setView(input)
+        builder.setPositiveButton("확인") { _, _ ->
+            val title = input.text.toString()
+            if (title.isNotEmpty()) {
+                val note = PdfUtils.createNoteFromPdf(this, uri, title)
+
+                // 🔧 .mydoc 파일에서 실제 base.pdf 경로를 추출
+                val myDocData = MyDocManager(this).loadMyDoc(File(note.myDocPath))
+                val basePdfFile = File(myDocData.pdfFilePath) // 🔥 여기가 실제 PDF 경로
+
+                // ✅ 썸네일 생성 및 저장
+                val bitmap = renderPdfToBitmap(Uri.fromFile(basePdfFile)) // 또는 원본 PDF 경로
+
+                val thumbnailPath = bitmap?.let {
+                    val file = File(filesDir, "thumb_${System.currentTimeMillis()}.png")
+
+                    FileOutputStream(file).use { out ->
+                        val success = it.compress(Bitmap.CompressFormat.PNG, 100, out)
+                        println("📸 썸네일 저장 성공 여부: $success")
+                    }
+
+                    println("📂 썸네일 경로: ${file.absolutePath}")
+                    file.absolutePath
+                }
+
+                // 노트에 썸네일 경로 포함시켜서 리스트에 추가
+                val finalNote = note.copy(thumbnailPath = thumbnailPath)
+                noteList.add(finalNote)
+                noteAdapter.notifyItemInserted(noteList.size - 1)
+                saveNoteList()
+            }
+        }
+        builder.setNegativeButton("취소", null)
+        builder.show()
+    }
 
 
     // 1) 기기에서 PDF 선택 후 mydoc으로 만들기

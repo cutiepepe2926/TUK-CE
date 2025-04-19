@@ -61,6 +61,9 @@ dependencies {
     implementation("com.itextpdf:itextpdf:5.0.6")
     // JSON 파싱 (Gson)
     implementation ("com.google.code.gson:gson:2.8.8")
+    //BottomSheetDialog 라이브러리
+    implementation ("com.google.android.material:material:1.10.0")
+
 
     // 명시적 버전으로 androidx 라이브러리 설정(OCR 설정)
     implementation("androidx.appcompat:appcompat:1.6.1")
