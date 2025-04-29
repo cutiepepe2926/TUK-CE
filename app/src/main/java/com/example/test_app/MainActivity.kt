@@ -8,16 +8,12 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
-import android.widget.GridLayout
 import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.test_app.databinding.ActivityMainBinding
 import com.example.test_app.databinding.ActivityMainToolbarBinding
@@ -28,7 +24,6 @@ import com.shockwave.pdfium.PdfiumCore
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
-import org.json.JSONObject
 import java.io.File
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import retrofit2.Call
@@ -37,7 +32,6 @@ import retrofit2.Response
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import com.example.test_app.model.Note
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.test_app.adapter.NoteAdapter
 import com.example.test_app.utils.MyDocManager
