@@ -69,7 +69,7 @@ class SttActivity : AppCompatActivity() {
                         println("🎧 선택된 오프라인 MP3 파일 URI: $selectedFileUri")
                         //runOfflineStt(wavFile)
                     } else {
-                        Toast.makeText(this, "파일 로드 실패", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "파일 로드 실패", Toast.LENGTH_SHORT).show();
                     }
                 }
             } else {
