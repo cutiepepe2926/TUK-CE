@@ -23,7 +23,8 @@ object PdfUtils {
         MyDocManager(context).saveMyDoc(
             fileName = myDocName,
             pdfFilePath = blankPdf.absolutePath,
-            strokes = emptyList()
+            strokes = emptyList(),
+            annotations = emptyList()
         )
 
         // 1-3. Note 객체 생성
@@ -48,7 +49,8 @@ object PdfUtils {
         MyDocManager(context).saveMyDoc(
             fileName = myDocName,
             pdfFilePath = copiedPdf.absolutePath,
-            strokes = emptyList()
+            strokes = emptyList(),
+            annotations = emptyList()
         )
 
         noteIdCounter++

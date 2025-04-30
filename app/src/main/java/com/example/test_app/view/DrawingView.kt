@@ -36,7 +36,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     }
     private val textPaint = Paint().apply {
         isAntiAlias = true
-        textSize = 20f
+        //textSize = 20f
     }
 
     /*------------------------------------------------------------
@@ -145,26 +145,28 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
 
         /* ----- ③ 텍스트 어노테이션 ----- */
         textAnnotations
-            .filter { it.page == viewCurrentPage }
-            .forEach { anno ->
-                // 배경 박스
-                val padding = 8f
-                val w = textPaint.measureText(anno.text)
+        for (anno in textAnnotations.filter { it.page == viewCurrentPage }) {
+            textPaint.textSize = anno.fontSize            // ★ 어노테이션마다 크기 적용
 
-                textPaint.style = Paint.Style.FILL
-                textPaint.color = Color.WHITE
-                canvas.drawRect(
-                    anno.x - padding,
-                    anno.y - textPaint.textSize - padding,
-                    anno.x + w + padding,
-                    anno.y + padding,
-                    textPaint
-                )
+            /*
+            // 배경 박스
+            val padding = 8f
+            val w = textPaint.measureText(anno.text)
+            textPaint.style = Paint.Style.FILL
+            textPaint.color = Color.WHITE
+            canvas.drawRect(
+                anno.x - padding,
+                anno.y - textPaint.textSize - padding,
+                anno.x + w + padding,
+                anno.y + padding,
+                textPaint
+            )
+            */
 
-                // 텍스트
-                textPaint.color = Color.BLACK
-                canvas.drawText(anno.text, anno.x, anno.y, textPaint)
-            }
+            // 텍스트
+            textPaint.color = Color.BLACK
+            canvas.drawText(anno.text, anno.x, anno.y, textPaint)
+        }
 
         canvas.restore()
     }

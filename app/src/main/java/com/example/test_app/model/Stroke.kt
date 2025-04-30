@@ -13,5 +13,6 @@ data class TextAnnotation(
     val page: Int,       // 현재 페이지
     val text: String,    // 추출된 문자열
     val x: Float,        // PDF 좌표계 X
-    val y: Float         // PDF 좌표계 Y
+    val y: Float,         // PDF 좌표계 Y
+    val fontSize: Float = 75f // 글자 크기
 )
