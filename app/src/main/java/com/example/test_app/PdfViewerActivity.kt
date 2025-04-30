@@ -69,7 +69,7 @@ class PdfViewerActivity : AppCompatActivity() {
             val offsetX = pdfView.currentXOffset
             val offsetY = pdfView.currentYOffset
             drawingView.setPdfViewInfo(scale, offsetX, offsetY)
-            handler.postDelayed(this, 50)
+            handler.postDelayed(this, 10)
         }
     }
 

@@ -55,7 +55,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     // PDF 렌더링 라이브러리 (예: Barteksc의 android-pdf-viewer)
-    //implementation("com.github.mhiew:AndroidPdfViewer:3.1.0-beta.1")
     implementation("com.github.mhiew:android-pdf-viewer:3.2.0-beta.3")
     // (빈 PDF 생성, PDF 합성 시 iText / PdfBox 등 추가 가능)
     implementation("com.itextpdf:itextpdf:5.0.6")
