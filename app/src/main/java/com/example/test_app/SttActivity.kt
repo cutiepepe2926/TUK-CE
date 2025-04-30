@@ -5,30 +5,34 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.test_app.databinding.ActivitySttBinding
+import com.example.test_app.utils.TokenManager
+import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import org.json.JSONObject
-import org.vosk.Recognizer
-import org.vosk.Model
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
-import java.io.FileInputStream
 
 
 class SttActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySttBinding
-    private lateinit var tvResult: TextView
+    private lateinit var tvTaskId: TextView
+    private lateinit var scrollLayout: LinearLayout
+
     private var resultText: String = "아직 인식된 텍스트가 없습니다."
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,18 +40,22 @@ class SttActivity : AppCompatActivity() {
         binding = ActivitySttBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        scrollLayout = findViewById(R.id.scrollLayout)
+
+
+        tvTaskId = findViewById(R.id.tvTaskId)
+
+
         binding.btnOnlineStt.setOnClickListener {
             openOnlineFilePicker()
             resultText = "온라인 STT 실행됨"
         }
-        binding.btnOfflineStt.setOnClickListener {
+        /*binding.btnOfflineStt.setOnClickListener {
             openOfflineFilePicker()
             resultText = "오프라인 STT 실행됨"
-        }
-        binding.btnShowResult.setOnClickListener {
-            tvResult.text = resultText
-        }
+        }*/
 
+        restoreTaskIdButtons()
     }
 
     // 🔹 파일 탐색기 열기 (MP3 파일 선택)
@@ -69,53 +77,13 @@ class SttActivity : AppCompatActivity() {
                         println("🎧 선택된 오프라인 MP3 파일 URI: $selectedFileUri")
                         //runOfflineStt(wavFile)
                     } else {
-                        Toast.makeText(this, "파일 로드 실패", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "파일 로드 실패", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
                 Toast.makeText(this, "파일 선택이 취소되었습니다.", Toast.LENGTH_SHORT).show()
             }
         }
-
-
-    /*private fun runOfflineStt(wavFile: File) {
-        Thread {
-            try {
-                val model = Model(this@SttActivity, "vosk-model-small-ko-0.22")
-                val recognizer = Recognizer(model, 16000.0f)
-
-                val inputStream = FileInputStream(wavFile)
-                val buffer = ByteArray(4096)
-
-                while (true) {
-                    val read = inputStream.read(buffer)
-                    if (read <= 0) break
-                    recognizer.acceptWaveForm(buffer, read)
-                }
-
-                val resultJson = recognizer.finalResult
-                val recognizedText = JSONObject(resultJson).getString("text")
-
-                runOnUiThread {
-                    resultText = recognizedText
-                    Toast.makeText(this, "✅ 변환 완료!", Toast.LENGTH_SHORT).show()
-                }
-
-                inputStream.close()
-                recognizer.close()
-                model.close()
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                runOnUiThread {
-                    Toast.makeText(this, "🚨 STT 실패: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }.start()
-    }*/
-
-
-
 
 
     // 온라인 버전
@@ -134,7 +102,7 @@ class SttActivity : AppCompatActivity() {
             if (result.resultCode == Activity.RESULT_OK && result.data != null) {
                 val selectedFileUri = result.data!!.data
                 if (selectedFileUri != null) {
-                    println("✅ 선택된 온라인 MP3 파일 URI: $selectedFileUri")
+                    println("✅ 선택된 온라인 음성 파일 URI: $selectedFileUri")
                     uploadFile(selectedFileUri) // 🔹 선택한 파일을 서버로 업로드
                 }
             } else {
@@ -143,39 +111,123 @@ class SttActivity : AppCompatActivity() {
         }
 
     // 🔹 파일 업로드 함수
-    private fun uploadFile(fileUri: Uri) {
+    private fun uploadFile(fileUri: Uri, retry: Boolean = false) {
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val accessToken = sharedPreferences.getString("access_token", null)
 
         if (accessToken == null) {
-            println("🚨 로그인 정보 없음: 토큰이 없습니다.")
             Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // 🔹 Uri → 실제 파일 변환 (임시 파일 생성)
         val file = uriToFile(fileUri) ?: run {
             println("🚨 파일 변환 실패")
             return
         }
 
         val requestBody = RequestBody.create("audio/*".toMediaTypeOrNull(), file)
-        val filePart = MultipartBody.Part.createFormData("file", file.name, requestBody)
+        val filePart = MultipartBody.Part.createFormData("audio_file", file.name, requestBody)
 
-        val call = RetrofitClient.fileUploadService.uploadFile("Bearer $accessToken", filePart) // ✅ 수정된 코드
+        val call = RetrofitClient.fileUploadService.uploadFile("Bearer $accessToken", filePart)
 
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     val responseBody = response.body()?.string() ?: "서버 응답 없음"
-                    println("✅ 파일 업로드 성공! 서버 응답: $responseBody")
+                    resultText = responseBody
                     Toast.makeText(this@SttActivity, responseBody, Toast.LENGTH_SHORT).show()
-                } else {
-                    val errorMessage = response.errorBody()?.string() ?: "알 수 없는 오류 발생"
-                    println("🚨 파일 업로드 실패: $errorMessage")
-                    Toast.makeText(this@SttActivity, errorMessage, Toast.LENGTH_SHORT).show()
-                }
+                    println("✅ 파일 업로드 성공! 서버 응답: $responseBody")
+                    try {
+                        val json = JSONObject(responseBody)
+                        val message = json.optString("message", "처리 완료")
+                        val taskId = json.optString("task_id", "N/A")
+                        saveTaskId(taskId) // ✅ task_id 리스트에 저장
+                        resultText = message
+                        tvTaskId.text = "Task ID: $taskId" // ✅ TextView에 표시
 
+                        Toast.makeText(this@SttActivity, message, Toast.LENGTH_SHORT).show()
+
+                        // ✅ 결과 확인 버튼 동적 생성
+                        val resultButton = Button(this@SttActivity).apply {
+                            text = "결과 확인: $taskId"
+                            setOnClickListener {
+                                retrySttResultRequest(taskId)
+                                val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+                                val accessToken = sharedPreferences.getString("access_token", null)
+
+                                if (accessToken == null) {
+                                    Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+                                    return@setOnClickListener
+                                }
+
+                                val call = RetrofitClient.fileUploadService.getSttResult("Bearer $accessToken", taskId)
+
+                                call.enqueue(object : Callback<ResponseBody> {
+                                    override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                                        if (response.isSuccessful) {
+                                            val body = response.body()?.string()
+                                            try {
+                                                val json = JSONObject(body ?: "")
+                                                val status = json.optString("status", "")
+
+                                                val message = when (status) {
+                                                    "processing" -> "🕓 처리 중입니다. 잠시만 기다려주세요."
+                                                    "completed" -> json.optString("result", "결과 없음")
+                                                    "failed" -> "❌ 오류 발생: ${json.optString("error", "알 수 없는 오류")}"
+                                                    else -> "❓ 알 수 없는 상태: $status"
+                                                }
+
+                                                AlertDialog.Builder(this@SttActivity)
+                                                    .setTitle("STT 결과")
+                                                    .setMessage(message)
+                                                    .setPositiveButton("확인", null)
+                                                    .show()
+
+                                            } catch (e: Exception) {
+                                                e.printStackTrace()
+                                                Toast.makeText(context, "결과 파싱 오류", Toast.LENGTH_SHORT).show()
+                                            }
+                                        } else {
+                                            Toast.makeText(context, "결과 조회 실패", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+
+                                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                                        Toast.makeText(context, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                                    }
+                                })
+                            }
+                        }
+
+                        // ✅ ScrollView 내부 LinearLayout에 버튼 추가
+                        scrollLayout.addView(resultButton)
+
+
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        // JSON 파싱 실패 시 전체 응답 문자열 표시
+                        resultText = responseBody
+                        Toast.makeText(this@SttActivity, "응답 파싱 오류", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    println("🚨 응답 실패: ${response.code()}")
+                    if (response.code() == 401 && !retry) {
+                        // 🔄 토큰 갱신 시도
+                        TokenManager.refreshAccessToken(
+                            context = this@SttActivity,
+                            onSuccess = {
+                                println("🔁 새로운 토큰으로 재시도 중")
+                                uploadFile(fileUri, retry = true) // 재시도
+                            },
+                            onFailure = {
+                                TokenManager.forceLogout(this@SttActivity)
+                            }
+                        )
+                    } else {
+                        val errorMessage = response.errorBody()?.string() ?: "알 수 없는 오류 발생"
+                        Toast.makeText(this@SttActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
@@ -184,6 +236,7 @@ class SttActivity : AppCompatActivity() {
             }
         })
     }
+
 
     // 🔹 Uri → File 변환 함수 (파일을 임시로 복사하여 저장)
     private fun uriToFile(uri: Uri): File? {
@@ -200,4 +253,100 @@ class SttActivity : AppCompatActivity() {
             null
         }
     }
+
+    // task_id 저장함수
+    private fun saveTaskId(taskId: String) {
+        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val existingJson = sharedPreferences.getString("task_id_list", "[]")
+        val taskIdList = Gson().fromJson(existingJson, MutableList::class.java) as MutableList<String>
+
+        if (!taskIdList.contains(taskId)) {
+            taskIdList.add(taskId)
+            val newJson = Gson().toJson(taskIdList)
+            sharedPreferences.edit().putString("task_id_list", newJson).apply()
+        }
+    }
+
+    //task_id 복원
+    private fun restoreTaskIdButtons() {
+        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val taskIdJson = sharedPreferences.getString("task_id_list", "[]")
+        val taskIdList = Gson().fromJson(taskIdJson, MutableList::class.java) as List<String>
+
+        for (taskId in taskIdList) {
+            val button = Button(this).apply {
+                text = "결과 확인: $taskId"
+                setOnClickListener {
+                    Toast.makeText(this@SttActivity, "📥 결과 요청: $taskId", Toast.LENGTH_SHORT).show()
+                    // 결과 요청 API 호출 가능
+                }
+            }
+            scrollLayout.addView(button)
+        }
+    }
+
+    private fun requestWithTokenRetry(task: (accessToken: String) -> Unit) {
+        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val accessToken = sharedPreferences.getString("access_token", null)
+        val refreshToken = sharedPreferences.getString("refresh_token", null)
+
+        if (accessToken == null || refreshToken == null) {
+            Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            TokenManager.forceLogout(this)
+            return
+        }
+
+        // 🟢 먼저 현재 access_token으로 시도
+        task("Bearer $accessToken")
+    }
+
+
+    private fun retrySttResultRequest(taskId: String) {
+        requestWithTokenRetry { accessToken ->
+            val call = RetrofitClient.fileUploadService.getSttResult(accessToken, taskId)
+
+            call.enqueue(object : Callback<ResponseBody> {
+                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                    if (response.isSuccessful) {
+                        val json = JSONObject(response.body()?.string() ?: "")
+                        val status = json.optString("status", "")
+                        val message = when (status) {
+                            "processing" -> "🕓 처리 중입니다. 잠시만 기다려주세요."
+                            "completed" -> json.optString("result", "결과 없음")
+                            "failed" -> "❌ 오류 발생: ${json.optString("error", "알 수 없는 오류")}"
+                            else -> "❓ 알 수 없는 상태: $status"
+                        }
+
+                        AlertDialog.Builder(this@SttActivity)
+                            .setTitle("STT 결과")
+                            .setMessage(message)
+                            .setPositiveButton("확인", null)
+                            .show()
+
+                    } else if (response.code() == 401) {
+                        // 🔁 access_token 만료 → refresh 시도 후 재시도
+                        TokenManager.refreshAccessToken(
+                            context = this@SttActivity,
+                            onSuccess = { newToken ->
+                                println("🔁 토큰 재발급 성공, 재요청 중")
+                                retrySttResultRequest(taskId) // 다시 시도
+                            },
+                            onFailure = {
+                                TokenManager.forceLogout(this@SttActivity)
+                            }
+                        )
+                    } else {
+                        Toast.makeText(this@SttActivity, "결과 조회 실패", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    Toast.makeText(this@SttActivity, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                }
+            })
+        }
+    }
+
+
+
 }

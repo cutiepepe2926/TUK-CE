@@ -104,6 +104,13 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        // 요약 페이지 이동 버튼 (텍스트 파일로 요약)
+        val btnSummarize = findViewById<ImageButton>(R.id.btnSummarize)
+        btnSummarize.setOnClickListener {
+            val intent = Intent(this, SummarizeActivity::class.java)
+            startActivity(intent)
+        }
+
 
         // 리사이클러뷰 & 어댑터 설정
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)

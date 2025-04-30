@@ -40,5 +40,16 @@
         android:layout_gravity="end"
         android:contentDescription="OCR기능테스트" />
 
+    <!--요약 기능-->
+    <ImageButton
+        android:id="@+id/btnSummarize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_summarize"
+        android:padding="20dp"
+        android:layout_gravity="end"
+        android:contentDescription="OCR기능테스트" />
+
 
 </androidx.appcompat.widget.Toolbar>

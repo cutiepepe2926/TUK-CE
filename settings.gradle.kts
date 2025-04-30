@@ -9,6 +9,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven ("https://alphacephei.com/maven/")
         jcenter()
         maven("https://jitpack.io") // 추가된 JitPack 저장소
     }
