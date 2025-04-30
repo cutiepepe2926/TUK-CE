@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        /*if (accessToken == null) {
+        if (accessToken == null) {
             // 로그인 정보가 없으면 로그인 화면으로 이동
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             // 로그인 정보가 있으면 메인 화면 표시
             setContentView(binding.root)
-        }*/
+        }
 
         //화면 출력
         setContentView(binding.root)

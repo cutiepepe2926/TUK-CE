@@ -9,61 +9,99 @@ import android.view.MotionEvent
 import android.view.View
 import com.example.test_app.model.PointF
 import com.example.test_app.model.Stroke
+import com.example.test_app.model.TextAnnotation
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
+    /** ---------- 필기(Stroke) 관련 ---------- */
     private val strokes = mutableListOf<Stroke>()
     private var currentStroke: Stroke? = null
 
-    private val paint = Paint().apply {
-        isAntiAlias = true
-        style = Paint.Style.STROKE
-    }
+    /** ---------- 텍스트 어노테이션 ---------- */
+    private val textAnnotations = mutableListOf<TextAnnotation>()
 
-    // PDFView가 주는 배율/오프셋
-    private var pdfScale = 1f
+    /** ---------- PDF 변환 정보 ---------- */
+    private var pdfScale   = 1f
     private var pdfOffsetX = 0f
     private var pdfOffsetY = 0f
 
-    // 필기 가능 여부 (필기 모드 vs 드래그 모드)
-    private var drawingEnabled = true
+    /** ---------- 상태 플래그 ---------- */
+    private var drawingEnabled  = true
+    private var viewCurrentPage = 0   // ★ PdfViewerActivity에서 전달받는 현재 페이지
 
-    // NoteViewerActivity에서 매 주기적으로 호출
+    /** ---------- Paint ---------- */
+    private val strokePaint = Paint().apply {
+        isAntiAlias = true
+        style = Paint.Style.STROKE
+    }
+    private val textPaint = Paint().apply {
+        isAntiAlias = true
+        textSize = 20f
+    }
+
+    /*------------------------------------------------------------
+     *  외부에서 호출하는 Setter 메서드
+     *-----------------------------------------------------------*/
+
+    /** PDFView 의 스케일·오프셋 정보를 주기적으로 전달 */
     fun setPdfViewInfo(scale: Float, offsetX: Float, offsetY: Float) {
-        pdfScale = scale
+        pdfScale   = scale
         pdfOffsetX = offsetX
         pdfOffsetY = offsetY
         invalidate()
     }
 
+    /** 이 페이지의 텍스트 어노테이션 세트 */
+    fun setTextAnnotations(annos: List<TextAnnotation>) {
+        textAnnotations.clear()
+        textAnnotations.addAll(annos)
+        invalidate()
+    }
+
+    /** 현재 페이지 번호 전달 */
+    fun setCurrentPage(page: Int) {
+        viewCurrentPage = page
+        invalidate()
+    }
+
+    /** 필기 가능 여부 */
     fun setDrawingEnabled(enabled: Boolean) {
         drawingEnabled = enabled
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!drawingEnabled) {
-            // 드래그 모드면 터치 이벤트 넘김(PDFView가 받음)
-            return false
-        }
+    /** 외부에서 Stroke 주입 */
+    fun setStrokes(loadedStrokes: List<Stroke>) {
+        strokes.clear()
+        strokes.addAll(loadedStrokes)
+        invalidate()
+    }
 
-        // 필기 모드에서는 화면 좌표 → PDF 좌표로 역변환하여 Stroke에 저장
-        val xScreen = event.x
-        val yScreen = event.y
-        val xPdf = (xScreen - pdfOffsetX) / pdfScale
-        val yPdf = (yScreen - pdfOffsetY) / pdfScale
+    /** 현재 Stroke 목록 반환 */
+    fun getStrokes(): List<Stroke> = strokes
+
+    /*------------------------------------------------------------
+     *  터치 이벤트 – 필기 입력
+     *-----------------------------------------------------------*/
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (!drawingEnabled) return false   // 드래그 모드면 터치 이벤트 넘김
+
+        // 화면 좌표 → PDF 좌표
+        val xPdf = (event.x - pdfOffsetX) / pdfScale
+        val yPdf = (event.y - pdfOffsetY) / pdfScale
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 currentStroke = Stroke(
-                    color = Color.RED,
-                    width = 5f,
-                    points = mutableListOf(PointF(xPdf, yPdf))
+                    color   = Color.RED,
+                    width   = 5f,
+                    points  = mutableListOf(PointF(xPdf, yPdf)),
+                    page    = viewCurrentPage
                 )
             }
             MotionEvent.ACTION_MOVE -> {
                 currentStroke?.points?.add(PointF(xPdf, yPdf))
             }
-            MotionEvent.ACTION_UP -> {
+            MotionEvent.ACTION_UP   -> {
                 currentStroke?.points?.add(PointF(xPdf, yPdf))
                 currentStroke?.let { strokes.add(it) }
                 currentStroke = null
@@ -73,44 +111,61 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         return true
     }
 
+    /*------------------------------------------------------------
+     *  그리기
+     *-----------------------------------------------------------*/
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        // (중요) 필기 모드든 드래그 모드든, 항상 PDF의 스케일/오프셋을 적용
         canvas.save()
         canvas.translate(pdfOffsetX, pdfOffsetY)
         canvas.scale(pdfScale, pdfScale)
 
-        // PDF 좌표에 저장된 strokes를 그린다
-        for (stroke in strokes) {
-            paint.color = stroke.color
-            paint.strokeWidth = stroke.width
+        /* ----- ① 저장된 Stroke 그리기 ----- */
+        for (stroke in strokes.filter { it.page == viewCurrentPage }) {
+            strokePaint.color = stroke.color
+            strokePaint.strokeWidth = stroke.width
             for (i in 0 until stroke.points.size - 1) {
                 val s = stroke.points[i]
                 val e = stroke.points[i + 1]
-                canvas.drawLine(s.x, s.y, e.x, e.y, paint)
+                canvas.drawLine(s.x, s.y, e.x, e.y, strokePaint)
             }
         }
 
-        // 현재 그리고 있는 stroke
+        /* ----- ② 현재 그리고 있는 Stroke ----- */
         currentStroke?.let { stroke ->
-            paint.color = stroke.color
-            paint.strokeWidth = stroke.width
+            strokePaint.color = stroke.color
+            strokePaint.strokeWidth = stroke.width
             for (i in 0 until stroke.points.size - 1) {
                 val s = stroke.points[i]
                 val e = stroke.points[i + 1]
-                canvas.drawLine(s.x, s.y, e.x, e.y, paint)
+                canvas.drawLine(s.x, s.y, e.x, e.y, strokePaint)
             }
         }
+
+        /* ----- ③ 텍스트 어노테이션 ----- */
+        textAnnotations
+            .filter { it.page == viewCurrentPage }
+            .forEach { anno ->
+                // 배경 박스
+                val padding = 8f
+                val w = textPaint.measureText(anno.text)
+
+                textPaint.style = Paint.Style.FILL
+                textPaint.color = Color.WHITE
+                canvas.drawRect(
+                    anno.x - padding,
+                    anno.y - textPaint.textSize - padding,
+                    anno.x + w + padding,
+                    anno.y + padding,
+                    textPaint
+                )
+
+                // 텍스트
+                textPaint.color = Color.BLACK
+                canvas.drawText(anno.text, anno.x, anno.y, textPaint)
+            }
 
         canvas.restore()
-    }
-
-    fun getStrokes(): List<Stroke> = strokes
-
-    fun setStrokes(loadedStrokes: List<Stroke>) {
-        strokes.clear()
-        strokes.addAll(loadedStrokes)
-        invalidate()
     }
 }

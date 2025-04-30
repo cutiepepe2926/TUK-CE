@@ -9,13 +9,13 @@ import retrofit2.http.POST
 // 인터페이스
 interface AuthService {
     // 회원가입 요청
-    @POST("accounts/register/")
+    @POST("users/signup/")
     fun registerUser(@Body request: SignupRequest): Call<SignupResponse> // ✅ 변경된 응답 타입
 
 
     // ✅ 로그인 요청 (x-www-form-urlencoded)
     @FormUrlEncoded
-    @POST("accounts/login/")
+    @POST("users/login/")
     fun loginUser(
         @Field("username") username: String,
         @Field("password") password: String

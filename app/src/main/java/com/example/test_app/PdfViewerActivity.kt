@@ -1,398 +1,350 @@
 package com.example.test_app
 
+import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.pdf.PdfRenderer
 import android.media.MediaRecorder
-import android.os.Bundle
-import android.os.Environment
+import android.net.Uri
+import android.os.*
 import android.widget.ImageButton
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import com.example.test_app.ReadImageText
 import com.example.test_app.databinding.ActivityPdfToolbarBinding
 import com.example.test_app.databinding.ActivityPdfViewerBinding
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
-import android.Manifest
-import com.github.barteksc.pdfviewer.PDFView
-import android.graphics.pdf.PdfRenderer
-import android.os.Handler
-import android.os.Looper
-import android.os.ParcelFileDescriptor
-import android.widget.Toast
-import android.widget.Toast.makeText
-import com.example.test_app.view.DrawingView
 import com.example.test_app.model.Stroke
+import com.example.test_app.model.TextAnnotation
 import com.example.test_app.utils.MyDocManager
 import com.example.test_app.utils.PdfExporter
+import com.example.test_app.view.DrawingView
+import com.github.barteksc.pdfviewer.BuildConfig
+import com.github.barteksc.pdfviewer.PDFView
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener
-
+import com.yalantis.ucrop.UCrop
+import java.io.File
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.*
 
 class PdfViewerActivity : AppCompatActivity() {
 
-    //바인딩 객체 선언
-    private lateinit var binding: ActivityPdfViewerBinding
+    /* ---------------- UI 바인딩 ---------------- */
+    private lateinit var binding      : ActivityPdfViewerBinding
+    private lateinit var toolBinding  : ActivityPdfToolbarBinding
+    private lateinit var pdfView      : PDFView
+    private lateinit var drawingView  : DrawingView
 
-    //!!신규!! 2개
-    private lateinit var pdfView: PDFView
-    private lateinit var drawingView: DrawingView
-
-    // 페이지별 필기 데이터를 저장 (페이지 번호 -> Stroke 목록)
-    //!!신규!! 1개
-    private val pageStrokes = mutableMapOf<Int, MutableList<Stroke>>()
-    
-    //!!신규!! 3개
-    private var currentPage = 0       // 현재 페이지 인덱스
-    private var totalPages = 0        // 전체 페이지 수 (PdfRenderer로 계산)
+    /* ---------------- PDF·필기 ---------------- */
+    private val pageStrokes   = mutableMapOf<Int, MutableList<Stroke>>()   // 페이지별 필기
+    private var currentPage   = 0
+    private var totalPages    = 0
     private lateinit var myDocPath: String
+    private val textAnnos     = mutableListOf<TextAnnotation>()            // 텍스트 어노테이션
 
-    // !!신규!! 1개
-    // 모드: true = 필기, false = 드래그
+    /* ---------------- 모드 ---------------- */
     private var isPenMode = true
 
+    /* ---------------- OCR / 번역 ---------------- */
+    private val ocrOptions = arrayOf("텍스트 추출", "번역")
+    private val AUTHORITY by lazy { "${packageName}.fileprovider" }
+    private val CROP_EXTRACT   = 1001
+    private val CROP_TRANSLATE = 1002
 
+    /* ---------------- 녹음 ---------------- */
+    private var isRecording = false
+    private var mediaRecorder: MediaRecorder? = null
+    private var audioFilePath = ""
 
-    //툴바 객체 선언
-    private lateinit var toolbinding : ActivityPdfToolbarBinding
-
-    private var isRecording = false // 🔹 녹음 상태 저장
-
-    private var mediaRecorder: MediaRecorder? = null // 🔹 녹음기 객체
-    private var audioFilePath: String = "" // 🔹 저장될 파일 경로
-
-
-    // 드래그 모드일 때 PDFView의 zoom/offset을 DrawingView에 반영하기 위한 Handler
+    /* ---------------- PDFView ↔ DrawingView 동기화 ---------------- */
     private val handler = Handler(Looper.getMainLooper())
-    private val updateTransformRunnable = object : Runnable {
+    private val syncRunnable = object : Runnable {
         override fun run() {
-            val scale = pdfView.zoom
-            val offsetX = pdfView.currentXOffset
-            val offsetY = pdfView.currentYOffset
-            drawingView.setPdfViewInfo(scale, offsetX, offsetY)
+            drawingView.setPdfViewInfo(
+                pdfView.zoom,
+                pdfView.currentXOffset,
+                pdfView.currentYOffset
+            )
             handler.postDelayed(this, 10)
         }
     }
 
-
-
-
+    /* ------------------------------------------------------------------ */
+    /*  onCreate                                                          */
+    /* ------------------------------------------------------------------ */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        //바인딩 객체 획득
-        binding = ActivityPdfViewerBinding.inflate(layoutInflater)
-        toolbinding = ActivityPdfToolbarBinding.inflate(layoutInflater)
-
+        binding     = ActivityPdfViewerBinding.inflate(layoutInflater)
+        toolBinding = ActivityPdfToolbarBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        //!!신규 2개!!
-        pdfView = binding.pdfView
+        pdfView     = binding.pdfView
         drawingView = binding.drawingView
 
-        //!!신규 2개!!
-        // myDoc 로드 (PDF 경로 및 기존 필기 데이터)
+        /* ----- myDoc 로드 ----- */
         myDocPath = intent.getStringExtra("myDocPath") ?: return
-        val myDocData = MyDocManager(this).loadMyDoc(File(myDocPath))
+        val myDoc  = MyDocManager(this).loadMyDoc(File(myDocPath))
+        totalPages = getTotalPages(File(myDoc.pdfFilePath))
 
-        // PdfRenderer로 전체 페이지 수 계산
-        totalPages = getTotalPages(File(getBasePdfPath()))
-
-        // 저장된 stroke들을 페이지별로 분리 (stroke의 page 값이 있다면 사용)
-        myDocData.strokes.groupBy { it.page }.forEach { (page, strokes) ->
-            pageStrokes[page] = strokes.toMutableList()
+        /* 저장돼 있던 필기 복원 */
+        myDoc.strokes.groupBy { it.page }.forEach { (p, s) ->
+            pageStrokes[p] = s.toMutableList()
         }
-        if (pageStrokes.isEmpty()) {
-            pageStrokes[0] = mutableListOf()
+        if (pageStrokes.isEmpty()) pageStrokes[0] = mutableListOf()
+
+        /* ----- 첫 페이지 표시 ----- */
+        loadPage(0)
+
+        /* ------------------------------------------------------------------
+         *  ▼▼▼ 툴바 버튼 리스너 ▼▼▼
+         * ------------------------------------------------------------------ */
+        val btnBack   = findViewById<ImageButton>(R.id.btnBack)
+        val btnSave   = findViewById<ImageButton>(R.id.btnSave)
+        val btnEraser = findViewById<ImageButton>(R.id.btnEraser)
+        val btnRecord = findViewById<ImageButton>(R.id.btnRecord)
+        val btnOcr    = findViewById<ImageButton>(R.id.btnOcr)
+
+        /* 뒤로가기 */
+        btnBack.setOnClickListener {
+            persistAllStrokes()
+            super.onBackPressed()
         }
 
-        // 첫 페이지 로드
-        currentPage = 0
-        loadSinglePage(currentPage)
+        /* 저장 */
+        btnSave.setOnClickListener {
+            persistAllStrokes()
+            Toast.makeText(this, "✅ 저장 완료", Toast.LENGTH_SHORT).show()
+        }
 
-        // "다음 페이지" 버튼
+        /* 필기 삭제 */
+        btnEraser.setOnClickListener {
+            pageStrokes[currentPage]?.clear()
+            drawingView.setStrokes(emptyList())
+            Toast.makeText(this, "현재 페이지 필기를 삭제했습니다.", Toast.LENGTH_SHORT).show()
+        }
+
+        /* 녹음 */
+        btnRecord.setOnClickListener {
+            if (isRecording) stopRecording(btnRecord) else startRecording(btnRecord)
+        }
+
+        /* OCR/번역 팝업 */
+        btnOcr.setOnClickListener { showOcrDialog() }
+
+        /* 페이지 네비게이션 */
         binding.nextPageButton.setOnClickListener {
             updateCurrentPageStrokes()
-            if (currentPage < totalPages - 1) {
-                currentPage++
-                loadSinglePage(currentPage)
-            }
+            if (currentPage < totalPages - 1) loadPage(currentPage + 1)
         }
-
-        // "이전 페이지" 버튼
         binding.prevPageButton.setOnClickListener {
             updateCurrentPageStrokes()
-            if (currentPage > 0) {
-                currentPage--
-                loadSinglePage(currentPage)
-            }
+            if (currentPage > 0) loadPage(currentPage - 1)
         }
 
-        // Export 버튼은 기존 로직 그대로
-        binding.exportButton.setOnClickListener {
-            exportToPdf()
-        }
-
-        // 모드 전환 버튼
+        /* 모드 전환 */
         binding.toggleModeButton.setOnClickListener {
             isPenMode = !isPenMode
-            if (isPenMode) {
-                binding.toggleModeButton.text = "필기"
-                drawingView.setDrawingEnabled(true)
-            } else {
-                binding.toggleModeButton.text = "드래그"
-                drawingView.setDrawingEnabled(false)
-            }
+            drawingView.setDrawingEnabled(isPenMode)
+            binding.toggleModeButton.text = if (isPenMode) "필기" else "드래그"
         }
 
-        // 드래그 모드일 때 DrawingView가 PDFView와 동기화되도록 업데이트 시작
-        handler.post(updateTransformRunnable)
+        /* Export */
+        binding.exportButton.setOnClickListener { exportToPdf() }
 
-
-        //여기까지가 새로운 코드
-        //밑에 코드 수정 필요
-        
-
-        // 툴바 설정
-        setSupportActionBar(toolbinding.pdfToolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false) // 타이틀 비설정
-
-        // 툴바 버튼 설정(뒤로가기)
-        val btnBack = findViewById<ImageButton>(R.id.btnBack)
-        // 🔹 뒤로 가기 버튼 기능
-        btnBack.setOnClickListener {
-            updateCurrentPageStrokes()
-            val allStrokes = pageStrokes.flatMap { it.value }
-            MyDocManager(this).saveMyDoc(
-                fileName = File(myDocPath).name,
-                pdfFilePath = getBasePdfPath(),
-                strokes = allStrokes
-            )
-            super.onBackPressed()
-            Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show();
-        }
-
-        // 툴바 버튼 설정(저장하기)
-        val btnSave = findViewById<ImageButton>(R.id.btnSave)
-        // 🔹 저장 하기 버튼 기능
-        btnSave.setOnClickListener {
-            updateCurrentPageStrokes()
-            val allStrokes = pageStrokes.flatMap { it.value }
-            MyDocManager(this).saveMyDoc(
-                fileName = File(myDocPath).name,
-                pdfFilePath = getBasePdfPath(),
-                strokes = allStrokes
-            )
-            Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show();
-        }
-
-        // 툴바 버튼 설정(필기삭제)
-        val btnEraser = findViewById<ImageButton>(R.id.btnEraser)
-        // 🔹 필기 삭제 버튼 기능
-        btnEraser.setOnClickListener {
-            println("🧽 현재 페이지 ($currentPage) 필기 삭제")
-
-            // 현재 페이지 필기 데이터 삭제
-            pageStrokes[currentPage]?.clear()
-
-            // DrawingView에서 화면도 갱신
-            drawingView.setStrokes(emptyList())
-
-            Toast.makeText(this, "현재 페이지 필기가 삭제되었습니다.", Toast.LENGTH_SHORT).show()
-        }
-
-
-        // 툴바 버튼 설정(녹음하기)
-        val btnRecord = findViewById<ImageButton>(R.id.btnRecord)
-        // 🔹 음성 녹음 버튼 기능
-        // 🔹 녹음 버튼 기능 (아이콘 변경)
-        // 🔹 녹음 버튼 기능 (아이콘 변경 & 녹음 기능 추가)
-        btnRecord.setOnClickListener {
-            println("🎤 녹음 버튼이 클릭됨!")
-            if (isRecording) {
-                stopRecording(btnRecord)
-            } else {
-                startRecording(btnRecord)
-            }
-        }
-
+        /* PDFView ↔ DrawingView 동기화 시작 */
+        handler.post(syncRunnable)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        handler.removeCallbacks(updateTransformRunnable)
+        handler.removeCallbacks(syncRunnable)
     }
 
-    /**
-     * 지정한 페이지 인덱스의 페이지만 로드하는 함수
-     */
-    private fun loadSinglePage(pageIndex: Int) {
+    /* ------------------------------------------------------------------ */
+    /*  페이지 로드                                                        */
+    /* ------------------------------------------------------------------ */
+    private fun loadPage(index: Int) {
+        currentPage = index
         pdfView.fromFile(File(getBasePdfPath()))
-            .enableSwipe(false)  // 스와이프로 전환하지 않고 버튼으로 변경
-            .enableDoubletap(true) // 드래그 모드에서는 더블 탭 줌 지원
-            .pages(pageIndex)    // 해당 페이지만 로드
+            .enableSwipe(false)
+            .pages(index)
             .onLoad(object : OnLoadCompleteListener {
                 override fun loadComplete(nbPages: Int) {
-                    // 로드된 페이지는 1개이므로, 현재 페이지의 필기를 DrawingView에 적용
-                    val strokes = pageStrokes[pageIndex] ?: mutableListOf()
-                    strokes.forEach { it.page = pageIndex }
-                    drawingView.setStrokes(strokes)
+                    /* 필기·어노테이션 적용 */
+                    drawingView.setCurrentPage(currentPage)
+                    drawingView.setStrokes(pageStrokes[currentPage] ?: mutableListOf())
+                    drawingView.setTextAnnotations(textAnnos)
                 }
             })
             .load()
     }
 
-    /**
-     * 현재 페이지의 DrawingView 필기를 저장하고, pageStrokes 맵에 업데이트하는 함수
-     */
+    /* ------------------------------------------------------------------ */
+    /*  OCR 팝업 → uCrop 호출                                             */
+    /* ------------------------------------------------------------------ */
+    private fun showOcrDialog() {
+        AlertDialog.Builder(this)
+            .setItems(ocrOptions) { _, which ->
+                val req = if (which == 0) CROP_EXTRACT else CROP_TRANSLATE
+                startCrop(req)
+            }
+            .show()
+    }
+
+    private fun startCrop(requestCode: Int) {
+        /* ① PDF + 필기 화면 캡처 */
+        val bmp = Bitmap.createBitmap(pdfView.width, pdfView.height, Bitmap.Config.ARGB_8888)
+        Canvas(bmp).apply {
+            pdfView.draw(this)
+            drawingView.draw(this)
+        }
+
+        /* ② 소스 이미지 파일 */
+        val srcFile = File(cacheDir, "crop_src_${System.currentTimeMillis()}.jpg")
+        FileOutputStream(srcFile).use { bmp.compress(Bitmap.CompressFormat.JPEG, 80, it) }
+        val srcUri = FileProvider.getUriForFile(this, AUTHORITY, srcFile)
+
+        /* ③ 출력 파일 URI */
+        val dstFile = File(cacheDir, "crop_dst_${System.currentTimeMillis()}.jpg")
+        val dstUri  = Uri.fromFile(dstFile)
+
+        /* ④ uCrop 실행 */
+        val opt = UCrop.Options().apply {
+            setCompressionFormat(Bitmap.CompressFormat.JPEG)
+            setFreeStyleCropEnabled(true)
+        }
+        UCrop.of(srcUri, dstUri)
+            .withOptions(opt)
+            .withAspectRatio(0f, 0f)
+            .start(this, requestCode)
+    }
+
+    override fun onActivityResult(reqCode: Int, resCode: Int, data: Intent?) {
+        super.onActivityResult(reqCode, resCode, data)
+        if (resCode != RESULT_OK || data == null) return
+
+        val uri = UCrop.getOutput(data) ?: return
+        val cropped = contentResolver.openInputStream(uri)
+            ?.use { BitmapFactory.decodeStream(it) } ?: return
+
+        when (reqCode) {
+            CROP_EXTRACT   -> runOcr(cropped)
+            CROP_TRANSLATE -> runTranslate(cropped) // 추후 구현
+        }
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  OCR 수행 & 텍스트 어노테이션 추가                                  */
+    /* ------------------------------------------------------------------ */
+    private fun runOcr(bmp: Bitmap) {
+        // context가 필요 없는 클래스이므로 생성자에 this 전달 X
+        ReadImageText()
+            .processImage(bmp) { extracted ->
+                runOnUiThread { addTextAnno(extracted) }
+            }
+    }
+
+    private fun addTextAnno(text: String) {
+        val cx = pdfView.width  / 2f
+        val cy = pdfView.height / 2f
+        val pdfX = (cx - pdfView.currentXOffset) / pdfView.zoom
+        val pdfY = (cy - pdfView.currentYOffset) / pdfView.zoom
+
+        textAnnos += TextAnnotation(currentPage, text, pdfX, pdfY)
+        drawingView.setTextAnnotations(textAnnos)
+    }
+
+    private fun runTranslate(bmp: Bitmap) {
+        // TODO: 번역 처리 후 addTextAnno 호출
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  필기·파일 저장/로드                                                */
+    /* ------------------------------------------------------------------ */
     private fun updateCurrentPageStrokes() {
         val strokes = drawingView.getStrokes().toMutableList()
         strokes.forEach { it.page = currentPage }
         pageStrokes[currentPage] = strokes
     }
 
-    override fun onBackPressed() {
+    private fun persistAllStrokes() {
         updateCurrentPageStrokes()
-        val allStrokes = pageStrokes.flatMap { it.value }
+        val all = pageStrokes.values.flatten()
         MyDocManager(this).saveMyDoc(
-            fileName = File(myDocPath).name,
-            pdfFilePath = getBasePdfPath(),
-            strokes = allStrokes
+            File(myDocPath).name,
+            getBasePdfPath(),
+            all
         )
+    }
+
+    private fun getBasePdfPath(): String =
+        MyDocManager(this).loadMyDoc(File(myDocPath)).pdfFilePath
+
+    private fun getTotalPages(file: File): Int =
+        PdfRenderer(ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY))
+            .use { it.pageCount }
+
+    /* ------------------------------------------------------------------ */
+    /*  Export                                                            */
+    /* ------------------------------------------------------------------ */
+    private fun exportToPdf() {
+        persistAllStrokes()
+        PdfExporter.export(
+            this,
+            myDocPath,
+            "Exported_${System.currentTimeMillis()}.pdf"
+        )
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  녹음                                                               */
+    /* ------------------------------------------------------------------ */
+    private fun startRecording(btn: ImageButton) {
+        if (!checkPermissions()) { requestPermissions(); return }
+        isRecording = true
+        btn.setImageResource(R.drawable.ic_recording)
+
+        val fileName   = "record_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())}.mp3"
+        val storageDir = getExternalFilesDir(Environment.DIRECTORY_MUSIC)
+        val audioFile  = File(storageDir, fileName)
+        audioFilePath  = audioFile.absolutePath
+
+        mediaRecorder = MediaRecorder().apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setOutputFile(audioFilePath)
+            prepare()
+            start()
+        }
+    }
+
+    private fun stopRecording(btn: ImageButton) {
+        isRecording = false
+        btn.setImageResource(R.drawable.ic_record)
+        mediaRecorder?.apply { stop(); release() }
+        mediaRecorder = null
+    }
+
+    private fun checkPermissions(): Boolean =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED
+
+    private fun requestPermissions() =
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 200)
+
+    /* ------------------------------------------------------------------ */
+    /*  뒤로가기                                                           */
+    /* ------------------------------------------------------------------ */
+    override fun onBackPressed() {
+        persistAllStrokes()
         super.onBackPressed()
     }
-
-    private fun exportToPdf() {
-        PdfExporter.export(
-            context = this,
-            myDocPath = myDocPath,
-            outputFileName = "Exported_${System.currentTimeMillis()}.pdf"
-        )
-    }
-
-    private fun getBasePdfPath(): String {
-        val myDocData = MyDocManager(this).loadMyDoc(File(myDocPath))
-        return myDocData.pdfFilePath
-    }
-
-    /**
-     * PdfRenderer를 이용해 PDF 파일의 전체 페이지 수 계산 (API 21 이상)
-     */
-    private fun getTotalPages(pdfFile: File): Int {
-        var pageCount = 0
-        val fileDescriptor = ParcelFileDescriptor.open(pdfFile, ParcelFileDescriptor.MODE_READ_ONLY)
-        PdfRenderer(fileDescriptor).use { renderer ->
-            pageCount = renderer.pageCount
-        }
-        fileDescriptor.close()
-        return pageCount
-    }
-
-    // ✅ 녹음 시작 함수
-    private fun startRecording(btnRecord: ImageButton) {
-        if (!checkPermissions()) {
-            println("🚨 권한이 없어서 녹음을 시작할 수 없습니다!")
-            requestPermissions()
-            return
-        }
-
-        isRecording = true
-        btnRecord.setImageResource(R.drawable.ic_recording) // 🔴 아이콘 변경
-
-        val fileName = generateFileName() // 🔹 저장할 파일 이름 생성
-        val storageDir = getExternalFilesDir(Environment.DIRECTORY_MUSIC) // 🔹 앱 내부 저장소 사용
-        val audioFile = File(storageDir, fileName) // 🔹 파일 생성
-        audioFilePath = audioFile.absolutePath
-
-        println("📂 파일 저장 경로: $audioFilePath") // ✅ 파일 경로 출력
-
-        try {
-            mediaRecorder = MediaRecorder().apply {
-                setAudioSource(MediaRecorder.AudioSource.MIC) // 🔹 마이크 사용
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4) // 🔹 MP4 포맷 (MP3와 유사)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC) // 🔹 AAC 인코딩
-                setOutputFile(audioFilePath) // 🔹 파일 저장 경로
-                prepare()
-                start()
-            }
-            println("🎤 녹음 시작됨!")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            println("🚨 녹음 시작 중 오류 발생: ${e.message}")
-        }
-    }
-
-
-    // ✅ 녹음 중지 함수
-    private fun stopRecording(btnRecord: ImageButton) {
-        println("🛑 녹음 중지 요청됨")
-
-        isRecording = false
-        btnRecord.setImageResource(R.drawable.ic_record) // 🎤 아이콘 변경
-
-        try {
-            mediaRecorder?.apply {
-                stop()
-                release()
-            }
-            mediaRecorder = null
-            println("✅ 녹음 중지 완료! 파일 저장됨: $audioFilePath")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            println("🚨 녹음 중지 중 오류 발생: ${e.message}")
-        }
-    }
-
-
-    // ✅ 파일 이름 생성 함수 (yyyyMMdd_HHmm.mp3 형식)
-    private fun generateFileName(): String {
-        val timeStamp = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
-        return "record_$timeStamp.mp3"
-    }
-
-    // ✅ 녹음 권한 확인 함수
-    private fun checkPermissions(): Boolean {
-        return try {
-            val recordPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-
-            println("🔍 권한 확인 - RECORD_AUDIO: $recordPermission")
-
-            recordPermission == PackageManager.PERMISSION_GRANTED
-        } catch (e: Exception) {
-            e.printStackTrace()
-            println("🚨 권한 확인 중 오류 발생: ${e.message}")
-            false // 예외 발생 시 false 반환 (앱 크래시 방지)
-        }
-    }
-
-
-
-    // ✅ 녹음 권한 요청 함수
-    private fun requestPermissions() {
-        try {
-            println("🔔 권한 요청 실행")
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.RECORD_AUDIO), // 🚀 파일 저장 권한 제거
-                200
-            )
-        } catch (e: Exception) {
-            e.printStackTrace()
-            println("🚨 권한 요청 중 오류 발생: ${e.message}")
-        }
-    }
-
-
-    //권한 승인 여부 확인
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == 200) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                println("✅ 오디오 녹음 권한이 승인되었습니다!")
-            } else {
-                println("❌ 오디오 녹음 권한이 거부되었습니다.")
-            }
-        }
-    }
-    
 }
