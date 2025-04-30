@@ -1,6 +1,5 @@
 package com.example.test_app
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -10,7 +9,6 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -21,14 +19,7 @@ import com.example.test_app.utils.PdfUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.shockwave.pdfium.PdfiumCore
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import okhttp3.ResponseBody
 import java.io.File
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import com.example.test_app.model.Note
@@ -73,7 +64,7 @@ class MainActivity : AppCompatActivity() {
 
 
 
-        /*if (accessToken == null) {
+        if (accessToken == null) {
             // 로그인 정보가 없으면 로그인 화면으로 이동
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
@@ -81,7 +72,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             // 로그인 정보가 있으면 메인 화면 표시
             setContentView(binding.root)
-        }*/
+        }
 
         //화면 출력
         setContentView(binding.root)
@@ -102,7 +93,8 @@ class MainActivity : AppCompatActivity() {
         // 파일 선택 버튼 (음성 파일 업로드)
         val btnSendRecord = findViewById<ImageButton>(R.id.btnSendRecord)
         btnSendRecord.setOnClickListener {
-            openFilePicker()
+            val intent = Intent(this, SttActivity::class.java)
+            startActivity(intent)
         }
 
         // OCR 페이지 이동 버튼 (사진으로 OCR)
@@ -153,87 +145,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    // 🔹 파일 탐색기 열기 (MP3 파일 선택)
-    private fun openFilePicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "audio/*" // 🔹 모든 오디오 파일 형식 지원
-        }
-        filePickerLauncher.launch(intent)
-    }
 
-    // 🔹 파일 선택 결과 처리
-    private val filePickerLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-                val selectedFileUri = result.data!!.data
-                if (selectedFileUri != null) {
-                    println("✅ 선택된 파일 URI: $selectedFileUri")
-                    uploadFile(selectedFileUri) // 🔹 선택한 파일을 서버로 업로드
-                }
-            } else {
-                Toast.makeText(this, "파일 선택이 취소되었습니다.", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-    // 🔹 파일 업로드 함수
-    private fun uploadFile(fileUri: Uri) {
-        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-        val accessToken = sharedPreferences.getString("access_token", null)
-
-        if (accessToken == null) {
-            println("🚨 로그인 정보 없음: 토큰이 없습니다.")
-            Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // 🔹 Uri → 실제 파일 변환 (임시 파일 생성)
-        val file = uriToFile(fileUri) ?: run {
-            println("🚨 파일 변환 실패")
-            return
-        }
-
-        val requestBody = RequestBody.create("audio/*".toMediaTypeOrNull(), file)
-        val filePart = MultipartBody.Part.createFormData("file", file.name, requestBody)
-
-        val call = RetrofitClient.fileUploadService.uploadFile("Bearer $accessToken", filePart) // ✅ 수정된 코드
-
-        call.enqueue(object : Callback<ResponseBody> {
-            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                if (response.isSuccessful) {
-                    val responseBody = response.body()?.string() ?: "서버 응답 없음"
-                    println("✅ 파일 업로드 성공! 서버 응답: $responseBody")
-                    Toast.makeText(this@MainActivity, responseBody, Toast.LENGTH_SHORT).show()
-                } else {
-                    val errorMessage = response.errorBody()?.string() ?: "알 수 없는 오류 발생"
-                    println("🚨 파일 업로드 실패: $errorMessage")
-                    Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_SHORT).show()
-                }
-
-            }
-
-            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                println("🚨 네트워크 오류: ${t.message}")
-                Toast.makeText(this@MainActivity, "네트워크 오류 발생!", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
-    // 🔹 Uri → File 변환 함수 (파일을 임시로 복사하여 저장)
-    private fun uriToFile(uri: Uri): File? {
-        val tempFile = File(cacheDir, "temp_audio.mp3")
-        return try {
-            val inputStream = contentResolver.openInputStream(uri) ?: return null
-            val outputStream = FileOutputStream(tempFile)
-            inputStream.copyTo(outputStream)
-            inputStream.close()
-            outputStream.close()
-            tempFile
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
 
         // PDF 파일을 Bitmap으로 변환
     private fun renderPdfToBitmap(uri: Uri): Bitmap? {
@@ -282,85 +194,6 @@ class MainActivity : AppCompatActivity() {
         }
         return null
     }
-
-
-
-    // 동적으로 ImageView를 생성하고 추가하는 함수(썸네일 + 파일명 + 파일URI)
-    // 🔥 썸네일 클릭 시 새로운 PDF 열도록 수정
-//    private fun addPdfImage(bitmap: Bitmap, fileUri: Uri, fileName: String) {
-//
-//        //PDF 썸네일을 담을 LinearLayout 생성
-//        val container = LinearLayout(this).apply {
-//            orientation = LinearLayout.VERTICAL
-//            layoutParams = GridLayout.LayoutParams().apply {
-//                width = 500
-//                height = GridLayout.LayoutParams.WRAP_CONTENT
-//                setMargins(50, 40, 50, 20)
-//            }
-//        }
-//
-//        //PDF 썸네일을 표시할 ImageView 생성
-////        val imageView = ImageView(this).apply {
-////            layoutParams = LinearLayout.LayoutParams(500, 600)
-////            scaleType = ImageView.ScaleType.CENTER_CROP
-////            setImageBitmap(bitmap)
-////
-////            //PDF 썸네일 클릭 시 PdfViewerActivity 실행
-////            setOnClickListener {
-////                val finalUri = if (fileUri.scheme == "file") {
-////                    getFileUri(File(fileUri.path!!))
-////                // ✅ `file://`을 `content://`로 변환
-////                } else {
-////                    fileUri
-////                }
-////
-////                val intent = Intent(this@MainActivity, PdfViewerActivity::class.java).apply {
-////                    putExtra("pdfUri", finalUri.toString()) // 최신 PDF URI 전달
-////                    putExtra("pdfName", fileName)
-////                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-////                }
-////                println("✅ 최신 PDF 열기: $finalUri")
-////                pdfViewerResultLauncher.launch(intent)
-////            }
-////        }
-////
-////        //PDF 파일명을 표시할 TextView 생성
-////        val textView = TextView(this).apply {
-////            layoutParams = LinearLayout.LayoutParams(
-////                LinearLayout.LayoutParams.WRAP_CONTENT,
-////                LinearLayout.LayoutParams.WRAP_CONTENT
-////            )
-////            text = fileName
-////            textSize = 16f
-////            setPadding(10, 10, 10, 10)
-////            setTextColor(resources.getColor(android.R.color.white, theme))
-////        }
-//
-//        //PDF 삭제 기능을 표시할 Button 생성
-//        val deleteView = Button(this).apply {
-//            layoutParams = LinearLayout.LayoutParams(
-//                LinearLayout.LayoutParams.WRAP_CONTENT,
-//                LinearLayout.LayoutParams.WRAP_CONTENT
-//            )
-//            text = "삭제"
-//            textSize = 16f
-//            setPadding(10,10,10,10)
-//            setTextColor(resources.getColor(android.R.color.black,theme))
-//
-//            setOnClickListener {
-//                removePdf(fileUri, container) // 📌 삭제 함수 호출
-//            }
-//        }
-//
-//        //LinearLayout에 ImageView와 TextView 추가
-//        container.addView(imageView)
-//        container.addView(textView)
-//        container.addView(deleteView)
-//        binding.pdfContainer.addView(container)
-//    }
-
-
-
 
     //PDF 파일 이름을 가져오는 함수
     private fun getFileName(uri: Uri): String {

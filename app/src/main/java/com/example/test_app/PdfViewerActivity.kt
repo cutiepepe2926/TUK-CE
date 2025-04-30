@@ -14,18 +14,23 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import android.Manifest
+import android.annotation.SuppressLint
 import com.github.barteksc.pdfviewer.PDFView
 import android.graphics.pdf.PdfRenderer
+import android.media.AudioFormat
+import android.media.AudioRecord
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.widget.Toast
-import android.widget.Toast.makeText
 import com.example.test_app.view.DrawingView
 import com.example.test_app.model.Stroke
 import com.example.test_app.utils.MyDocManager
 import com.example.test_app.utils.PdfExporter
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener
+import java.io.FileOutputStream
+import java.io.OutputStream
+import java.io.RandomAccessFile
 
 
 class PdfViewerActivity : AppCompatActivity() {
@@ -57,8 +62,9 @@ class PdfViewerActivity : AppCompatActivity() {
 
     private var isRecording = false // 🔹 녹음 상태 저장
 
-    private var mediaRecorder: MediaRecorder? = null // 🔹 녹음기 객체
+    private var audioRecord: AudioRecord? = null // 🔹 녹음기 객체
     private var audioFilePath: String = "" // 🔹 저장될 파일 경로
+    private var recordingThread: Thread? = null
 
 
     // 드래그 모드일 때 PDFView의 zoom/offset을 DrawingView에 반영하기 위한 Handler
@@ -168,7 +174,7 @@ class PdfViewerActivity : AppCompatActivity() {
                 strokes = allStrokes
             )
             super.onBackPressed()
-            Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show()
         }
 
         // 툴바 버튼 설정(저장하기)
@@ -182,7 +188,7 @@ class PdfViewerActivity : AppCompatActivity() {
                 pdfFilePath = getBasePdfPath(),
                 strokes = allStrokes
             )
-            Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show()
         }
 
         // 툴바 버튼 설정(필기삭제)
@@ -287,7 +293,8 @@ class PdfViewerActivity : AppCompatActivity() {
         return pageCount
     }
 
-    // ✅ 녹음 시작 함수
+    // ✅ WAV 녹음 시작 함수
+    @SuppressLint("MissingPermission")
     private fun startRecording(btnRecord: ImageButton) {
         if (!checkPermissions()) {
             println("🚨 권한이 없어서 녹음을 시작할 수 없습니다!")
@@ -298,26 +305,54 @@ class PdfViewerActivity : AppCompatActivity() {
         isRecording = true
         btnRecord.setImageResource(R.drawable.ic_recording) // 🔴 아이콘 변경
 
-        val fileName = generateFileName() // 🔹 저장할 파일 이름 생성
-        val storageDir = getExternalFilesDir(Environment.DIRECTORY_MUSIC) // 🔹 앱 내부 저장소 사용
+        val fileName = generateFileName().replace(".mp3", ".wav") // 🔁 파일 이름 확장자 변경
+        //val storageDir = getExternalFilesDir(Environment.DIRECTORY_MUSIC) // 🔹 앱 내부 저장소 사용
+        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) //🔹 다운로드 파일
         val audioFile = File(storageDir, fileName) // 🔹 파일 생성
         audioFilePath = audioFile.absolutePath
 
         println("📂 파일 저장 경로: $audioFilePath") // ✅ 파일 경로 출력
 
         try {
-            mediaRecorder = MediaRecorder().apply {
-                setAudioSource(MediaRecorder.AudioSource.MIC) // 🔹 마이크 사용
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4) // 🔹 MP4 포맷 (MP3와 유사)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC) // 🔹 AAC 인코딩
-                setOutputFile(audioFilePath) // 🔹 파일 저장 경로
-                prepare()
-                start()
+            val sampleRate = 16000
+            val channelConfig = AudioFormat.CHANNEL_IN_MONO
+            val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+            val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+            audioRecord = AudioRecord(
+                MediaRecorder.AudioSource.MIC,
+                sampleRate,
+                channelConfig,
+                audioFormat,
+                bufferSize
+            )
+
+            val outputStream = FileOutputStream(audioFile)
+            writeWavHeader(outputStream, sampleRate, 1, audioFormat)
+
+            audioRecord?.startRecording()
+
+            recordingThread = Thread {
+                val buffer = ByteArray(bufferSize)
+                while (isRecording) {
+                    val read = audioRecord?.read(buffer, 0, buffer.size) ?: 0
+                    if (read > 0) {
+                        outputStream.write(buffer, 0, read)
+                    }
+                }
+                audioRecord?.stop()
+                audioRecord?.release()
+                audioRecord = null
+                updateWavHeader(audioFile)
+                outputStream.close()
+                println("✅ WAV 파일 저장 완료: $audioFilePath")
             }
-            println("🎤 녹음 시작됨!")
+
+            recordingThread?.start()
+            println("🎤 WAV 녹음 시작됨!")
+
         } catch (e: Exception) {
             e.printStackTrace()
-            println("🚨 녹음 시작 중 오류 발생: ${e.message}")
+            println("🚨 녹음 중 오류 발생: ${e.message}")
         }
     }
 
@@ -326,21 +361,87 @@ class PdfViewerActivity : AppCompatActivity() {
     private fun stopRecording(btnRecord: ImageButton) {
         println("🛑 녹음 중지 요청됨")
 
-        isRecording = false
-        btnRecord.setImageResource(R.drawable.ic_record) // 🎤 아이콘 변경
-
         try {
-            mediaRecorder?.apply {
-                stop()
-                release()
-            }
-            mediaRecorder = null
-            println("✅ 녹음 중지 완료! 파일 저장됨: $audioFilePath")
+            isRecording = false
+            recordingThread?.join()
+            btnRecord.setImageResource(R.drawable.ic_record) // 🎤 아이콘 변경
+            println("✅ 녹음 완료! 파일 저장 위치: $audioFilePath")
         } catch (e: Exception) {
             e.printStackTrace()
             println("🚨 녹음 중지 중 오류 발생: ${e.message}")
         }
     }
+
+    private fun writeWavHeader(out: OutputStream, sampleRate: Int, channels: Int, encoding: Int) {
+        val bitsPerSample = if (encoding == AudioFormat.ENCODING_PCM_16BIT) 16 else 8
+        val byteRate = sampleRate * channels * bitsPerSample / 8
+
+        val header = ByteArray(44)
+
+        // ChunkID "RIFF"
+        header[0] = 'R'.code.toByte()
+        header[1] = 'I'.code.toByte()
+        header[2] = 'F'.code.toByte()
+        header[3] = 'F'.code.toByte()
+
+        // ChunkSize (임시 0)
+        // Format "WAVE"
+        header[8] = 'W'.code.toByte()
+        header[9] = 'A'.code.toByte()
+        header[10] = 'V'.code.toByte()
+        header[11] = 'E'.code.toByte()
+
+        // Subchunk1ID "fmt "
+        header[12] = 'f'.code.toByte()
+        header[13] = 'm'.code.toByte()
+        header[14] = 't'.code.toByte()
+        header[15] = ' '.code.toByte()
+
+        // Subchunk1Size = 16 for PCM
+        header[16] = 16
+        header[20] = 1 // PCM
+        header[22] = channels.toByte()
+        header[24] = (sampleRate and 0xff).toByte()
+        header[25] = ((sampleRate shr 8) and 0xff).toByte()
+        header[26] = ((sampleRate shr 16) and 0xff).toByte()
+        header[27] = ((sampleRate shr 24) and 0xff).toByte()
+        header[28] = (byteRate and 0xff).toByte()
+        header[29] = ((byteRate shr 8) and 0xff).toByte()
+        header[30] = ((byteRate shr 16) and 0xff).toByte()
+        header[31] = ((byteRate shr 24) and 0xff).toByte()
+        header[32] = (channels * bitsPerSample / 8).toByte()
+        header[34] = bitsPerSample.toByte()
+
+        // Subchunk2ID "data" + Subchunk2Size (임시 0)
+        header[36] = 'd'.code.toByte()
+        header[37] = 'a'.code.toByte()
+        header[38] = 't'.code.toByte()
+        header[39] = 'a'.code.toByte()
+
+        out.write(header, 0, 44)
+    }
+
+    private fun updateWavHeader(wavFile: File) {
+        val sizes = wavFile.length() - 44
+        val header = RandomAccessFile(wavFile, "rw")
+
+        header.seek(4)
+        header.write(intToByteArray((sizes + 36).toInt()))
+        header.seek(40)
+        header.write(intToByteArray(sizes.toInt()))
+        header.close()
+    }
+
+    private fun intToByteArray(value: Int): ByteArray {
+        return byteArrayOf(
+            (value and 0xff).toByte(),
+            ((value shr 8) and 0xff).toByte(),
+            ((value shr 16) and 0xff).toByte(),
+            ((value shr 24) and 0xff).toByte()
+        )
+    }
+
+
 
 
     // ✅ 파일 이름 생성 함수 (yyyyMMdd_HHmm.mp3 형식)

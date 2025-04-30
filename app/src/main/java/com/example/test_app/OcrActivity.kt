@@ -24,6 +24,9 @@ import com.google.mlkit.nl.translate.TranslatorOptions
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.launch
 import java.io.File
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 
 class OcrActivity : AppCompatActivity() {
 
@@ -52,6 +55,20 @@ class OcrActivity : AppCompatActivity() {
         uri?.let {
             startCropActivity(it) // 선택된 이미지를 크롭 액티비티로 전달
         }
+    }
+
+    private fun isNetworkAvailable(context: Context): Boolean {
+        // 시스템에서 연결된 네트워크 객체 가져오기
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        // 현재 활성 네트워크가 없으면 false 반환
+        val network = connectivityManager.activeNetwork ?: return false
+        // 활성 네트워크의 세부 기능 가져오기
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+
+        // 해당 네트워크가 인터넷 연결 기능을 가지고 있으면 true
+        return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     // 크롭 화면 실행
@@ -127,6 +144,14 @@ class OcrActivity : AppCompatActivity() {
         }
         // 📌 번역 버튼 클릭 리스너 추가
         btnTranslate.setOnClickListener {
+
+            if (isNetworkAvailable(this)) {
+                // 온라인 번역기 사용
+            } else {
+                // 오프라인 ML Kit 번역기 사용
+            }
+
+
             val textToTranslate = tvImageText.text.toString()
 //            if (textToTranslate.isNotEmpty()) {
 //                translateText(textToTranslate)

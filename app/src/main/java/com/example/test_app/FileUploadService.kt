@@ -10,7 +10,7 @@ import retrofit2.http.Part
 
 interface FileUploadService {
     @Multipart
-    @POST("files/upload/")
+    @POST("stt/")
     fun uploadFile(
         @Header("Authorization") authToken: String, // 🔹 Bearer 토큰 추가
         @Part file: MultipartBody.Part

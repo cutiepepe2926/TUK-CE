@@ -80,6 +80,12 @@ dependencies {
     implementation ("com.squareup.okhttp3:logging-interceptor:4.9.3")
 
 
+    // STT 라이브러리
+    implementation("com.alphacephei:vosk-android:0.3.32")
+
+
+
+
 
     // 테스트 라이브러리
     testImplementation("junit:junit:4.13.2")
