@@ -17,7 +17,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import com.example.test_app.ReadImageText
 import com.example.test_app.databinding.ActivityPdfToolbarBinding
 import com.example.test_app.databinding.ActivityPdfViewerBinding
 import com.example.test_app.model.Stroke
@@ -25,7 +24,6 @@ import com.example.test_app.model.TextAnnotation
 import com.example.test_app.utils.MyDocManager
 import com.example.test_app.utils.PdfExporter
 import com.example.test_app.view.DrawingView
-import com.github.barteksc.pdfviewer.BuildConfig
 import com.github.barteksc.pdfviewer.PDFView
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener
 import com.yalantis.ucrop.UCrop
@@ -199,32 +197,38 @@ class PdfViewerActivity : AppCompatActivity() {
     }
 
     private fun startCrop(requestCode: Int) {
-        /* ① PDF + 필기 화면 캡처 */
-        val bmp = Bitmap.createBitmap(pdfView.width, pdfView.height, Bitmap.Config.ARGB_8888)
-        Canvas(bmp).apply {
-            pdfView.draw(this)
-            drawingView.draw(this)
-        }
+        /* 1) 메모리 절감: RGB_565 + 다운스케일 */
+        val scale = 1080f / pdfView.width
+        val w = (pdfView.width  * scale).toInt()
+        val h = (pdfView.height * scale).toInt()
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.RGB_565)
 
-        /* ② 소스 이미지 파일 */
+        val canvas = Canvas(bmp).apply { scale(scale, scale) }
+        pdfView.draw(canvas)
+        drawingView.draw(canvas)
+
+        /* 2) JPEG 저장 */
         val srcFile = File(cacheDir, "crop_src_${System.currentTimeMillis()}.jpg")
-        FileOutputStream(srcFile).use { bmp.compress(Bitmap.CompressFormat.JPEG, 80, it) }
-        val srcUri = FileProvider.getUriForFile(this, AUTHORITY, srcFile)
+        FileOutputStream(srcFile).use {
+            bmp.compress(Bitmap.CompressFormat.JPEG, 85, it)
+        }
+        bmp.recycle()                 // ★ 즉시 버퍼 해제
+        System.gc()                   //   (메모리 피크 억제)
 
-        /* ③ 출력 파일 URI */
+        /* 3) FileProvider URI → uCrop */
+        val srcUri = FileProvider.getUriForFile(this, AUTHORITY, srcFile)
         val dstFile = File(cacheDir, "crop_dst_${System.currentTimeMillis()}.jpg")
         val dstUri  = Uri.fromFile(dstFile)
 
-        /* ④ uCrop 실행 */
-        val opt = UCrop.Options().apply {
-            setCompressionFormat(Bitmap.CompressFormat.JPEG)
-            setFreeStyleCropEnabled(true)
-        }
         UCrop.of(srcUri, dstUri)
-            .withOptions(opt)
+            .withOptions(UCrop.Options().apply {
+                setCompressionFormat(Bitmap.CompressFormat.JPEG)
+                setFreeStyleCropEnabled(true)
+            })
             .withAspectRatio(0f, 0f)
             .start(this, requestCode)
     }
+
 
     override fun onActivityResult(reqCode: Int, resCode: Int, data: Intent?) {
         super.onActivityResult(reqCode, resCode, data)

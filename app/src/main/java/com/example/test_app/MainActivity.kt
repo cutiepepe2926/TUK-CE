@@ -105,12 +105,12 @@ class MainActivity : AppCompatActivity() {
             openFilePicker()
         }
 
-        // OCR 페이지 이동 버튼 (사진으로 OCR)
-        val btnOcr = findViewById<ImageButton>(R.id.btnOcr)
-        btnOcr.setOnClickListener {
-            val intent = Intent(this, OcrActivity::class.java)
-            startActivity(intent)
-        }
+//        // OCR 페이지 이동 버튼 (사진으로 OCR)
+//        val btnOcr = findViewById<ImageButton>(R.id.btnOcr)
+//        btnOcr.setOnClickListener {
+//            val intent = Intent(this, OcrActivity::class.java)
+//            startActivity(intent)
+//        }
 
 
         // 리사이클러뷰 & 어댑터 설정

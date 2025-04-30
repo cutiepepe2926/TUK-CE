@@ -21,9 +21,6 @@
         android:theme="@style/Theme.Test_App"
         tools:targetApi="31">
         <activity
-            android:name=".OcrActivity"
-            android:exported="false" />
-        <activity
             android:name=".SignupActivity"
             android:exported="true" />
         <activity
@@ -31,9 +28,6 @@
             android:exported="true" />
         <activity
             android:name=".PdfViewerActivity"
-            android:exported="true" />
-        <activity
-            android:name=".AddActivity"
             android:exported="true" />
         <activity
             android:name=".MainActivity"
@@ -53,12 +47,12 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.test_app.provider"
+            android:authorities="com.example.test_app.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths" />
+                android:resource="@xml/file_paths" />
         </provider>
     </application>
 
