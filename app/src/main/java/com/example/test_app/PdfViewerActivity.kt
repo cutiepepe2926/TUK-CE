@@ -3,9 +3,7 @@ package com.example.test_app
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
+import android.graphics.*
 import android.graphics.pdf.PdfRenderer
 import android.media.MediaRecorder
 import android.net.Uri
@@ -17,7 +15,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import com.example.test_app.databinding.ActivityPdfToolbarBinding
 import com.example.test_app.databinding.ActivityPdfViewerBinding
 import com.example.test_app.model.Stroke
 import com.example.test_app.model.TextAnnotation
@@ -40,8 +37,8 @@ class PdfViewerActivity : AppCompatActivity() {
     private lateinit var drawingView : DrawingView
 
     /* ---------------- 데이터 ---------------- */
-    private val pageStrokes = mutableMapOf<Int, MutableList<Stroke>>()    // 페이지별 필기
-    private val textAnnos   = mutableListOf<TextAnnotation>()             // OCR 텍스트
+    private val pageStrokes = mutableMapOf<Int, MutableList<Stroke>>()
+    private val textAnnos   = mutableListOf<TextAnnotation>()
     private var currentPage = 0
     private var totalPages  = 0
     private lateinit var myDocPath: String
@@ -60,7 +57,7 @@ class PdfViewerActivity : AppCompatActivity() {
     private var mediaRecorder: MediaRecorder? = null
     private var audioFilePath = ""
 
-    /* ---------------- PDFView ↔ DrawingView 동기화 ---------------- */
+    /* ---------------- Sync ---------------- */
     private val handler = Handler(Looper.getMainLooper())
     private val syncRunnable = object : Runnable {
         override fun run() {
@@ -85,49 +82,35 @@ class PdfViewerActivity : AppCompatActivity() {
         val myDoc = MyDocManager(this).loadMyDoc(File(myDocPath))
         totalPages = getTotalPages(File(myDoc.pdfFilePath))
 
-        /* 필기·텍스트 복원 */
         myDoc.strokes.groupBy { it.page }.forEach { (p, s) -> pageStrokes[p] = s.toMutableList() }
         if (pageStrokes.isEmpty()) pageStrokes[0] = mutableListOf()
         textAnnos.addAll(myDoc.annotations)
 
-        /* 첫 페이지 로드 */
-        loadPage(0)
+        loadPage(0)                    // 첫 페이지
 
-        /* -------- 툴바 버튼 -------- */
-        findViewById<ImageButton>(R.id.btnBack).setOnClickListener {
-            persistAllData(); super.onBackPressed()
-        }
+        /* --- 툴바 버튼 --- */
+        findViewById<ImageButton>(R.id.btnBack).setOnClickListener { persistAll(); super.onBackPressed() }
         findViewById<ImageButton>(R.id.btnEraser).setOnClickListener {
-            pageStrokes[currentPage]?.clear()
-            drawingView.setStrokes(emptyList())
-            Toast.makeText(this, "현재 페이지 필기를 삭제했습니다.", Toast.LENGTH_SHORT).show()
+            pageStrokes[currentPage]?.clear(); drawingView.setStrokes(emptyList())
         }
         findViewById<ImageButton>(R.id.btnRecord).setOnClickListener {
             if (isRecording) stopRecording(it as ImageButton) else startRecording(it as ImageButton)
         }
         findViewById<ImageButton>(R.id.btnOcr).setOnClickListener { showOcrDialog() }
 
-        /* 페이지 전환 */
         binding.nextPageButton.setOnClickListener {
-            updateCurrentPageStrokes()
-            if (currentPage < totalPages - 1) loadPage(currentPage + 1)
+            updateCurrentPageStrokes(); if (currentPage < totalPages - 1) loadPage(currentPage + 1)
         }
         binding.prevPageButton.setOnClickListener {
-            updateCurrentPageStrokes()
-            if (currentPage > 0) loadPage(currentPage - 1)
+            updateCurrentPageStrokes(); if (currentPage > 0) loadPage(currentPage - 1)
         }
-
-        /* 모드 전환 */
         binding.toggleModeButton.setOnClickListener {
             isPenMode = !isPenMode
             drawingView.setDrawingEnabled(isPenMode)
             binding.toggleModeButton.text = if (isPenMode) "필기" else "드래그"
         }
-
-        /* Export */
         binding.exportButton.setOnClickListener { exportToPdf() }
 
-        /* 동기화 시작 */
         handler.post(syncRunnable)
     }
 
@@ -141,8 +124,7 @@ class PdfViewerActivity : AppCompatActivity() {
     private fun loadPage(index: Int) {
         currentPage = index
         pdfView.fromFile(File(getBasePdfPath()))
-            .enableSwipe(false)
-            .pages(index)
+            .enableSwipe(false).pages(index)
             .onLoad(object : OnLoadCompleteListener {
                 override fun loadComplete(nbPages: Int) {
                     drawingView.setCurrentPage(currentPage)
@@ -162,7 +144,6 @@ class PdfViewerActivity : AppCompatActivity() {
     }
 
     private fun startCrop(reqCode: Int) {
-        /* 캡처 비트맵 (다운스케일 + RGB_565) */
         val scale = 1080f / pdfView.width
         val bmp = Bitmap.createBitmap(
             (pdfView.width * scale).toInt(),
@@ -171,7 +152,6 @@ class PdfViewerActivity : AppCompatActivity() {
         )
         Canvas(bmp).apply { scale(scale, scale); pdfView.draw(this); drawingView.draw(this) }
 
-        /* 파일 저장 */
         val srcFile = File(cacheDir, "crop_src_${System.currentTimeMillis()}.jpg")
         FileOutputStream(srcFile).use { bmp.compress(Bitmap.CompressFormat.JPEG, 85, it) }
         bmp.recycle(); System.gc()
@@ -181,8 +161,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
         UCrop.of(srcUri, dstUri)
             .withOptions(UCrop.Options().apply {
-                setCompressionFormat(Bitmap.CompressFormat.JPEG)
-                setFreeStyleCropEnabled(true)
+                setCompressionFormat(Bitmap.CompressFormat.JPEG); setFreeStyleCropEnabled(true)
             })
             .withAspectRatio(0f, 0f)
             .start(this, reqCode)
@@ -208,19 +187,34 @@ class PdfViewerActivity : AppCompatActivity() {
         }
     }
 
-    private fun addTextAnno(text: String) {
+    /* ---------- 문자열 래핑 ---------- */
+    private fun wrapText(src: String, maxChars: Int = 30): String {
+        val words = src.split("\\s+".toRegex())
+        val sb = StringBuilder()
+        var lineLen = 0
+        for (w in words) {
+            if (lineLen + w.length + 1 > maxChars) {
+                sb.append('\n'); lineLen = 0
+            } else if (lineLen > 0) {
+                sb.append(' '); lineLen++
+            }
+            sb.append(w); lineLen += w.length
+        }
+        return sb.toString()
+    }
+
+    private fun addTextAnno(raw: String) {
+        val wrapped = wrapText(raw, 40)      // ← 40글자마다 줄바꿈
         val cx = pdfView.width / 2f
         val cy = pdfView.height / 2f
         val pdfX = (cx - pdfView.currentXOffset) / pdfView.zoom
         val pdfY = (cy - pdfView.currentYOffset) / pdfView.zoom
 
-        textAnnos += TextAnnotation(currentPage, text, pdfX, pdfY, 40f)
+        textAnnos += TextAnnotation(currentPage, wrapped, pdfX, pdfY, 40f)
         drawingView.setTextAnnotations(textAnnos)
     }
 
-    private fun runTranslate(bmp: Bitmap) {
-        // TODO: 번역 후 addTextAnno(...)
-    }
+    private fun runTranslate(bmp: Bitmap) { /* 추후 구현 */ }
 
     /* =============================================================== */
     /*  저장 / 로드                                                    */
@@ -231,13 +225,13 @@ class PdfViewerActivity : AppCompatActivity() {
         pageStrokes[currentPage] = strokes
     }
 
-    private fun persistAllData() {
+    private fun persistAll() {
         updateCurrentPageStrokes()
         MyDocManager(this).saveMyDoc(
-            fileName    = File(myDocPath).name,
-            pdfFilePath = getBasePdfPath(),
-            strokes     = pageStrokes.values.flatten(),
-            annotations = textAnnos
+            File(myDocPath).name,
+            getBasePdfPath(),
+            pageStrokes.values.flatten(),
+            textAnnos
         )
     }
 
@@ -252,7 +246,7 @@ class PdfViewerActivity : AppCompatActivity() {
     /*  Export                                                         */
     /* =============================================================== */
     private fun exportToPdf() {
-        persistAllData()
+        persistAll()
         PdfExporter.export(this, myDocPath, "Exported_${System.currentTimeMillis()}.pdf")
     }
 
@@ -263,9 +257,9 @@ class PdfViewerActivity : AppCompatActivity() {
         if (!checkPermissions()) { requestPermissions(); return }
         isRecording = true; btn.setImageResource(R.drawable.ic_recording)
 
-        val fileName   = "record_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())}.mp3"
-        val audioFile  = File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), fileName)
-        audioFilePath  = audioFile.absolutePath
+        val fileName = "record_${SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())}.mp3"
+        val audioFile = File(getExternalFilesDir(Environment.DIRECTORY_MUSIC), fileName)
+        audioFilePath = audioFile.absolutePath
 
         mediaRecorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
@@ -281,7 +275,7 @@ class PdfViewerActivity : AppCompatActivity() {
         mediaRecorder?.apply { stop(); release() }; mediaRecorder = null
     }
 
-    private fun checkPermissions(): Boolean =
+    private fun checkPermissions() =
         ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
                 PackageManager.PERMISSION_GRANTED
 
@@ -291,8 +285,5 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     /*  뒤로가기                                                       */
     /* =============================================================== */
-    override fun onBackPressed() {
-        persistAllData()
-        super.onBackPressed()
-    }
+    override fun onBackPressed() { persistAll(); super.onBackPressed() }
 }
