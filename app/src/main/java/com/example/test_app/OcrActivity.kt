@@ -193,34 +193,6 @@ class OcrActivity : AppCompatActivity() {
                 tvTranslatedText.text = "번역 실패"
             }
     }
-
-    // 번역할 문장을 문장부호 단위로 분리하기
-//    private fun splitAndTranslate(text: String) {
-//
-//        //val sentences = text.split(Regex("(?<=[.!?])\\s+"))
-//
-//        // ✅ 문장부호 + 연결사 기준으로 문장 나누기
-//        val sentences = text.split(Regex("(?<=[.!?])\\s+|,\\s+|;\\s+|\\b(and|but|so)\\b"))
-//
-//        val translatedSentences = mutableListOf<String>()
-//
-//        // ✅ 각 문장을 개별적으로 번역
-//        sentences.forEach { sentence ->
-//            translator.translate(sentence)
-//                .addOnSuccessListener { translatedText ->
-//                    translatedSentences.add(translatedText)
-//
-//                    // ✅ 모든 문장이 번역 완료되었을 때 출력
-//                    if (translatedSentences.size == sentences.size) {
-//                        val finalTranslation = translatedSentences.joinToString(" ")
-//                        tvTranslatedText.text = finalTranslation
-//                    }
-//                }
-//                .addOnFailureListener {
-//                    println("🚨 번역 실패: ${it.message}")
-//                }
-//        }
-//    }
     private fun splitAndTranslate(text: String) {
         // ✅ 1. 고유명사 보호 적용 (대문자로 시작하는 단어 감지)
         val (processedText, properNounMap) = preprocessTextForProperNouns(text)
