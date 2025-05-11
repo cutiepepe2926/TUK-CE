@@ -1,4 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <external-files-path name="my_files" path="Documents/MyNotes/" />
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 기존 노트 저장용 경로 (그대로 유지) -->
+    <external-files-path
+        name="my_files"
+        path="Documents/MyNotes/" />
+
+    <!-- uCrop·임시 캡처 파일용 내부 캐시 경로 (추가) -->
+    <cache-path
+        name="cache"
+        path="." />
+
 </paths>

@@ -3,8 +3,6 @@ package com.example.test_app.utils
 import android.content.Context
 import android.net.Uri
 import com.example.test_app.model.Note
-import com.example.test_app.model.Stroke
-import com.google.gson.Gson
 import java.io.File
 import java.io.FileOutputStream
 
@@ -23,7 +21,8 @@ object PdfUtils {
         MyDocManager(context).saveMyDoc(
             fileName = myDocName,
             pdfFilePath = blankPdf.absolutePath,
-            strokes = emptyList()
+            strokes = emptyList(),
+            annotations = emptyList()
         )
 
         // 1-3. Note 객체 생성
@@ -48,7 +47,8 @@ object PdfUtils {
         MyDocManager(context).saveMyDoc(
             fileName = myDocName,
             pdfFilePath = copiedPdf.absolutePath,
-            strokes = emptyList()
+            strokes = emptyList(),
+            annotations = emptyList()
         )
 
         noteIdCounter++
