@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity() {
         // 리사이클러뷰 & 어댑터 설정
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
         //recyclerView.layoutManager = LinearLayoutManager(this)
-        val spanCount = 3 // 태블릿은 3도 추천 가능f
+        val spanCount = 3 // 태블릿은 3도 추천 가능
         recyclerView.layoutManager = GridLayoutManager(this, spanCount)
 
         noteAdapter = NoteAdapter(noteList) { note ->
