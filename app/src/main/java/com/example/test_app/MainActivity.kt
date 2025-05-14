@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity() {
         return name
     }
 
-    //!!신규!! 아래는 통합될 함수 목록들임.
+    //아래는 통합될 함수 목록들임.
 
     private fun showTitleDialogThenCreateNote(uri: Uri) {
         val builder = AlertDialog.Builder(this)
