@@ -16,7 +16,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.test_app.databinding.ActivityOcrBinding
-import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
@@ -32,7 +31,7 @@ class OcrActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivityOcrBinding
 
-    private val STORAGE_PERMISSION = Manifest.permission.READ_MEDIA_IMAGES
+    private val STORAGEPERMISSION = Manifest.permission.READ_MEDIA_IMAGES
 
     private lateinit var btnAddImage: Button
     private lateinit var btnProcessImage: Button
@@ -144,21 +143,21 @@ class OcrActivity : AppCompatActivity() {
         }
         // 📌 번역 버튼 클릭 리스너 추가
         btnTranslate.setOnClickListener {
-
-            if (isNetworkAvailable(this)) {
-                // 온라인 번역기 사용
-            } else {
-                // 오프라인 ML Kit 번역기 사용
-            }
-
-
-            val textToTranslate = tvImageText.text.toString()
+//
+//            if (isNetworkAvailable(this)) {
+//                // 온라인 번역기 사용
+//            } else {
+//                // 오프라인 ML Kit 번역기 사용
+//            }
+//
+//
+//            val textToTranslate = tvImageText.text.toString()
 //            if (textToTranslate.isNotEmpty()) {
 //                translateText(textToTranslate)
 //            }
-            if (textToTranslate.isNotEmpty()) {
-                splitAndTranslate(textToTranslate) // ✅ 문장 나누기 후 번역 실행
-            }
+//            if (textToTranslate.isNotEmpty()) {
+//
+//            }
         }
 
         // 📌 번역기 초기화
@@ -182,97 +181,15 @@ class OcrActivity : AppCompatActivity() {
     }
 
 
-    // 📌 텍스트 번역 함수
-    // 번역된 결과를 OCR 옆에 출력
-    private fun translateText(text: String) {
-        translator.translate(text)
-            .addOnSuccessListener { translatedText ->
-                tvTranslatedText.text = translatedText // ✅ 번역 결과 업데이트
-            }
-            .addOnFailureListener {
-                tvTranslatedText.text = "번역 실패"
-            }
-    }
-    private fun splitAndTranslate(text: String) {
-        // ✅ 1. 고유명사 보호 적용 (대문자로 시작하는 단어 감지)
-        val (processedText, properNounMap) = preprocessTextForProperNouns(text)
-
-        // ✅ 2. 문장 분리 (문장부호 + 연결사 기준)
-        val sentences = processedText.split(Regex("(?<=[.!?])\\s+|,\\s+|;\\s+|\\b(and|but|so)\\b"))
-
-        val translatedSentences = mutableListOf<String>()
-
-        sentences.forEach { sentence ->
-            translator.translate(sentence)
-                .addOnSuccessListener { translatedText ->
-                    translatedSentences.add(translatedText)
-
-                    // ✅ 3. 모든 문장이 번역 완료되었을 때 고유명사 복원
-                    if (translatedSentences.size == sentences.size) {
-                        val finalTranslation = postprocessTextForProperNouns(
-                            translatedSentences.joinToString(" "), properNounMap
-                        )
-                        tvTranslatedText.text = finalTranslation // ✅ 번역 결과 표시
-                    }
-                }
-                .addOnFailureListener {
-                    println("🚨 번역 실패: ${it.message}")
-                }
-        }
-    }
-
-
-    // 대문자로 시작하는 단어 감지
-    private fun detectProperNounsEnglish(text: String): List<String> {
-        val words = text.split(" ") // ✅ 단어 단위로 분리
-        val properNouns = mutableListOf<String>()
-
-        for (word in words) {
-            if (word.isNotEmpty() && word[0].isUpperCase()) {
-                properNouns.add(word)
-            }
-        }
-
-        return properNouns // ✅ 고유명사 리스트 반환
-    }
-
-    //감지된 고유명사 보호 태그 적용
-    private fun preprocessTextForProperNouns(text: String): Pair<String, Map<String, String>> {
-        val properNouns = detectProperNounsEnglish(text)
-        val properNounMap = mutableMapOf<String, String>()
-
-        var processedText = text
-        properNouns.forEachIndexed { index, word ->
-            val placeholder = "[PN_$index]"
-            properNounMap[word] = placeholder
-            processedText = processedText.replace(word, placeholder)
-        }
-
-        return Pair(processedText, properNounMap)
-    }
-
-    // ✅ 번역 후 원래 고유명사 복원
-    private fun postprocessTextForProperNouns(text: String, properNounMap: Map<String, String>): String {
-        var finalText = text
-        properNounMap.forEach { (original, placeholder) ->
-            finalText = finalText.replace(placeholder, original)
-        }
-        return finalText
-    }
-
-
-
-
-
 
     override fun onResume() {
         super.onResume()
 
-        val permissionCheck = ContextCompat.checkSelfPermission(applicationContext, STORAGE_PERMISSION)
+        val permissionCheck = ContextCompat.checkSelfPermission(applicationContext, STORAGEPERMISSION)
 
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, STORAGE_PERMISSION)) {
-                ActivityCompat.requestPermissions(this, arrayOf(STORAGE_PERMISSION), 0)
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, STORAGEPERMISSION)) {
+                ActivityCompat.requestPermissions(this, arrayOf(STORAGEPERMISSION), 0)
             } else {
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = Uri.fromParts("package", packageName, null)
