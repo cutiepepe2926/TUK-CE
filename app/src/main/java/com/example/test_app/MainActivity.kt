@@ -86,7 +86,8 @@ class MainActivity : AppCompatActivity() {
         val userBtn = findViewById<ImageButton>(R.id.btnUser)
         // 🔹 로그인 하기 버튼 기능
         userBtn.setOnClickListener {
-            val intent = Intent(this, LoginActivity::class.java)
+            //val intent = Intent(this, LoginActivity::class.java)
+            val intent = Intent(this, TranslateActivity::class.java)
             startActivity(intent)
         }
 

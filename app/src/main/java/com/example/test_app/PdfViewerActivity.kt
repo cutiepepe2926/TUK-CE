@@ -112,13 +112,13 @@ class PdfViewerActivity : AppCompatActivity() {
 
         // "다음 페이지" 버튼
         binding.nextPageButton.setOnClickListener {
-            updateCurrentPageStrokes();
+            updateCurrentPageStrokes()
             if (currentPage < totalPages - 1) loadPage(currentPage + 1)
         }
 
         // "이전 페이지" 버튼
         binding.prevPageButton.setOnClickListener {
-            updateCurrentPageStrokes();
+            updateCurrentPageStrokes()
             if (currentPage > 0) loadPage(currentPage - 1)
         }
 
