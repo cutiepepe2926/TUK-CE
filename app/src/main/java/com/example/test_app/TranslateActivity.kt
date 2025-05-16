@@ -3,7 +3,6 @@ package com.example.test_app
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.example.test_app.databinding.ActivityMainBinding
 import com.example.test_app.databinding.ActivityTranslateBinding
 import okhttp3.Call
 import okhttp3.Callback
