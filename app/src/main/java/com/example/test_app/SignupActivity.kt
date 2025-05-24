@@ -1,7 +1,10 @@
 package com.example.test_app
 
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
+import android.text.InputType
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.test_app.databinding.ActivitySignupBinding
@@ -12,7 +15,7 @@ import retrofit2.Response
 class SignupActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivitySignupBinding
-    private var isPasswordHidden = false
+    private var isPasswordHidden = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +50,21 @@ class SignupActivity : AppCompatActivity() {
 
         binding.x.setOnClickListener {
             super.onBackPressed()
+        }
+
+        binding.hide.setOnClickListener {
+            if (isPasswordHidden) {
+                binding.signupPassword.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                binding.hide.setBackgroundTintList(ColorStateList.valueOf(Color.BLACK)) // 아이콘 색 변경
+                binding.Text4.text = "보기"
+            }
+            else {
+                binding.signupPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                binding.hide.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D8D8D8"))) // 원래 색으로
+                binding.Text4.text = "숨김"
+            }
+            isPasswordHidden = !isPasswordHidden
         }
     }
 
