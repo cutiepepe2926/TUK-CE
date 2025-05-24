@@ -12,6 +12,7 @@ import retrofit2.Response
 class SignupActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivitySignupBinding
+    private var isPasswordHidden = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,15 +27,9 @@ class SignupActivity : AppCompatActivity() {
             val username = binding.signupId.text.toString().trim()
             val email = binding.signupEmail.text.toString().trim()
             val password = binding.signupPassword.text.toString().trim()
-            val confirmPassword = binding.signupConfirmPassword.text.toString().trim()
 
-            if (username.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "모든 정보를 입력하세요.", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            if (password != confirmPassword) {
-                Toast.makeText(this, "비밀번호가 일치하지 않습니다.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -48,6 +43,10 @@ class SignupActivity : AppCompatActivity() {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
             finish() // 현재 화면 종료
+        }
+
+        binding.x.setOnClickListener {
+            super.onBackPressed()
         }
     }
 

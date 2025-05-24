@@ -3,7 +3,10 @@ package com.example.test_app
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
+import android.text.InputType
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.test_app.databinding.ActivityLoginBinding
@@ -18,12 +21,32 @@ class LoginActivity : AppCompatActivity() {
     //토큰 저장용
     private lateinit var sharedPreferences: SharedPreferences
 
+    private var isPasswordHidden = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityLoginBinding.inflate(layoutInflater)
         sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val rememberPassword = binding.loginPassword.text.toString()
+        val rememberCheck = binding.rememberPasswd
+
+        if (rememberCheck.isChecked) {
+            val prefs = getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+            prefs.edit().putString("saved_password", rememberPassword).apply()
+        } else {
+            val prefs = getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+            prefs.edit().remove("saved_password").apply()
+        }
+
+        val prefs = getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+        val savedPassword = prefs.getString("saved_password", "")
+        if (!savedPassword.isNullOrEmpty()) {
+            binding.loginPassword.setText(savedPassword)
+            rememberCheck.isChecked = true // 체크 상태도 자동 설정
+        }
+
 
         setContentView(binding.root)
 
@@ -45,6 +68,25 @@ class LoginActivity : AppCompatActivity() {
         binding.btnSignup.setOnClickListener {
             val intent = Intent(this, SignupActivity::class.java)
             startActivity(intent)
+        }
+
+        binding.x.setOnClickListener {
+            super.onBackPressed()
+        }
+
+        binding.hide.setOnClickListener {
+            if (isPasswordHidden) {
+                binding.loginPassword.inputType =
+                    InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                binding.hide.setBackgroundTintList(ColorStateList.valueOf(Color.BLACK)) // 아이콘 색 변경
+                binding.Text4.text = "보기"
+            }
+            else {
+                binding.loginPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+                binding.hide.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D8D8D8"))) // 원래 색으로
+                binding.Text4.text = "숨김"
+            }
+            isPasswordHidden = !isPasswordHidden
         }
 
     }
