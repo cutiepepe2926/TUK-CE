@@ -49,6 +49,7 @@
             android:layout_marginTop="10dp"
             android:gravity="center_vertical" />
 
+        <!--아이디 입력 영역-->
         <EditText
             android:id="@+id/loginId"
             android:layout_width="match_parent"
@@ -73,6 +74,7 @@
                 android:text="비밀번호"
                 android:gravity="center_vertical" />
 
+            <!--비밀번호 숨김 아이콘-->
             <TextView
                 android:id="@+id/hide"
                 android:layout_width="34dp"
@@ -90,6 +92,7 @@
                 android:gravity="center" />
         </LinearLayout>
 
+        <!--비밀번호 입력 영역-->
         <EditText
             android:id="@+id/loginPassword"
             android:layout_width="match_parent"
@@ -105,6 +108,7 @@
             android:orientation="horizontal"
             android:layout_marginTop="10dp">
 
+            <!--비밀번호 기억 체크박스-->
             <CheckBox
                 android:id="@+id/remember_passwd"
                 android:layout_width="wrap_content"
@@ -124,6 +128,7 @@
             android:layout_width="match_parent"
             android:layout_height="25dp" />
 
+        <!--로그인 버튼-->
         <Button
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
@@ -135,6 +140,7 @@
             android:textSize="16sp"
             tools:ignore="TouchTargetSizeCheck" />
 
+        <!--비밀번호 찾기 버튼-->
         <TextView
             android:id="@+id/alread_have"
             android:layout_width="match_parent"
@@ -144,6 +150,7 @@
             android:gravity="center"
             android:layout_marginTop="16dp" />
 
+        <!--회원가입 페이지 이동 버튼-->
         <TextView
             android:id="@+id/btnSignup"
             android:layout_width="match_parent"
