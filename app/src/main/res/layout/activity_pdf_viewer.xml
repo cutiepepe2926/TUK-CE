@@ -146,7 +146,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="16dp"
-            android:src="@drawable/toolbar_ic_record"
+            android:src="@drawable/ic_record"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="녹음"
             android:visibility="gone"/>
@@ -156,7 +156,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="16dp"
-            android:src="@drawable/toolbar_ic_action_ocrlogo"
+            android:src="@drawable/toolbar_ic_ocr"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="OCR"
             android:visibility="gone"/>
