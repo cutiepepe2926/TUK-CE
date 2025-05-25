@@ -187,6 +187,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
         // 햄버거
         val btnMenu = findViewById<ImageButton>(R.id.btnMenu)
+
         btnMenu.setOnClickListener {
             val shouldShow = btnRecord.visibility == View.GONE
             btnRecord.visibility = if (shouldShow) View.VISIBLE else View.GONE

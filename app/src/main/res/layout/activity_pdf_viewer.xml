@@ -2,7 +2,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
     <!-- 1) PDF + DrawingView -->
     <com.github.barteksc.pdfviewer.PDFView
@@ -23,7 +24,8 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="bottom|start"
-        android:layout_margin="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
         android:src="@drawable/toolbar_ic_arrow_left"
         android:background="@drawable/bg_round"
         android:contentDescription="이전 페이지"/>
@@ -33,19 +35,20 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
         android:src="@drawable/toolbar_ic_arrow_right"
         android:background="@drawable/bg_round"
         android:contentDescription="다음 페이지"/>
 
     <!-- 3) 상단 오버레이 컨테이너 -->
     <FrameLayout
+        android:id="@+id/topOverlay"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="16dp">
+        android:padding="16dp">
 
         <!-- 3-1) 좌측 X(닫기) -->
         <ImageButton
@@ -111,61 +114,62 @@
                 android:src="@drawable/toolbar_ic_hand"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="필기 모드"/>
-        </LinearLayout>
-
-        <!-- 4) 햄버거 눌렀을 때 펼쳐질 메뉴 -->
-        <LinearLayout
-            android:id="@+id/sideMenu"
-            android:orientation="vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end|center_vertical"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/bg_round"
-            android:padding="8dp">
-
-            <!-- 1) 햄버거 토글 버튼 (항상 보임) -->
-            <ImageButton
-                android:id="@+id/btnMenu"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:src="@drawable/toolbar_ic_menu"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="메뉴 토글"/>
-
-            <!-- 2) 숨겨진 메뉴 아이템들 (초기 GONE) -->
-            <ImageButton
-                android:id="@+id/btnRecord"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="8dp"
-                android:src="@drawable/toolbar_ic_record"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="녹음"
-                android:visibility="gone"/>
-
-
-            <ImageButton
-                android:id="@+id/btnOcr"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="8dp"
-                android:src="@drawable/toolbar_ic_action_ocrlogo"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="OCR"
-                android:visibility="gone"/>
-
-            <ImageButton
-                android:id="@+id/exportButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginTop="8dp"
-                android:src="@drawable/toolbar_ic_export"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="내보내기"
-                android:visibility="gone"/>
 
         </LinearLayout>
 
     </FrameLayout>
+
+    <!-- 4) 햄버거 눌렀을 때 펼쳐질 메뉴 -->
+    <LinearLayout
+        android:id="@+id/sideMenu"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|top"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_round"
+        android:padding="8dp">
+
+        <!-- 1) 햄버거 토글 버튼 (항상 보임) -->
+        <ImageButton
+            android:id="@+id/btnMenu"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/toolbar_ic_menu"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="메뉴 토글"/>
+
+        <!-- 2) 숨겨진 메뉴 아이템들 (초기 GONE) -->
+        <ImageButton
+            android:id="@+id/btnRecord"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/toolbar_ic_record"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="녹음"
+            android:visibility="gone"/>
+
+        <ImageButton
+            android:id="@+id/btnOcr"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/toolbar_ic_action_ocrlogo"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="OCR"
+            android:visibility="gone"/>
+
+        <ImageButton
+            android:id="@+id/exportButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/toolbar_ic_export"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="내보내기"
+            android:visibility="gone"/>
+
+    </LinearLayout>
 </FrameLayout>
