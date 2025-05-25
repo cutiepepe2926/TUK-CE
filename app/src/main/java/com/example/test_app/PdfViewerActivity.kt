@@ -27,6 +27,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
@@ -122,22 +123,26 @@ class PdfViewerActivity : AppCompatActivity() {
             if (currentPage > 0) loadPage(currentPage - 1)
         }
 
-        // Export 버튼은 기존 로직 그대로
-        binding.exportButton.setOnClickListener {
-            exportToPdf()
-        }
+
 
         // 모드 전환 버튼
         binding.toggleModeButton.setOnClickListener {
             isPenMode = !isPenMode
             drawingView.setDrawingEnabled(isPenMode)
-            binding.toggleModeButton.text = if (isPenMode) "필기" else "드래그"
+            // pen 모드일 때(연하게), drag 모드일 때(진하게)
+            binding.toggleModeButton.alpha = if (isPenMode) 0.4f else 1.0f
         }
         
 
         // 툴바 설정
         setSupportActionBar(toolbinding.pdfToolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false) // 타이틀 비설정
+
+        // Export 버튼은 기존 로직 그대로
+        val exportButton = findViewById<ImageButton>(R.id.exportButton)
+        exportButton.setOnClickListener {
+            exportToPdf()
+        }
 
         //툴바 버튼 설정(OCR)
         val btnOCR = findViewById<ImageButton>(R.id.btnOcr)
@@ -153,20 +158,6 @@ class PdfViewerActivity : AppCompatActivity() {
             persistAll(); super.onBackPressed()
             Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show()
         }
-
-        // 툴바 버튼 설정(저장하기)
-        //val btnSave = findViewById<ImageButton>(R.id.btnSave)
-        // 🔹 저장 하기 버튼 기능
-        /*btnSave.setOnClickListener {
-            updateCurrentPageStrokes()
-            val allStrokes = pageStrokes.flatMap { it.value }
-            MyDocManager(this).saveMyDoc(
-                fileName = File(myDocPath).name,
-                pdfFilePath = getBasePdfPath(),
-                strokes = allStrokes
-            )
-            Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show()
-        }*/
 
         // 툴바 버튼 설정(필기삭제)
         val btnEraser = findViewById<ImageButton>(R.id.btnEraser)
@@ -194,6 +185,14 @@ class PdfViewerActivity : AppCompatActivity() {
             }
         }
 
+        // 햄버거
+        val btnMenu = findViewById<ImageButton>(R.id.btnMenu)
+        btnMenu.setOnClickListener {
+            val shouldShow = btnRecord.visibility == View.GONE
+            btnRecord.visibility = if (shouldShow) View.VISIBLE else View.GONE
+            btnOCR.visibility = if (shouldShow) View.VISIBLE else View.GONE
+            exportButton.visibility = if (shouldShow) View.VISIBLE else View.GONE
+        }
 
         handler.post(syncRunnable)
     }
