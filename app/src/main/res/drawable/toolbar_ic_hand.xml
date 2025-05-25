@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <!-- Material ‘back_hand’ 아이콘 -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M19.41,10.41V6c0-1.1-.9-2-2-2h-1c-.55,0-1,.45-1,1v5h-1V4c0-1.1-.9-2-2-2h-1c-.55,0-1,.45-1,1v7H9V6c0-1.1-.9-2-2-2H6c-.55,0-1,.45-1,1v12h.01L6,22h9.5c.66,0,1.2-.42,1.41-.99l3.54-9.6c.18-.5-.17-.99-.54-.99z"/>
+</vector>
