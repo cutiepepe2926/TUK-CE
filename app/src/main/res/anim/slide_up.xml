@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 현재 위치에서 위로 사라지며 접히기 -->
+    <translate
+        android:fromYDelta="0%"
+        android:toYDelta="-100%"
+        android:duration="200"/>
+    <!-- 불투명→투명 -->
+    <alpha
+        android:fromAlpha="1.0"
+        android:toAlpha="0.0"
+        android:duration="200"/>
+</set>

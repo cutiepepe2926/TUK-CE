@@ -1,71 +1,180 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#383838">
+    android:fitsSystemWindows="true">
 
-
-    <!-- 툴바 포함 -->
-    <include layout="@layout/activity_pdf_toolbar"/>
-
-
-
-    <FrameLayout
+    <!-- 1) PDF + DrawingView -->
+    <com.github.barteksc.pdfviewer.PDFView
+        android:id="@+id/pdfView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#383838">
+        android:layout_height="match_parent">
 
-        <!-- PDF 뷰어 -->
-        <com.github.barteksc.pdfviewer.PDFView
-            android:id="@+id/pdfView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-
-        <!-- 필기용 Canvas View -->
         <com.example.test_app.view.DrawingView
             android:id="@+id/drawingView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@android:color/transparent"/>
+            android:background="@android:color/transparent" />
+    </com.github.barteksc.pdfviewer.PDFView>
 
-        <!--이전 페이지-->
-        <Button
-            android:id="@+id/prevPageButton"
+    <!-- 2) 하단 페이지 전환 화살표 -->
+    <ImageButton
+        android:id="@+id/prevPageButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/toolbar_ic_arrow_left"
+        android:background="@drawable/bg_round"
+        android:contentDescription="이전 페이지"/>
+
+    <ImageButton
+        android:id="@+id/nextPageButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/toolbar_ic_arrow_right"
+        android:background="@drawable/bg_round"
+        android:contentDescription="다음 페이지"/>
+
+    <!-- 3) 상단 오버레이 컨테이너 -->
+    <FrameLayout
+        android:id="@+id/topOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:padding="16dp">
+
+        <!-- 3-1) 좌측 X(닫기) -->
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="start|center_vertical"
+            android:src="@drawable/toolbar_ic_close"
+            android:background="@drawable/bg_round"
+            android:contentDescription="닫기"/>
+
+        <!-- 3-2) 중앙 툴바(rounded rect) -->
+        <LinearLayout
+            android:id="@+id/centerToolbar"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="이전 페이지"
-            android:layout_margin="10dp"
-            android:layout_gravity="top|start"/>
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_round"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <!--다음 페이지-->
-        <Button
-            android:id="@+id/nextPageButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="다음 페이지"
-            android:layout_margin="10dp"
-            android:layout_gravity="top|end"/>
+            <!-- 문서 열기 아이콘 -->
+            <ImageButton
+                android:id="@+id/btnOpenDoc"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/toolbar_ic_rect"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="문서"/>
 
-        <!-- 필기 모드 / 스크롤 모드 전환 버튼 -->
-        <Button
-            android:id="@+id/toggleModeButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="필기 모드"
-            android:layout_margin="10dp"
-            android:layout_gravity="bottom|end"/>
+            <!-- 펜 -->
+            <ImageButton
+                android:id="@+id/btnPen"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/toolbar_ic_pen"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="펜"/>
 
-        <!--        Export 버튼-->
-        <Button
-            android:id="@+id/exportButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Export"
-            android:layout_margin="10dp"
-            android:layout_gravity="bottom|start"/>
+            <!-- 지우개 -->
+            <ImageButton
+                android:id="@+id/btnEraser"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/toolbar_ic_eraser"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="지우개"/>
 
+            <!-- 텍스트 -->
+            <ImageButton
+                android:id="@+id/btnText"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/toolbar_ic_text"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="텍스트"/>
+
+            <!-- 손(필기 모드 토글) -->
+            <ImageButton
+                android:id="@+id/toggleModeButton"
+                android:layout_width="40dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/toolbar_ic_hand"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="필기 모드"/>
+
+        </LinearLayout>
 
     </FrameLayout>
 
-</LinearLayout>
+    <!-- 4) 햄버거 눌렀을 때 펼쳐질 메뉴 -->
+    <LinearLayout
+        android:id="@+id/sideMenu"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|top"
+        android:minWidth="50dp"
+        android:minHeight="40dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_round"
+        android:padding="8dp">
+
+        <!-- 1) 햄버거 토글 버튼 (항상 보임) -->
+        <ImageButton
+            android:id="@+id/btnMenu"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/toolbar_ic_menu"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="메뉴 토글"/>
+
+        <!-- 2) 숨겨진 메뉴 아이템들 (초기 GONE) -->
+        <ImageButton
+            android:id="@+id/btnRecord"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_record"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="녹음"
+            android:visibility="gone"/>
+
+        <ImageButton
+            android:id="@+id/btnOcr"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/toolbar_ic_ocr"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="OCR"
+            android:visibility="gone"/>
+
+        <ImageButton
+            android:id="@+id/exportButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/toolbar_ic_export"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="내보내기"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+</FrameLayout>

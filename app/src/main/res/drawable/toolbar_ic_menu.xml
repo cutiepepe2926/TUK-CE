@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- 상단 바: y=4~6 -->
+    <path
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M3,4h18v2H3V4z"/>
+
+    <!-- 중간 바: y=11~13 -->
+    <path
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M3,11h18v2H3V11z"/>
+
+    <!-- 하단 바: y=18~20 -->
+    <path
+        android:fillColor="?attr/colorOnSurface"
+        android:pathData="M3,18h18v2H3V18z"/>
+
+</vector>
