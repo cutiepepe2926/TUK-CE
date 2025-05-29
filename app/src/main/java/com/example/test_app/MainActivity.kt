@@ -2,19 +2,19 @@ package com.example.test_app
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.test_app.databinding.ActivityMainBinding
-import com.example.test_app.databinding.ActivityMainToolbarBinding
 import com.example.test_app.utils.PdfUtils
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
 
     //바인딩 초기 선언
     private lateinit var binding: ActivityMainBinding
-    private lateinit var toolbarBinding: ActivityMainToolbarBinding
+    //private lateinit var toolbarBinding: ActivityMainToolbarBinding
 
     //!!신규 바인딩 2개!!
     private lateinit var noteAdapter: NoteAdapter
@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
 
         //바인딩 초기화 및 바인딩 객체 획득
         binding = ActivityMainBinding.inflate(layoutInflater)
-        toolbarBinding = ActivityMainToolbarBinding.inflate(layoutInflater)
+        //toolbarBinding = ActivityMainToolbarBinding.inflate(layoutInflater)
 
         //로그인 상태 유지 (토큰 확인) (서버 닫힌경우에는 주석처리하기)
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
@@ -74,49 +74,60 @@ class MainActivity : AppCompatActivity() {
             setContentView(binding.root)
         }
 
-        //화면 출력
+        // 화면 출력
         setContentView(binding.root)
         
+
+        // 왼쪽 상단 버튼 클릭 시 네비게이션 표시
+        binding.btnLeftSideNavigator.setOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+
         // 툴바 설정
-        setSupportActionBar(toolbarBinding.mainToolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false) // 타이틀 비설정
+        //setSupportActionBar(toolbarBinding.mainToolbar)
+        //supportActionBar?.setDisplayShowTitleEnabled(false) // 타이틀 비설정
 
 
-        // 툴바 버튼 설정(로그인)
-        val userBtn = findViewById<ImageButton>(R.id.btnUser)
-        // 🔹 로그인 하기 버튼 기능
-        userBtn.setOnClickListener {
-            val intent = Intent(this, LoginActivity::class.java)
-            //val intent = Intent(this, TranslateActivity::class.java)
-            startActivity(intent)
-        }
-
-        // 파일 선택 버튼 (음성 파일 업로드)
-        val btnSendRecord = findViewById<ImageButton>(R.id.btnSendRecord)
-        btnSendRecord.setOnClickListener {
-            val intent = Intent(this, SttActivity::class.java)
-            startActivity(intent)
-        }
-
-        // OCR 페이지 이동 버튼 (사진으로 OCR)
-        val btnOcr = findViewById<ImageButton>(R.id.btnOcr)
-        btnOcr.setOnClickListener {
-            val intent = Intent(this, OcrActivity::class.java)
-            startActivity(intent)
-        }
-
-        // 요약 페이지 이동 버튼 (텍스트 파일로 요약)
-        val btnSummarize = findViewById<ImageButton>(R.id.btnSummarize)
-        btnSummarize.setOnClickListener {
-            val intent = Intent(this, SummarizeActivity::class.java)
-            startActivity(intent)
-        }
+//        // 툴바 버튼 설정(로그인)
+//        val userBtn = findViewById<ImageButton>(R.id.btnUser)
+//        // 🔹 로그인 하기 버튼 기능
+//        userBtn.setOnClickListener {
+//            val intent = Intent(this, LoginActivity::class.java)
+//            //val intent = Intent(this, TranslateActivity::class.java)
+//            startActivity(intent)
+//        }
+//
+//        // 파일 선택 버튼 (음성 파일 업로드)
+//        val btnSendRecord = findViewById<ImageButton>(R.id.btnSendRecord)
+//        btnSendRecord.setOnClickListener {
+//            val intent = Intent(this, SttActivity::class.java)
+//            startActivity(intent)
+//        }
+//
+//        // OCR 페이지 이동 버튼 (사진으로 OCR)
+//        val btnOcr = findViewById<ImageButton>(R.id.btnOcr)
+//        btnOcr.setOnClickListener {
+//            val intent = Intent(this, OcrActivity::class.java)
+//            startActivity(intent)
+//        }
+//
+//        // 요약 페이지 이동 버튼 (텍스트 파일로 요약)
+//        val btnSummarize = findViewById<ImageButton>(R.id.btnSummarize)
+//        btnSummarize.setOnClickListener {
+//            val intent = Intent(this, SummarizeActivity::class.java)
+//            startActivity(intent)
+//        }
 
 
         // 리사이클러뷰 & 어댑터 설정
-        val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+        val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewNotes)
         //recyclerView.layoutManager = LinearLayoutManager(this)
-        val spanCount = 3 // 태블릿은 3도 추천 가능
+        val spanCount = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            3 // 가로 모드에서는 더 많은 열
+        } else {
+            3 // 세로 모드에서는 기본 열 수
+        }
+
         recyclerView.layoutManager = GridLayoutManager(this, spanCount)
 
         noteAdapter = NoteAdapter(noteList) { note ->
@@ -201,23 +212,6 @@ class MainActivity : AppCompatActivity() {
             println("🚨 PDF 렌더링 중 오류 발생: ${e.message}")
         }
         return null
-    }
-
-    //PDF 파일 이름을 가져오는 함수
-    private fun getFileName(uri: Uri): String {
-        var name = "알수없음.pdf" // 기본 이름 설정
-        val cursor = contentResolver.query(uri, null, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                val nameIndex = it.getColumnIndex("_display_name")
-                //파일명 가져오기
-
-                if (nameIndex != -1) {
-                    name = it.getString(nameIndex)
-                }
-            }
-        }
-        return name
     }
 
     //!!신규!! 아래는 통합될 함수 목록들임.
