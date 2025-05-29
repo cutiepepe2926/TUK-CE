@@ -6,9 +6,12 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.PopupWindow
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -25,6 +28,7 @@ import java.io.FileOutputStream
 import com.example.test_app.model.Note
 import androidx.recyclerview.widget.RecyclerView
 import com.example.test_app.adapter.NoteAdapter
+import com.example.test_app.databinding.ProfilePopupBinding
 import com.example.test_app.utils.MyDocManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
@@ -32,8 +36,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 class MainActivity : AppCompatActivity() {
 
     //바인딩 초기 선언
-    private lateinit var binding: ActivityMainBinding
-    //private lateinit var toolbarBinding: ActivityMainToolbarBinding
+    private lateinit var binding: ActivityMainBinding // 메인 액티비티 xml 바인딩
+    private lateinit var profileBinding: ProfilePopupBinding // 프로필 팝업 xml 바인딩
+    private var profilePopupWindow: PopupWindow? = null // 프로필 팝업 창 확인용
 
     //!!신규 바인딩 2개!!
     private lateinit var noteAdapter: NoteAdapter
@@ -45,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let {
                 //createNoteFromPdf(uri)
-                showTitleDialogThenCreateNote(it) // ✅ 아래 함수로 분리
+                showTitleDialogThenCreateNote(it) // 아래 함수로 분리
             }
         }
     
@@ -56,12 +61,10 @@ class MainActivity : AppCompatActivity() {
 
         //바인딩 초기화 및 바인딩 객체 획득
         binding = ActivityMainBinding.inflate(layoutInflater)
-        //toolbarBinding = ActivityMainToolbarBinding.inflate(layoutInflater)
 
         //로그인 상태 유지 (토큰 확인) (서버 닫힌경우에는 주석처리하기)
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val accessToken = sharedPreferences.getString("access_token", null)
-
 
 
         if (accessToken == null) {
@@ -81,6 +84,46 @@ class MainActivity : AppCompatActivity() {
         // 왼쪽 상단 버튼 클릭 시 네비게이션 표시
         binding.btnLeftSideNavigator.setOnClickListener {
             binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+
+        binding.btnProfile.setOnClickListener {
+            // 이미 떠 있으면 닫기
+            if (profilePopupWindow?.isShowing == true) {
+                profilePopupWindow?.dismiss()
+                return@setOnClickListener
+            }
+            // ViewBinding으로 레이아웃 inflate
+            profileBinding = ProfilePopupBinding.inflate(layoutInflater)
+
+            // 팝업 뷰 생성
+            profilePopupWindow = PopupWindow(
+                profileBinding.root,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+            )
+
+            // 팝업 뷰 스타일
+            profilePopupWindow?.elevation = 10f
+            profilePopupWindow?.isOutsideTouchable = true
+            profilePopupWindow?.isFocusable = true
+
+            // X 버튼 동작
+            profileBinding.btnClose.setOnClickListener {
+                profilePopupWindow?.dismiss()
+            }
+
+            // 로그아웃 버튼 동작
+            profileBinding.btnLogout.setOnClickListener {
+                Toast.makeText(this, "로그아웃 되었습니다", Toast.LENGTH_SHORT).show()
+                profilePopupWindow?.dismiss()
+                // 추가로 로그아웃 함수 구현이 필요함.
+            }
+
+            // 팝업 표시 위치 (버튼 아래 또는 화면 오른쪽 상단 등)
+            profilePopupWindow?.showAsDropDown(binding.btnProfile, -150, 20) // x, y 오프셋 조절
+
+
         }
 
         // 툴바 설정
