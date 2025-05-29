@@ -123,7 +123,7 @@ class MainActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewNotes)
         //recyclerView.layoutManager = LinearLayoutManager(this)
         val spanCount = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            3 // 가로 모드에서는 더 많은 열
+            4 // 가로 모드에서는 더 많은 열
         } else {
             3 // 세로 모드에서는 기본 열 수
         }
