@@ -251,7 +251,7 @@ class MainActivity : AppCompatActivity() {
             return bitmap
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
-            println("🚨 파일을 찾을 수 없음! 경로 오류: ${uri}")
+            println("🚨 파일을 찾을 수 없음! 경로 오류: $uri")
         } catch (e: Exception) {
             e.printStackTrace()
             println("🚨 PDF 렌더링 중 오류 발생: ${e.message}")
@@ -302,31 +302,31 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    // 1) 기기에서 PDF 선택 후 mydoc으로 만들기
-    private fun createNoteFromPdf(uri: Uri) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("노트 이름을 입력하세요")
-        val input = android.widget.EditText(this)
-        builder.setView(input)
-        builder.setPositiveButton("확인") { _, _ ->
-            val title = input.text.toString()
-            if (title.isNotEmpty()) {
-                // 내부 저장소에 PDF 복사 후 mydoc 생성
-                val note = PdfUtils.createNoteFromPdf(this, uri, title)
-                noteList.add(note)
-                noteAdapter.notifyItemInserted(noteList.size - 1)
-                saveNoteList()
-            }
-        }
-        builder.setNegativeButton("취소", null)
-        builder.show()
-    }
+    // 1) 기기에서 PDF 선택 후 mydoc으로 만들기 (체크하기)
+//    private fun createNoteFromPdf(uri: Uri) {
+//        val builder = AlertDialog.Builder(this)
+//        builder.setTitle("노트 이름을 입력하세요")
+//        val input = EditText(this)
+//        builder.setView(input)
+//        builder.setPositiveButton("확인") { _, _ ->
+//            val title = input.text.toString()
+//            if (title.isNotEmpty()) {
+//                // 내부 저장소에 PDF 복사 후 mydoc 생성
+//                val note = PdfUtils.createNoteFromPdf(this, uri, title)
+//                noteList.add(note)
+//                noteAdapter.notifyItemInserted(noteList.size - 1)
+//                saveNoteList()
+//            }
+//        }
+//        builder.setNegativeButton("취소", null)
+//        builder.show()
+//    }
 
     // 2) 새 파일(빈 PDF) 생성 → mydoc 및 노트 생성
     private fun showNewNoteDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("새 노트 이름을 입력하세요")
-        val input = android.widget.EditText(this)
+        val input = EditText(this)
         builder.setView(input)
         builder.setPositiveButton("확인") { _, _ ->
             val title = input.text.toString()
