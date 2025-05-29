@@ -28,6 +28,8 @@ import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.view.View
+import android.view.animation.Animation
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
@@ -37,6 +39,7 @@ import com.example.test_app.model.TextAnnotation
 import com.example.test_app.utils.MyDocManager
 import com.example.test_app.utils.PdfExporter
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener
+import android.view.animation.AnimationUtils
 import com.yalantis.ucrop.UCrop
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -84,6 +87,18 @@ class PdfViewerActivity : AppCompatActivity() {
     /* ---------------- 툴바 객체 ---------------- */
     private lateinit var toolbinding : ActivityPdfToolbarBinding
 
+    /* ---------------- side menu ----------------*/
+    private lateinit var sideMenu: LinearLayout
+    private lateinit var btnMenu: ImageButton
+    private lateinit var btnRecord: ImageButton
+    private lateinit var btnOcr: ImageButton
+    private lateinit var exportButton: ImageButton
+
+    /* ---------------- 애니메이션 ----------------*/
+    private lateinit var slideDown: Animation
+    private lateinit var slideUp: Animation
+
+    private var isMenuOpen = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -123,8 +138,6 @@ class PdfViewerActivity : AppCompatActivity() {
             if (currentPage > 0) loadPage(currentPage - 1)
         }
 
-
-
         // 모드 전환 버튼
         binding.toggleModeButton.setOnClickListener {
             isPenMode = !isPenMode
@@ -139,19 +152,19 @@ class PdfViewerActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowTitleEnabled(false) // 타이틀 비설정
 
         // Export 버튼은 기존 로직 그대로
-        val exportButton = findViewById<ImageButton>(R.id.exportButton)
+        exportButton = findViewById<ImageButton>(R.id.exportButton)
         exportButton.setOnClickListener {
             exportToPdf()
         }
 
-        //툴바 버튼 설정(OCR)
-        val btnOCR = findViewById<ImageButton>(R.id.btnOcr)
+        //OCR 기능
+        btnOcr = findViewById(R.id.btnOcr)
         //OCR 버튼 기능
-        btnOCR.setOnClickListener {
+        btnOcr.setOnClickListener {
             showOcrDialog()
         }
 
-        // 툴바 버튼 설정(뒤로가기)
+        // 뒤로 가기 버튼
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
         // 🔹 뒤로 가기 버튼 기능
         btnBack.setOnClickListener {
@@ -159,7 +172,7 @@ class PdfViewerActivity : AppCompatActivity() {
             Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show()
         }
 
-        // 툴바 버튼 설정(필기삭제)
+        // 지우개
         val btnEraser = findViewById<ImageButton>(R.id.btnEraser)
         // 🔹 필기 삭제 버튼 기능
         btnEraser.setOnClickListener {
@@ -171,8 +184,8 @@ class PdfViewerActivity : AppCompatActivity() {
         }
 
 
-        // 툴바 버튼 설정(녹음하기)
-        val btnRecord = findViewById<ImageButton>(R.id.btnRecord)
+        // 녹음 버튼
+        btnRecord = findViewById(R.id.btnRecord)
         // 🔹 음성 녹음 버튼 기능
         // 🔹 녹음 버튼 기능 (아이콘 변경)
         // 🔹 녹음 버튼 기능 (아이콘 변경 & 녹음 기능 추가)
@@ -185,17 +198,19 @@ class PdfViewerActivity : AppCompatActivity() {
             }
         }
 
-        // 햄버거
-        val btnMenu = findViewById<ImageButton>(R.id.btnMenu)
+        // 사이드 메뉴
+        sideMenu = findViewById(R.id.sideMenu)
 
-        btnMenu.setOnClickListener {
-            val shouldShow = btnRecord.visibility == View.GONE
-            btnRecord.visibility = if (shouldShow) View.VISIBLE else View.GONE
-            btnOCR.visibility = if (shouldShow) View.VISIBLE else View.GONE
-            exportButton.visibility = if (shouldShow) View.VISIBLE else View.GONE
-        }
+        slideUp = AnimationUtils.loadAnimation(this, R.anim.slide_up)
+        slideDown = AnimationUtils.loadAnimation(this, R.anim.slide_down)
+
+        // 햄버거
+        btnMenu = findViewById(R.id.btnMenu)
+
+        btnMenu.setOnClickListener { toggleSideMenu() }
 
         handler.post(syncRunnable)
+
     }
 
     override fun onDestroy() {
@@ -339,7 +354,32 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     override fun onBackPressed() { persistAll(); super.onBackPressed() }
 
+    /* =============================================================== */
+    /*  애니메이션                                                      */
+    /* =============================================================== */
+    private fun toggleSideMenu(){
+        if(!isMenuOpen){
+            sideMenu.startAnimation(slideDown)
+        }else{
+            slideUp.setAnimationListener(object : Animation.AnimationListener{
+                override fun onAnimationStart(a: Animation) {}
+                override fun onAnimationRepeat(a: Animation) {}
+                override fun onAnimationEnd(a: Animation){
+                    sideMenu.visibility = View.VISIBLE
+                }
+            })
+            sideMenu.startAnimation(slideUp)
+        }
+        isMenuOpen = !isMenuOpen
 
+        // 버튼들 visibility 토글
+        val v = if(isMenuOpen) View.VISIBLE else View.GONE
+        btnRecord.visibility = v
+        btnOcr.visibility = v
+        exportButton.visibility = v
+
+        sideMenu.bringToFront()
+    }
     /* =============================================================== */
     /*  녹음                                                           */
     /* =============================================================== */
@@ -545,5 +585,4 @@ class PdfViewerActivity : AppCompatActivity() {
             }
         }
     }
-    
 }
