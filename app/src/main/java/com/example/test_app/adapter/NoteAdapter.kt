@@ -44,18 +44,14 @@ class NoteAdapter(
 
         // 하나의 노트 항목을 화면에 표시하는 함수
         fun bind(note: Note) {
-
+            
             // 노트 제목 설정
             binding.noteTitle.text = note.title
 
             // 썸네일 경로가 있는 경우 이미지 설정
             val thumbnailPath = note.thumbnailPath
-
             if (!thumbnailPath.isNullOrEmpty()) {
                 val file = File(thumbnailPath)
-
-                // 썸네일 경로 검사
-                println("썸네일 파일 존재? ${file.exists()} / 경로: ${file.absolutePath}")
                 val bitmap = BitmapFactory.decodeFile(file.absolutePath)
 
                 // 이미지뷰에 썸네일 표시
@@ -81,8 +77,9 @@ class NoteAdapter(
             }
 
             // 노트 항목 롱 클릭 시 콜백 함수 실행
-            binding.root.setOnClickListener {
+            binding.root.setOnLongClickListener longClick@{
                 onItemLongClick(note)
+                return@longClick true
             }
         }
     }

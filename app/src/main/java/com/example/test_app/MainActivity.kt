@@ -133,8 +133,16 @@ class MainActivity : AppCompatActivity() {
 
         // 좌측 네비게이션 문서 클릭 시 메인 화면 문서 페이지 이동
         leftsideBinding.btnDocument.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
+            // 현재 액티비티가 MainActivity일 경우 → 네비게이션 닫기
+            if (this::class.java == MainActivity::class.java) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            }
+            // 현재가 MainActivity가 아니면 → MainActivity로 이동
+            else {
+                val intent = Intent(this, MainActivity::class.java)
+                startActivity(intent)
+                finish() // 현재 액티비티 종료
+            }
         }
 
         // 좌측 네비게이션 휴지통 클릭 시 휴지통 페이지 이동
