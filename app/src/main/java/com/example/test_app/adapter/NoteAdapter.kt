@@ -13,7 +13,8 @@ import java.io.File
 // 노트 목록을 표시하기 위한 어댑터 클래스
 class NoteAdapter(
     private val notes: List<Note>, // 노트 리스트
-    private val onItemClick: (Note) -> Unit // 노트 클릭 시 실행할 콜백 함수
+    private val onItemClick: (Note) -> Unit, // 노트 클릭 시 실행할 콜백 함수
+    private val onItemLongClick: (Note) -> Unit // 노트 롱 클릭 시 실행할 콜백 함수
 ) : RecyclerView.Adapter<NoteAdapter.NoteViewHolder>() {
 
     // ViewHolder 생성 (XML 레이아웃을 inflate)
@@ -23,7 +24,7 @@ class NoteAdapter(
             parent,
             false
         )
-        return NoteViewHolder(binding, onItemClick)
+        return NoteViewHolder(binding, onItemClick, onItemLongClick)
     }
 
     // ViewHolder에 데이터 바인딩
@@ -37,7 +38,8 @@ class NoteAdapter(
     // 개별 노트를 표시하기 위한 ViewHolder 정의
     class NoteViewHolder(
         private val binding: ItemNoteBinding,
-        private val onItemClick: (Note) -> Unit
+        private val onItemClick: (Note) -> Unit,
+        private val onItemLongClick: (Note) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         // 하나의 노트 항목을 화면에 표시하는 함수
@@ -76,6 +78,11 @@ class NoteAdapter(
             // 노트 항목 클릭 시 콜백 함수 실행
             binding.root.setOnClickListener {
                 onItemClick(note)
+            }
+
+            // 노트 항목 롱 클릭 시 콜백 함수 실행
+            binding.root.setOnClickListener {
+                onItemLongClick(note)
             }
         }
     }

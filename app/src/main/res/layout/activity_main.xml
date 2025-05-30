@@ -24,7 +24,8 @@
                 android:scaleType="center"
                 android:src="@drawable/ic_left_side_button"
                 android:background="@color/white"
-                android:paddingLeft="7dp"/>
+                android:paddingLeft="7dp"
+                android:paddingTop="7dp"/>
 
             <!-- 중간 빈 공간 -->
             <View
@@ -41,7 +42,8 @@
                 android:scaleType="center"
                 android:layout_gravity="right|end"
                 android:background="@color/white"
-                android:paddingRight="7dp"/>
+                android:paddingRight="7dp"
+                android:paddingTop="7dp"/>
 
 
         </LinearLayout>

@@ -38,8 +38,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingVertical="8dp">
-            <ImageView
+            android:paddingVertical="8dp"
+            android:id="@+id/btnDocument">
+            <ImageButton
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_document" />
@@ -57,7 +58,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingVertical="8dp">
+            android:paddingVertical="8dp"
+            android:id="@+id/btnTrash">
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
@@ -76,7 +78,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingVertical="8dp">
+            android:paddingVertical="8dp"
+            android:id="@+id/btnSTT">
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
@@ -118,22 +121,13 @@
             />
 
         <ImageButton
-            android:id="@+id/btnMic"
+            android:id="@+id/btnSTT_under"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_stt"
             />
-
-        <ImageButton
-            android:id="@+id/btnTranslate"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_translate"
-             />
 
         <ImageButton
             android:id="@+id/btnSetting"

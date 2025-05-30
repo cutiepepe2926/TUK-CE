@@ -1,5 +1,6 @@
 package com.example.test_app
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -31,6 +32,9 @@ import com.example.test_app.adapter.NoteAdapter
 import com.example.test_app.databinding.ProfilePopupBinding
 import com.example.test_app.utils.MyDocManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
+import com.example.test_app.databinding.ActivityMainLeftsideBinding
 
 
 class MainActivity : AppCompatActivity() {
@@ -39,36 +43,35 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding // 메인 액티비티 xml 바인딩
     private lateinit var profileBinding: ProfilePopupBinding // 프로필 팝업 xml 바인딩
     private var profilePopupWindow: PopupWindow? = null // 프로필 팝업 창 확인용
+    private lateinit var leftsideBinding: ActivityMainLeftsideBinding // 좌측 네비게이션 xml 바인딩
 
-    //!!신규 바인딩 2개!!
     private lateinit var noteAdapter: NoteAdapter
     private val noteList = mutableListOf<Note>()
 
-    //!!신규 런처!!
     // PDF 선택 런처
     private val pdfPickerLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let {
                 //createNoteFromPdf(uri)
-                showTitleDialogThenCreateNote(it) // ✅ 아래 함수로 분리
+                showTitleDialogThenCreateNote(it) // 아래 함수로 분리
             }
         }
     
     
+    @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
 
         //바인딩 초기화 및 바인딩 객체 획득
         binding = ActivityMainBinding.inflate(layoutInflater)
-        //toolbarBinding = ActivityMainToolbarBinding.inflate(layoutInflater)
+        leftsideBinding = ActivityMainLeftsideBinding.inflate(layoutInflater)
 
-        //로그인 상태 유지 (토큰 확인) (서버 닫힌경우에는 주석처리하기)
+        // 로그인 상태 유지 (토큰 확인) (서버 닫힌경우에는 주석처리하기)
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val accessToken = sharedPreferences.getString("access_token", null)
 
-
-
+        // 로그인 검사 문
         if (accessToken == null) {
             // 로그인 정보가 없으면 로그인 화면으로 이동
             val intent = Intent(this, LoginActivity::class.java)
@@ -88,6 +91,7 @@ class MainActivity : AppCompatActivity() {
             binding.drawerLayout.openDrawer(GravityCompat.START)
         }
 
+        // 우측 상단 프로필 버튼 클릭 시 프로필 팝업 표시
         binding.btnProfile.setOnClickListener {
             // 이미 떠 있으면 닫기
             if (profilePopupWindow?.isShowing == true) {
@@ -125,29 +129,51 @@ class MainActivity : AppCompatActivity() {
             // 팝업 표시 위치 (버튼 아래 또는 화면 오른쪽 상단 등)
             profilePopupWindow?.showAsDropDown(binding.btnProfile, -150, 20) // x, y 오프셋 조절
 
+        }
+
+        // 좌측 네비게이션 문서 클릭 시 메인 화면 문서 페이지 이동
+        leftsideBinding.btnDocument.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 휴지통 클릭 시 휴지통 페이지 이동
+        leftsideBinding.btnTrash.setOnClickListener {
 
         }
 
-        // 툴바 설정
-        //setSupportActionBar(toolbarBinding.mainToolbar)
-        //supportActionBar?.setDisplayShowTitleEnabled(false) // 타이틀 비설정
+        // 좌측 네비게이션 음성 텍스트 클릭 시 음성 텍스트 페이지 이동
+        leftsideBinding.btnSTT.setOnClickListener {
+            val intent = Intent(this, SttActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 하단 문서 생성(노트) 클릭 시 노트 추가 팝업 출력하기
+        leftsideBinding.btnWrite.setOnClickListener {
+            
+        }
+        
+        // 좌측 네비게이션 하단 음성 텍스트(마이크) 클릭 시 음성 텍스트 페이지 이동
+        leftsideBinding.btnSTTUnder.setOnClickListener {
+            val intent = Intent(this, SttActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 하단 설정(톱니바퀴) 클릭 시 이동
+        leftsideBinding.btnSetting.setOnClickListener { 
+            
+        }
 
 
 //        // 툴바 버튼 설정(로그인)
 //        val userBtn = findViewById<ImageButton>(R.id.btnUser)
-//        // 🔹 로그인 하기 버튼 기능
+//        // 로그인 하기 버튼 기능
 //        userBtn.setOnClickListener {
 //            val intent = Intent(this, LoginActivity::class.java)
 //            //val intent = Intent(this, TranslateActivity::class.java)
 //            startActivity(intent)
 //        }
 //
-//        // 파일 선택 버튼 (음성 파일 업로드)
-//        val btnSendRecord = findViewById<ImageButton>(R.id.btnSendRecord)
-//        btnSendRecord.setOnClickListener {
-//            val intent = Intent(this, SttActivity::class.java)
-//            startActivity(intent)
-//        }
 //
 //        // OCR 페이지 이동 버튼 (사진으로 OCR)
 //        val btnOcr = findViewById<ImageButton>(R.id.btnOcr)
@@ -175,15 +201,21 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView.layoutManager = GridLayoutManager(this, spanCount)
 
-        noteAdapter = NoteAdapter(noteList) { note ->
-            openNote(note)
-        }
+//        noteAdapter = NoteAdapter(noteList) { note ->
+//            openNote(note)
+//        }
+        noteAdapter = NoteAdapter(
+            noteList,
+            onItemClick = { note -> openNote(note) }, // 클릭 시 호출
+            onItemLongClick = { note -> showNoteOptionsDialog(note) } // 롱클릭 시 호출
+        )
+
         recyclerView.adapter = noteAdapter
 
         //BottomSheetDialog 생성 버튼
         val btnAdd = findViewById<Button>(R.id.addBtn)
         btnAdd.setOnClickListener {
-            val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_add_menu, null)
+            val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_add_menu, binding.root,false)
             val dialog = BottomSheetDialog(this)
             dialog.setContentView(bottomSheetView)
 
@@ -215,8 +247,8 @@ class MainActivity : AppCompatActivity() {
     private fun renderPdfToBitmap(uri: Uri): Bitmap? {
         try {
 
-            // ✅ 파일 존재 여부 확인 (디버깅 로그 추가)
-            println("🔍 PDF 파일 확인: $uri")
+            // 파일 존재 여부 확인 (디버깅 로그 추가)
+            println("PDF 파일 확인: $uri")
 
             val parcelFileDescriptor = contentResolver.openFileDescriptor(uri, "r")
             //PDF 파일을 Uri를 통해 열기
@@ -233,20 +265,20 @@ class MainActivity : AppCompatActivity() {
             pdfiumCore.openPage(pdfDocument, 0)
             // 첫 번째 페이지 열기
 
-            // 🔥 해상도를 원본 크기 또는 2배로 설정
+            // 해상도를 원본 크기 또는 2배로 설정
             //val scaleFactor = 2 // 원하는 배율로 조정 가능 (2배 해상도)
             val width = pdfiumCore.getPageWidthPoint(pdfDocument, 0)
             val height = pdfiumCore.getPageHeightPoint(pdfDocument, 0) * 2
 
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565) //Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(width, height, Bitmap.Config.RGB_565) //Bitmap.Config.ARGB_8888)
             pdfiumCore.renderPageBitmap(pdfDocument, bitmap, 0, 0, 0, width, height)
 
-            println("🖼️ PDF 첫 페이지 렌더링 완료: ${bitmap.width}x${bitmap.height}")  // ✅ 추가
+            println(" PDF 첫 페이지 렌더링 완료: ${bitmap.width}x${bitmap.height}")  //
 
             pdfiumCore.closeDocument(pdfDocument) // 리소스 해제
             parcelFileDescriptor.close() //파일 탐색 닫기
 
-            Bitmap.createScaledBitmap(bitmap, 300, 400, true) // 썸네일 크기 조정
+            bitmap.scale(300, 400) // 썸네일 크기 조정
 
             return bitmap
         } catch (e: FileNotFoundException) {
@@ -271,11 +303,11 @@ class MainActivity : AppCompatActivity() {
             if (title.isNotEmpty()) {
                 val note = PdfUtils.createNoteFromPdf(this, uri, title)
 
-                // 🔧 .mydoc 파일에서 실제 base.pdf 경로를 추출
+                // .mydoc 파일에서 실제 base.pdf 경로를 추출
                 val myDocData = MyDocManager(this).loadMyDoc(File(note.myDocPath))
-                val basePdfFile = File(myDocData.pdfFilePath) // 🔥 여기가 실제 PDF 경로
+                val basePdfFile = File(myDocData.pdfFilePath) // 여기가 실제 PDF 경로
 
-                // ✅ 썸네일 생성 및 저장
+                // 썸네일 생성 및 저장
                 val bitmap = renderPdfToBitmap(Uri.fromFile(basePdfFile)) // 또는 원본 PDF 경로
 
                 val thumbnailPath = bitmap?.let {
@@ -283,10 +315,10 @@ class MainActivity : AppCompatActivity() {
 
                     FileOutputStream(file).use { out ->
                         val success = it.compress(Bitmap.CompressFormat.PNG, 100, out)
-                        println("📸 썸네일 저장 성공 여부: $success")
+                        println("썸네일 저장 성공 여부: $success")
                     }
 
-                    println("📂 썸네일 경로: ${file.absolutePath}")
+                    println("썸네일 경로: ${file.absolutePath}")
                     file.absolutePath
                 }
 
@@ -301,26 +333,6 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
-
-    // 1) 기기에서 PDF 선택 후 mydoc으로 만들기 (체크하기)
-//    private fun createNoteFromPdf(uri: Uri) {
-//        val builder = AlertDialog.Builder(this)
-//        builder.setTitle("노트 이름을 입력하세요")
-//        val input = EditText(this)
-//        builder.setView(input)
-//        builder.setPositiveButton("확인") { _, _ ->
-//            val title = input.text.toString()
-//            if (title.isNotEmpty()) {
-//                // 내부 저장소에 PDF 복사 후 mydoc 생성
-//                val note = PdfUtils.createNoteFromPdf(this, uri, title)
-//                noteList.add(note)
-//                noteAdapter.notifyItemInserted(noteList.size - 1)
-//                saveNoteList()
-//            }
-//        }
-//        builder.setNegativeButton("취소", null)
-//        builder.show()
-//    }
 
     // 2) 새 파일(빈 PDF) 생성 → mydoc 및 노트 생성
     private fun showNewNoteDialog() {
@@ -369,4 +381,67 @@ class MainActivity : AppCompatActivity() {
             noteList.addAll(loadedNotes)
         }
     }
+
+    // 노트 옵션 선택 다이얼로그
+    private fun showNoteOptionsDialog(note: Note) {
+        val options = arrayOf("이름 바꾸기", "삭제")
+
+        AlertDialog.Builder(this)
+            .setTitle("노트 옵션")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> showRenameDialog(note)
+                    1 -> confirmDeleteNote(note)
+                }
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    // 이름 바꾸기 다이얼로그
+    private fun showRenameDialog(note: Note) {
+        val input = EditText(this)
+        input.setText(note.title)
+
+        AlertDialog.Builder(this)
+            .setTitle("이름 바꾸기")
+            .setView(input)
+            .setPositiveButton("확인") { _, _ ->
+                val newTitle = input.text.toString()
+                if (newTitle.isNotBlank()) {
+                    val index = noteList.indexOfFirst { it.id == note.id }
+                    if (index != -1) {
+                        noteList[index] = note.copy(title = newTitle)
+                        noteAdapter.notifyItemChanged(index)
+                        saveNoteList()
+                    }
+                }
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    // 삭제 확인
+    private fun confirmDeleteNote(note: Note) {
+        AlertDialog.Builder(this)
+            .setTitle("노트 삭제")
+            .setMessage("정말로 삭제하시겠습니까?")
+            .setPositiveButton("삭제") { _, _ ->
+                deleteNote(note)
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    // 삭제 함수
+    private fun deleteNote(note: Note) {
+        val index = noteList.indexOfFirst { it.id == note.id }
+        if (index != -1) {
+            noteList.removeAt(index)
+            noteAdapter.notifyItemRemoved(index)
+            saveNoteList()
+        }
+    }
+
+
 }
