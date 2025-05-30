@@ -27,8 +27,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginBottom="16dp"
         android:src="@drawable/toolbar_ic_arrow_left"
-        android:background="@drawable/bg_round"
-        android:contentDescription="이전 페이지"/>
+        android:background="@drawable/bg_round" />
 
     <ImageButton
         android:id="@+id/nextPageButton"
@@ -39,8 +38,7 @@
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
         android:src="@drawable/toolbar_ic_arrow_right"
-        android:background="@drawable/bg_round"
-        android:contentDescription="다음 페이지"/>
+        android:background="@drawable/bg_round" />
 
     <!-- 3) 상단 오버레이 컨테이너 -->
     <FrameLayout
@@ -57,8 +55,7 @@
             android:layout_height="50dp"
             android:layout_gravity="start|center_vertical"
             android:src="@drawable/toolbar_ic_close"
-            android:background="@drawable/bg_round"
-            android:contentDescription="닫기"/>
+            android:background="@drawable/bg_round" />
 
         <!-- 3-2) 중앙 툴바(rounded rect) -->
         <LinearLayout
@@ -76,8 +73,7 @@
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/toolbar_ic_rect"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="문서"/>
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
             <!-- 펜 -->
             <ImageButton
@@ -85,8 +81,7 @@
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/toolbar_ic_pen"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="펜"/>
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
             <!-- 지우개 -->
             <ImageButton
@@ -94,8 +89,7 @@
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/toolbar_ic_eraser"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="지우개"/>
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
             <!-- 텍스트 -->
             <ImageButton
@@ -103,8 +97,7 @@
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/toolbar_ic_text"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="텍스트"/>
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
             <!-- 손(필기 모드 토글) -->
             <ImageButton
@@ -112,8 +105,7 @@
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/toolbar_ic_hand"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="필기 모드"/>
+                android:background="?attr/selectableItemBackgroundBorderless" />
 
         </LinearLayout>
 
@@ -142,8 +134,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:src="@drawable/toolbar_ic_menu"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="메뉴 토글"/>
+            android:background="?attr/selectableItemBackgroundBorderless" />
 
         <!-- 2) 숨겨진 메뉴 아이템들 (초기 GONE) -->
         <ImageButton
@@ -153,7 +144,6 @@
             android:layout_marginTop="16dp"
             android:src="@drawable/ic_record"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="녹음"
             android:visibility="gone"/>
 
         <ImageButton
@@ -163,7 +153,6 @@
             android:layout_marginTop="16dp"
             android:src="@drawable/toolbar_ic_ocr"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="OCR"
             android:visibility="gone"/>
 
         <ImageButton
@@ -173,7 +162,6 @@
             android:layout_marginTop="16dp"
             android:src="@drawable/toolbar_ic_export"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="내보내기"
             android:visibility="gone"/>
 
     </LinearLayout>
