@@ -1,3 +1,24 @@
 <resources>
     <string name="app_name">Test_App</string>
+    <string name="VoiceText">음성 텍스트</string>
+    <string name="Trash">휴지통</string>
+    <string name="Document">문서</string>
+    <string name="Search">검색</string>
+    <string name="register">회원가입</string>
+    <string name="findPassword">비밀번호 찾기</string>
+    <string name="login">로그인</string>
+    <string name="ID">아이디</string>
+    <string name="InputID">아이디를 입력하세요</string>
+    <string name="Password">비밀번호</string>
+    <string name="HidePasswordIcon">비밀번호 숨김 아이콘</string>
+    <string name="rememberPassword">비밀번호 기억하기</string>
+    <string name="writePassword">비밀번호를 입력하세요</string>
+    <string name="see">보기</string>
+    <string name="closebutton">닫기 버튼</string>
+    <string name="alreayIDexists">이미 계정이 존재합니까?</string>
+    <string name="writeID">아이디를 입력해 주세요.</string>
+    <string name="email">이메일</string>
+    <string name="writeEmail">이메일을 입력해 주세요.</string>
+    <string name="NoteTitle">노트 제목</string>
+    <string name="logout">로그아웃</string>
 </resources>

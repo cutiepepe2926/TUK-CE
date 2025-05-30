@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bottomMenu"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -16,7 +17,7 @@
         android:layout_height="48dp"
         android:background="@android:color/transparent"
         android:src="@drawable/ic_write"
-        />
+        tools:ignore="ContentDescription" />
 
     <!-- 마이크 버튼 -->
     <ImageButton
@@ -26,7 +27,7 @@
         android:layout_marginStart="16dp"
         android:background="@android:color/transparent"
         android:src="@drawable/ic_stt"
-        />
+        tools:ignore="ContentDescription" />
 
     <!-- 번역 버튼 -->
     <ImageButton
@@ -36,7 +37,7 @@
         android:layout_marginStart="16dp"
         android:background="@android:color/transparent"
         android:src="@drawable/ic_translate"
-        />
+        tools:ignore="ContentDescription" />
 
     <!-- 설정 버튼 -->
     <ImageButton
@@ -46,6 +47,6 @@
         android:layout_marginStart="16dp"
         android:background="@android:color/transparent"
         android:src="@drawable/ic_setting"
-        />
+        tools:ignore="ContentDescription" />
 
 </LinearLayout>

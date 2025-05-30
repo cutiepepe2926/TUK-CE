@@ -1,4 +1,4 @@
-<androidx.cardview.widget.CardView
+<androidx.cardview.widget.CardView xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
@@ -37,7 +37,8 @@
                     app:layout_constraintDimensionRatio="16:13"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"/>
+                    app:layout_constraintEnd_toEndOf="parent"
+                    tools:ignore="ContentDescription" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- 구분선 -->
@@ -54,7 +55,7 @@
                 android:id="@+id/noteTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="노트 제목"
+                android:text="@string/NoteTitle"
                 android:textAlignment="center"
                 android:textSize="32sp"
                 android:textColor="#333333"

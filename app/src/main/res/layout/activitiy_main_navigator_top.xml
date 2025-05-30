@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/sideMenuTop"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -12,7 +13,8 @@
         android:id="@+id/etSearch"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:hint="검색"
+        android:autofillHints="Document name"
+        android:hint="@string/Search"
         android:drawableStart="@drawable/ic_search"
         android:drawablePadding="8dp"
         android:background="@drawable/text_field"
@@ -28,18 +30,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingVertical="8dp">
+        android:paddingVertical="8dp"
+        tools:ignore="UseCompoundDrawables">
 
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_document"
-            />
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="문서"
+            android:text="@string/Document"
             android:textSize="16sp"
             android:textColor="#333333"
             android:layout_marginStart="12dp"/>
@@ -50,18 +53,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingVertical="8dp">
+        android:paddingVertical="8dp"
+        tools:ignore="UseCompoundDrawables">
 
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_trash"
-            />
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="휴지통"
+            android:text="@string/Trash"
             android:textSize="16sp"
             android:textColor="#333333"
             android:layout_marginStart="12dp"/>
@@ -72,17 +76,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingVertical="8dp">
+        android:paddingVertical="8dp"
+        tools:ignore="UseCompoundDrawables">
 
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:src="@drawable/ic_bigstt" />
+            android:src="@drawable/ic_bigstt"
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="음성 텍스트"
+            android:text="@string/VoiceText"
             android:textSize="16sp"
             android:textColor="#333333"
             android:layout_marginStart="12dp"/>

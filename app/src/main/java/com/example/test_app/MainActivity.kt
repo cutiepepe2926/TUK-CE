@@ -7,6 +7,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
@@ -34,7 +35,6 @@ import com.example.test_app.utils.MyDocManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
-import com.example.test_app.databinding.ActivityMainLeftsideBinding
 
 
 class MainActivity : AppCompatActivity() {
@@ -43,7 +43,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding // 메인 액티비티 xml 바인딩
     private lateinit var profileBinding: ProfilePopupBinding // 프로필 팝업 xml 바인딩
     private var profilePopupWindow: PopupWindow? = null // 프로필 팝업 창 확인용
-    private lateinit var leftsideBinding: ActivityMainLeftsideBinding // 좌측 네비게이션 xml 바인딩
 
     private lateinit var noteAdapter: NoteAdapter
     private val noteList = mutableListOf<Note>()
@@ -65,7 +64,6 @@ class MainActivity : AppCompatActivity() {
 
         //바인딩 초기화 및 바인딩 객체 획득
         binding = ActivityMainBinding.inflate(layoutInflater)
-        leftsideBinding = ActivityMainLeftsideBinding.inflate(layoutInflater)
 
         // 로그인 상태 유지 (토큰 확인) (서버 닫힌경우에는 주석처리하기)
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
@@ -132,7 +130,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 좌측 네비게이션 문서 클릭 시 메인 화면 문서 페이지 이동
-        leftsideBinding.btnDocument.setOnClickListener {
+        val btnDocument = binding.sideMenu.findViewById<View>(R.id.btnDocument)
+        btnDocument.setOnClickListener {
             // 현재 액티비티가 MainActivity일 경우 → 네비게이션 닫기
             if (this::class.java == MainActivity::class.java) {
                 binding.drawerLayout.closeDrawer(GravityCompat.START)
@@ -146,57 +145,33 @@ class MainActivity : AppCompatActivity() {
         }
 
         // 좌측 네비게이션 휴지통 클릭 시 휴지통 페이지 이동
-        leftsideBinding.btnTrash.setOnClickListener {
+        val btnTrash = binding.sideMenu.findViewById<View>(R.id.btnTrash)
+        btnTrash.setOnClickListener {
 
         }
 
         // 좌측 네비게이션 음성 텍스트 클릭 시 음성 텍스트 페이지 이동
-        leftsideBinding.btnSTT.setOnClickListener {
+        val btnSTT = binding.sideMenu.findViewById<View>(R.id.btnSTT)
+        btnSTT.setOnClickListener {
             val intent = Intent(this, SttActivity::class.java)
             startActivity(intent)
         }
-
-        // 좌측 네비게이션 하단 문서 생성(노트) 클릭 시 노트 추가 팝업 출력하기
-        leftsideBinding.btnWrite.setOnClickListener {
-            
-        }
-        
-        // 좌측 네비게이션 하단 음성 텍스트(마이크) 클릭 시 음성 텍스트 페이지 이동
-        leftsideBinding.btnSTTUnder.setOnClickListener {
-            val intent = Intent(this, SttActivity::class.java)
-            startActivity(intent)
-        }
-
-        // 좌측 네비게이션 하단 설정(톱니바퀴) 클릭 시 이동
-        leftsideBinding.btnSetting.setOnClickListener { 
-            
-        }
-
-
-//        // 툴바 버튼 설정(로그인)
-//        val userBtn = findViewById<ImageButton>(R.id.btnUser)
-//        // 로그인 하기 버튼 기능
-//        userBtn.setOnClickListener {
-//            val intent = Intent(this, LoginActivity::class.java)
-//            //val intent = Intent(this, TranslateActivity::class.java)
+//
+//        // 좌측 네비게이션 하단 문서 생성(노트) 클릭 시 노트 추가 팝업 출력하기
+//        leftsideBinding.btnWrite.setOnClickListener {
+//
+//        }
+//
+//        // 좌측 네비게이션 하단 음성 텍스트(마이크) 클릭 시 음성 텍스트 페이지 이동
+//        leftsideBinding.btnSTTUnder.setOnClickListener {
+//            val intent = Intent(this, SttActivity::class.java)
 //            startActivity(intent)
 //        }
 //
+//        // 좌측 네비게이션 하단 설정(톱니바퀴) 클릭 시 이동
+//        leftsideBinding.btnSetting.setOnClickListener {
 //
-//        // OCR 페이지 이동 버튼 (사진으로 OCR)
-//        val btnOcr = findViewById<ImageButton>(R.id.btnOcr)
-//        btnOcr.setOnClickListener {
-//            val intent = Intent(this, OcrActivity::class.java)
-//            startActivity(intent)
 //        }
-//
-//        // 요약 페이지 이동 버튼 (텍스트 파일로 요약)
-//        val btnSummarize = findViewById<ImageButton>(R.id.btnSummarize)
-//        btnSummarize.setOnClickListener {
-//            val intent = Intent(this, SummarizeActivity::class.java)
-//            startActivity(intent)
-//        }
-
 
         // 리사이클러뷰 & 어댑터 설정
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewNotes)
@@ -209,9 +184,6 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView.layoutManager = GridLayoutManager(this, spanCount)
 
-//        noteAdapter = NoteAdapter(noteList) { note ->
-//            openNote(note)
-//        }
         noteAdapter = NoteAdapter(
             noteList,
             onItemClick = { note -> openNote(note) }, // 클릭 시 호출

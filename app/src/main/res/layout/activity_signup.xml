@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
@@ -12,9 +13,9 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:src="@drawable/ic_x"
-        android:contentDescription="닫기"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="ContentDescription" />
 
     <!-- 회원가입 전체 묶음 (중앙 정렬용) -->
     <LinearLayout
@@ -33,7 +34,7 @@
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="회원가입"
+            android:text="@string/register"
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_marginTop="16dp" />
@@ -50,7 +51,7 @@
                 android:id="@+id/accountText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="이미 계정이 존재합니까?"
+                android:text="@string/alreayIDexists"
                 android:textSize="14sp"
                 android:textColor="#777777" />
 
@@ -59,7 +60,7 @@
                 android:id="@+id/backtologin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" 로그인"
+                android:text="@string/login"
                 android:textSize="14sp"
                 android:textColor="#4285F4"
                 android:textStyle="bold" />
@@ -78,7 +79,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="아이디"
+                android:text="@string/ID"
                 android:textSize="14sp"
                 android:textColor="#000000"
                 android:layout_marginTop="8dp" />
@@ -89,15 +90,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/text_field"
-                android:hint="아이디를 입력해 주세요."
+                android:hint="@string/writeID"
                 android:padding="12dp"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                tools:ignore="Autofill,TextFields" />
 
             <!-- 이메일 -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="이메일"
+                android:text="@string/email"
                 android:textSize="14sp"
                 android:textColor="#000000"
                 android:layout_marginTop="16dp" />
@@ -108,9 +110,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/text_field"
-                android:hint="이메일을 입력해 주세요."
+                android:hint="@string/writeEmail"
                 android:padding="12dp"
-                android:textSize="16sp" />
+                android:textSize="16sp"
+                tools:ignore="Autofill,TextFields" />
 
 
             <!-- 비밀번호 -->
@@ -126,7 +129,7 @@
                     android:layout_width="0dp"
                     android:layout_height="34dp"
                     android:layout_weight="1"
-                    android:text="비밀번호"
+                    android:text="@string/Password"
                     android:gravity="center_vertical" />
 
                 <!--비밀번호 숨김 아이콘-->
@@ -135,14 +138,13 @@
                     android:layout_width="34dp"
                     android:layout_height="34dp"
                     android:background="@drawable/ic_hide"
-                    android:backgroundTint="#D8D8D8"
-                    android:contentDescription="비밀번호 숨김 아이콘" />
+                    android:backgroundTint="#D8D8D8" />
 
                 <TextView
                     android:id="@+id/Text4"
                     android:layout_width="34dp"
                     android:layout_height="34dp"
-                    android:text="보기"
+                    android:text="@string/see"
                     android:textSize="18sp"
                     android:gravity="center" />
             </LinearLayout>
@@ -160,10 +162,11 @@
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
                     android:background="@drawable/text_field"
-                    android:hint="비밀번호를 입력해 주세요."
+                    android:hint="@string/writePassword"
                     android:padding="12dp"
                     android:textSize="16sp"
-                    android:inputType="textPassword" />
+                    android:inputType="textPassword"
+                    tools:ignore="Autofill" />
 
             </LinearLayout>
 
@@ -174,7 +177,7 @@
             android:id="@+id/btnSignup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="회원가입"
+            android:text="@string/register"
             android:textSize="16sp"
             android:backgroundTint="#38C333"
             android:textColor="#FFFFFF"

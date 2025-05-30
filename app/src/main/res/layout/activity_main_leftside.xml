@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/sideNavigator"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
@@ -16,14 +17,16 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="8dp"
+        android:clickable="true">
 
         <!-- 검색창 -->
         <EditText
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:hint="검색"
+            android:hint="@string/Search"
+            android:autofillHints="Document Name"
             android:drawableStart="@drawable/ic_search"
             android:drawablePadding="8dp"
             android:background="@drawable/text_field"
@@ -39,18 +42,25 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingVertical="8dp"
-            android:id="@+id/btnDocument">
+            android:id="@+id/btnDocument"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
             <ImageButton
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_document" />
+                android:src="@drawable/ic_document"
+                tools:ignore="ContentDescription" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="문서"
+                android:text="@string/Document"
                 android:textSize="16sp"
                 android:textColor="#333333"
                 android:layout_marginStart="12dp"/>
+
         </LinearLayout>
 
         <!-- 휴지통 -->
@@ -59,18 +69,25 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingVertical="8dp"
-            android:id="@+id/btnTrash">
+            android:id="@+id/btnTrash"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_trash" />
+                android:src="@drawable/ic_trash"
+                tools:ignore="ContentDescription" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="휴지통"
+                android:text="@string/Trash"
                 android:textSize="16sp"
                 android:textColor="#333333"
                 android:layout_marginStart="12dp"/>
+
         </LinearLayout>
 
         <!-- 음성 텍스트 -->
@@ -79,18 +96,25 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingVertical="8dp"
-            android:id="@+id/btnSTT">
+            android:id="@+id/btnSTT"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
             <ImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_bigstt" />
+                android:src="@drawable/ic_bigstt"
+                tools:ignore="ContentDescription" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="음성 텍스트"
+                android:text="@string/VoiceText"
                 android:textSize="16sp"
                 android:textColor="#333333"
                 android:layout_marginStart="12dp"/>
+
         </LinearLayout>
 
         <!-- 구분선 -->
@@ -99,6 +123,7 @@
             android:layout_height="1dp"
             android:background="#CCCCCC"
             android:layout_marginTop="8dp"/>
+
     </LinearLayout>
 
     <!-- 하단 버튼 메뉴 -->
@@ -118,7 +143,7 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_write"
-            />
+            tools:ignore="ContentDescription" />
 
         <ImageButton
             android:id="@+id/btnSTT_under"
@@ -127,7 +152,7 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_stt"
-            />
+            tools:ignore="ContentDescription" />
 
         <ImageButton
             android:id="@+id/btnSetting"
@@ -136,6 +161,6 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_setting"
-            />
+            tools:ignore="ContentDescription" />
     </LinearLayout>
 </LinearLayout>
