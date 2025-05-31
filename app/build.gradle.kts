@@ -93,9 +93,6 @@ dependencies {
     // 이미지 크롭
     implementation ("com.github.yalantis:ucrop:2.2.10")
 
-    // ML Kit 번역 라이브러리 추가
-    implementation ("com.google.mlkit:translate:17.0.2")
-
     // TERMUX 통신 라이브러리
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 

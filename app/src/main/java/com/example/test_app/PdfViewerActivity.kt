@@ -303,7 +303,7 @@ class PdfViewerActivity : AppCompatActivity() {
     }
 
     private fun addTextAnno(raw: String) {
-        val wrapped = wrapText(raw, 40)      // ← 40글자마다 줄바꿈
+        val wrapped = wrapText(raw, 10)      // ← 40글자마다 줄바꿈
         val cx = pdfView.width / 2f
         val cy = pdfView.height / 2f
         val pdfX = (cx - pdfView.currentXOffset) / pdfView.zoom
@@ -313,7 +313,13 @@ class PdfViewerActivity : AppCompatActivity() {
         drawingView.setTextAnnotations(textAnnos)
     }
 
-    private fun runTranslate(bmp: Bitmap) { /* 추후 구현 */ }
+    private fun runTranslate(bmp: Bitmap) {
+        ReadImageText().processImage(bmp) { extractedText ->
+            val intent = Intent(this, TranslateActivity::class.java)
+            intent.putExtra("ocrText", extractedText)
+            startActivity(intent)
+        }
+    }
 
     /* =============================================================== */
     /*  저장 / 로드                                                    */
