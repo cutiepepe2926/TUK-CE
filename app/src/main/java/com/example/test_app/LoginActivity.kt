@@ -13,8 +13,11 @@ import com.example.test_app.databinding.ActivityLoginBinding
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.core.content.edit
+import androidx.core.graphics.toColorInt
 
 //로그인 화면을 담당하는 액티비티
+@Suppress("DEPRECATION")
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivityLoginBinding // ActivityLogin 바인딩 선언
@@ -39,11 +42,11 @@ class LoginActivity : AppCompatActivity() {
         if (rememberCheck.isChecked) {
             // 체크되어 있으면 비밀번호 저장
             val prefs = getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
-            prefs.edit().putString("saved_password", rememberPassword).apply()
+            prefs.edit { putString("saved_password", rememberPassword) }
         } else {
             // 체크 안되어 있으면 비밀번호 제거
             val prefs = getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
-            prefs.edit().remove("saved_password").apply()
+            prefs.edit { remove("saved_password") }
         }
 
         //// 저장된 비밀번호 자동 입력
@@ -97,7 +100,7 @@ class LoginActivity : AppCompatActivity() {
             else {
                 // 비밀번호 숨김 설정
                 binding.loginPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                binding.hide.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D8D8D8"))) // 원래 색으로
+                binding.hide.setBackgroundTintList(ColorStateList.valueOf("#D8D8D8".toColorInt())) // 원래 색으로
                 binding.Text4.text = "숨김"
             }
             isPasswordHidden = !isPasswordHidden // 상태 반전
@@ -148,9 +151,9 @@ class LoginActivity : AppCompatActivity() {
 
     // 토큰을 SharedPreferences에 저장하는 함수
     private fun saveTokens(accessToken: String, refreshToken: String) {
-        val editor = sharedPreferences.edit()
-        editor.putString("access_token", accessToken)
-        editor.putString("refresh_token", refreshToken)
-        editor.apply()
+        sharedPreferences.edit {
+            putString("access_token", accessToken)
+            putString("refresh_token", refreshToken)
+        }
     }
 }

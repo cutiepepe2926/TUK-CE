@@ -58,34 +58,6 @@ class SttActivity : AppCompatActivity() {
         restoreTaskIdButtons()
     }
 
-    // 🔹 파일 탐색기 열기 (MP3 파일 선택)
-    private fun openOfflineFilePicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "audio/mpeg" // mp3 전용
-        }
-        offlineFilePickerLauncher.launch(intent)
-    }
-
-    private val offlineFilePickerLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-                val selectedFileUri = result.data!!.data
-                if (selectedFileUri != null) {
-                    val wavFile = uriToFile(selectedFileUri) // 🔁 wav로 저장된 파일 경로 변환
-                    if (wavFile != null) {
-                        println("🎧 선택된 오프라인 MP3 파일 URI: $selectedFileUri")
-                        //runOfflineStt(wavFile)
-                    } else {
-                        Toast.makeText(this, "파일 로드 실패", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            } else {
-                Toast.makeText(this, "파일 선택이 취소되었습니다.", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-
     // 온라인 버전
     // 🔹 파일 탐색기 열기 (MP3 파일 선택)
     private fun openOnlineFilePicker() {

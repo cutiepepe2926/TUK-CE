@@ -25,13 +25,13 @@
 
 
 
-<!--        <Button-->
-<!--            android:id="@+id/btnOfflineStt"-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_weight="1"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="오프라인 STT"-->
-<!--            android:layout_gravity="top|start"/>-->
+        <Button
+            android:id="@+id/btnOfflineStt"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="오프라인 STT"
+            android:layout_gravity="top|start"/>
     </LinearLayout>
 
     <!-- 결과 확인 버튼 -->

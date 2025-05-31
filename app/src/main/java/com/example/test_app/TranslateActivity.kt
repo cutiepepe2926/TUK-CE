@@ -74,7 +74,7 @@ class TranslateActivity : AppCompatActivity() {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
                     showLoading(false) // ✅ 실패해도 반드시 로딩 종료
-                    binding.tvResult.text = "🚨 서버 연결 실패: ${e.message}"
+                    binding.tvResult.text = getString(R.string.error_server_connection, e.message)
                 }
             }
         })

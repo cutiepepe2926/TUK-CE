@@ -21,10 +21,12 @@
                 android:id="@+id/btnLeftSideNavigator"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:importantForAccessibility="no"
                 android:scaleType="center"
                 android:src="@drawable/ic_left_side_button"
                 android:background="@color/white"
                 android:paddingLeft="7dp"
+                android:paddingRight="7dp"
                 android:paddingTop="7dp"/>
 
             <!-- 중간 빈 공간 -->
@@ -38,11 +40,13 @@
                 android:id="@+id/btnProfile"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:importantForAccessibility="no"
                 android:src="@drawable/ic_profile"
                 android:scaleType="center"
-                android:layout_gravity="right|end"
+                android:layout_gravity="end"
                 android:background="@color/white"
-                android:paddingRight="7dp"
+                android:paddingStart="7dp"
+                android:paddingEnd="7dp"
                 android:paddingTop="7dp"/>
 
 
@@ -76,7 +80,7 @@
                 android:layout_width="75dp"
                 android:layout_height="75dp"
                 android:background="@drawable/yellow_circle_ripple_effect"
-                android:text="+"
+                android:text="@string/plus"
                 android:gravity="center"
                 android:textSize="36sp"
                 android:textColor="#FFFFFF"

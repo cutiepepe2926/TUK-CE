@@ -51,7 +51,6 @@ class MainActivity : AppCompatActivity() {
     private val pdfPickerLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let {
-                //createNoteFromPdf(uri)
                 showTitleDialogThenCreateNote(it) // 아래 함수로 분리
             }
         }
@@ -107,7 +106,7 @@ class MainActivity : AppCompatActivity() {
                 true
             )
 
-            // 팝업 뷰 스타일
+            // 팝업 뷰 스타일 세팅
             profilePopupWindow?.elevation = 10f
             profilePopupWindow?.isOutsideTouchable = true
             profilePopupWindow?.isFocusable = true
@@ -120,8 +119,10 @@ class MainActivity : AppCompatActivity() {
             // 로그아웃 버튼 동작
             profileBinding.btnLogout.setOnClickListener {
                 Toast.makeText(this, "로그아웃 되었습니다", Toast.LENGTH_SHORT).show()
-                profilePopupWindow?.dismiss()
-                // 추가로 로그아웃 함수 구현이 필요함.
+                profilePopupWindow?.dismiss() //팝업해제 후 로그인 액티비티로 이동
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+                finish()
             }
 
             // 팝업 표시 위치 (버튼 아래 또는 화면 오른쪽 상단 등)
@@ -144,7 +145,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 좌측 네비게이션 휴지통 클릭 시 휴지통 페이지 이동
+        // 좌측 네비게이션 휴지통 클릭 시 휴지통 페이지 이동 (휴지통 페이지 작성 필요)
         val btnTrash = binding.sideMenu.findViewById<View>(R.id.btnTrash)
         btnTrash.setOnClickListener {
 
@@ -156,22 +157,42 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, SttActivity::class.java)
             startActivity(intent)
         }
-//
-//        // 좌측 네비게이션 하단 문서 생성(노트) 클릭 시 노트 추가 팝업 출력하기
-//        leftsideBinding.btnWrite.setOnClickListener {
-//
-//        }
-//
-//        // 좌측 네비게이션 하단 음성 텍스트(마이크) 클릭 시 음성 텍스트 페이지 이동
-//        leftsideBinding.btnSTTUnder.setOnClickListener {
-//            val intent = Intent(this, SttActivity::class.java)
-//            startActivity(intent)
-//        }
-//
-//        // 좌측 네비게이션 하단 설정(톱니바퀴) 클릭 시 이동
-//        leftsideBinding.btnSetting.setOnClickListener {
-//
-//        }
+
+        // 좌측 네비게이션 하단 문서 생성(노트) 클릭 시 노트 추가 팝업 출력하기
+        val btnWrite = binding.sideMenu.findViewById<View>(R.id.btnWrite)
+        btnWrite.setOnClickListener {
+            val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_add_menu, binding.root,false)
+            val dialog = BottomSheetDialog(this)
+            dialog.setContentView(bottomSheetView)
+
+            val importPdf = bottomSheetView.findViewById<TextView>(R.id.menu_import_pdf)
+            val createNote = bottomSheetView.findViewById<TextView>(R.id.menu_create_new_note)
+
+            importPdf.setOnClickListener {
+                pdfPickerLauncher.launch(arrayOf("application/pdf"))
+                dialog.dismiss()
+            }
+
+            createNote.setOnClickListener {
+                showNewNoteDialog()
+                dialog.dismiss()
+            }
+
+            dialog.show()
+        }
+
+        // 좌측 네비게이션 하단 음성 텍스트(마이크) 클릭 시 음성 텍스트 페이지 이동
+        val btnSTTUnder = binding.sideMenu.findViewById<View>(R.id.btnSTT_under)
+        btnSTTUnder.setOnClickListener {
+            val intent = Intent(this, SttActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 하단 설정(톱니바퀴) 클릭 시 이동 (설정 페이지 작성 필요)
+        val btnSetting = binding.sideMenu.findViewById<View>(R.id.btnSetting)
+        btnSetting.setOnClickListener {
+
+        }
 
         // 리사이클러뷰 & 어댑터 설정
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewNotes)

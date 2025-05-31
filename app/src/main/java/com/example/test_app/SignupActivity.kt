@@ -11,8 +11,10 @@ import com.example.test_app.databinding.ActivitySignupBinding
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.core.graphics.toColorInt
 
 // 회원가입 화면을 담당하는 액티비티
+@Suppress("DEPRECATION")
 class SignupActivity : AppCompatActivity() {
 
     private lateinit var binding : ActivitySignupBinding // ActivitySignup 바인딩 객체
@@ -70,7 +72,7 @@ class SignupActivity : AppCompatActivity() {
             else {
                 // 비밀번호 숨김 설정
                 binding.signupPassword.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                binding.hide.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D8D8D8"))) // 원래 색으로
+                binding.hide.setBackgroundTintList(ColorStateList.valueOf("#D8D8D8".toColorInt())) // 원래 색으로
                 binding.Text4.text = "숨김"
             }
             isPasswordHidden = !isPasswordHidden // 상태 반전

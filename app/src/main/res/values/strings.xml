@@ -21,4 +21,9 @@
     <string name="writeEmail">이메일을 입력해 주세요.</string>
     <string name="NoteTitle">노트 제목</string>
     <string name="logout">로그아웃</string>
+    <string name="error_server_connection">❌ 서버 연결 실패: %1$s</string>
+    <string name="load_pdf">📄 PDF 불러오기</string>
+    <string name="make_new_note">📝 새 노트 만들기</string>
+    <string name="plus">+</string>
+
 </resources>

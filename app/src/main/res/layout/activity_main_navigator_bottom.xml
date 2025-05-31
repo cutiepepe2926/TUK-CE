@@ -29,15 +29,6 @@
         android:src="@drawable/ic_stt"
         tools:ignore="ContentDescription" />
 
-    <!-- 번역 버튼 -->
-    <ImageButton
-        android:id="@+id/btnTranslate"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="16dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/ic_translate"
-        tools:ignore="ContentDescription" />
 
     <!-- 설정 버튼 -->
     <ImageButton

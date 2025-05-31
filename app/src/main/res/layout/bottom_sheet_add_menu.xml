@@ -9,7 +9,7 @@
         android:id="@+id/menu_import_pdf"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📄 PDF 불러오기"
+        android:text="@string/load_pdf"
         android:textSize="18sp"
         android:padding="12dp" />
 
@@ -17,7 +17,7 @@
         android:id="@+id/menu_create_new_note"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📝 새 노트 만들기"
+        android:text="@string/make_new_note"
         android:textSize="18sp"
         android:padding="12dp" />
 
