@@ -12,7 +12,13 @@
         android:id="@+id/btnSelectFile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="음성 파일 선택" />
+        android:text="음성 파일 선택"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="4dp"
+        />
 
     <!-- 서버 전송 -->
     <Button
@@ -20,7 +26,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="서버로 전송"
-        android:layout_marginTop="8dp" />
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="24dp"
+         />
 
     <!-- 로딩 표시 -->
     <ProgressBar
@@ -35,8 +45,11 @@
     <TextView
         android:id="@+id/tvResult"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="결과가 여기에 표시됩니다."
-        android:paddingTop="24dp"
-        android:textSize="16sp" />
+        android:layout_height="480dp"
+        android:background="@drawable/edittext_border"
+        android:paddingTop="8dp"
+        android:paddingLeft="8dp"
+        android:text="여기에 음성 인식 결과가 표시됩니다."
+        android:gravity="top|start"
+        android:textSize="18sp" />
 </LinearLayout>
