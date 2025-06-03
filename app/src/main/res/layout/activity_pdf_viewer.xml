@@ -105,7 +105,8 @@
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/toolbar_ic_hand"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:alpha="0.4" />
 
         </LinearLayout>
 
