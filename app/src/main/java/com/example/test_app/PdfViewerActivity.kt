@@ -8,7 +8,6 @@ import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.test_app.databinding.ActivityPdfToolbarBinding
 import com.example.test_app.databinding.ActivityPdfViewerBinding
 import java.io.File
 import java.text.SimpleDateFormat
@@ -19,6 +18,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import com.github.barteksc.pdfviewer.PDFView
 import android.graphics.pdf.PdfRenderer
 import android.media.AudioFormat
@@ -84,9 +84,6 @@ class PdfViewerActivity : AppCompatActivity() {
         }
     }
 
-    /* ---------------- 툴바 객체 ---------------- */
-    private lateinit var toolbinding : ActivityPdfToolbarBinding
-
     /* ---------------- side menu ----------------*/
     private lateinit var sideMenu: LinearLayout
     private lateinit var btnMenu: ImageButton
@@ -98,6 +95,16 @@ class PdfViewerActivity : AppCompatActivity() {
     private lateinit var slideDown: Animation
     private lateinit var slideUp: Animation
 
+    /* ---------------- 펜 옵션 ------------*/
+    private lateinit var penOptionLayout: LinearLayout
+    private lateinit var btnPen: ImageButton
+    private lateinit var thickness1: View
+    private lateinit var thickness2: View
+    private lateinit var thickness3: View
+    private lateinit var thickness4: View
+    private lateinit var thickness5: View
+    private lateinit var colorPicker: ImageButton
+
     private var isMenuOpen = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,7 +112,6 @@ class PdfViewerActivity : AppCompatActivity() {
 
         //바인딩 객체 획득
         binding = ActivityPdfViewerBinding.inflate(layoutInflater)
-        toolbinding = ActivityPdfToolbarBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
 
@@ -145,11 +151,6 @@ class PdfViewerActivity : AppCompatActivity() {
             // pen 모드일 때(연하게), drag 모드일 때(진하게)
             binding.toggleModeButton.alpha = if (isPenMode) 0.4f else 1.0f
         }
-        
-
-        // 툴바 설정
-        setSupportActionBar(toolbinding.pdfToolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false) // 타이틀 비설정
 
         // Export 버튼은 기존 로직 그대로
         exportButton = findViewById<ImageButton>(R.id.exportButton)
@@ -209,8 +210,48 @@ class PdfViewerActivity : AppCompatActivity() {
 
         btnMenu.setOnClickListener { toggleSideMenu() }
 
-        handler.post(syncRunnable)
+        // 펜 크기 조절
+        penOptionLayout = findViewById(R.id.penOptionLayout)
+        btnPen = findViewById(R.id.btnPen)
+        thickness1 = findViewById(R.id.penThickness1)
+        thickness2 = findViewById(R.id.penThickness2)
+        thickness3 = findViewById(R.id.penThickness3)
+        thickness4 = findViewById(R.id.penThickness4)
+        thickness5 = findViewById(R.id.penThickness5)
+        colorPicker = findViewById(R.id.penColorPicker)
+        var selectedColor: Int = Color.BLACK
+        var selectedWidth: Float = 5f
 
+        btnPen.setOnClickListener {
+            // 다른 모드일 때는 펜 옵션 감추기
+            if (penOptionLayout.visibility == View.VISIBLE){
+                penOptionLayout.visibility = View.GONE
+            }else{
+                // 다른 메뉴/팝업이 열려 있으면 닫음
+                penOptionLayout.visibility = View.VISIBLE
+            }
+        }
+        thickness1.setOnClickListener {
+            selectedWidth = 4f
+            drawingView.setCurrentStrokeWidth(selectedWidth)
+        }
+        thickness2.setOnClickListener {
+            selectedWidth = 8f
+            drawingView.setCurrentStrokeWidth(selectedWidth)
+        }
+        thickness3.setOnClickListener {
+            selectedWidth = 12f
+            drawingView.setCurrentStrokeWidth(selectedWidth)
+        }
+        thickness4.setOnClickListener {
+            selectedWidth = 16f
+            drawingView.setCurrentStrokeWidth(selectedWidth)
+        }
+        thickness5.setOnClickListener {
+            selectedWidth = 20f
+            drawingView.setCurrentStrokeWidth(selectedWidth)
+        }
+        handler.post(syncRunnable)
     }
 
     override fun onDestroy() {

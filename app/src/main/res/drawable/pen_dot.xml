@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <!-- 기본 점 색은 검은색, 필요 시 동적으로 색 변경 -->
+    <solid android:color="#000000"/>
+</shape>

@@ -21,6 +21,8 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     private var pdfOffsetY = 0f
     private var drawingEnabled = true
     private var viewCurrentPage = 0
+    private var currentColor = Color.RED
+    private var currentWidth = 5f
 
     private val strokePaint = Paint().apply {
         isAntiAlias = true; style = Paint.Style.STROKE
@@ -45,7 +47,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         val xPdf = (e.x - pdfOffsetX) / pdfScale
         val yPdf = (e.y - pdfOffsetY) / pdfScale
         when (e.action) {
-            MotionEvent.ACTION_DOWN -> currentStroke = Stroke(Color.RED, 5f, mutableListOf(PointF(xPdf, yPdf)), viewCurrentPage)
+            MotionEvent.ACTION_DOWN -> currentStroke = Stroke(currentColor, currentWidth, mutableListOf(PointF(xPdf, yPdf)), viewCurrentPage)
             MotionEvent.ACTION_MOVE -> currentStroke?.points?.add(PointF(xPdf, yPdf))
             MotionEvent.ACTION_UP   -> {
                 currentStroke?.points?.add(PointF(xPdf, yPdf))
@@ -88,5 +90,13 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
             }
         }
         canvas.restore()
+    }
+
+    /* -------- 펜 크기 및 색상 -------*/
+    fun setCurrentStrokeColor(color: Int){
+        currentColor = color
+    }
+    fun setCurrentStrokeWidth(width: Float){
+        currentWidth = width
     }
 }
