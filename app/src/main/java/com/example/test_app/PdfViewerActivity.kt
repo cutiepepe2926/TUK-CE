@@ -27,6 +27,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.os.ParcelFileDescriptor
+import android.util.TypedValue
 import android.view.View
 import android.view.animation.Animation
 import android.widget.LinearLayout
@@ -40,6 +41,7 @@ import com.example.test_app.utils.MyDocManager
 import com.example.test_app.utils.PdfExporter
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener
 import android.view.animation.AnimationUtils
+import android.widget.SeekBar
 import com.yalantis.ucrop.UCrop
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -97,13 +99,14 @@ class PdfViewerActivity : AppCompatActivity() {
 
     /* ---------------- 펜 옵션 ------------*/
     private lateinit var penOptionLayout: LinearLayout
+    private lateinit var penSizeCircle: View
+    private lateinit var penSizeSeekBar: SeekBar
     private lateinit var btnPen: ImageButton
-    private lateinit var thickness1: View
-    private lateinit var thickness2: View
-    private lateinit var thickness3: View
-    private lateinit var thickness4: View
-    private lateinit var thickness5: View
-    private lateinit var colorPicker: ImageButton
+    private lateinit var colorBlack: View
+    private lateinit var colorBlue: View
+    private lateinit var colorGreen: View
+    private lateinit var colorRed: View
+    private lateinit var colorYellow: View
 
     private var isMenuOpen = false
 
@@ -212,45 +215,48 @@ class PdfViewerActivity : AppCompatActivity() {
 
         // 펜 크기 조절
         penOptionLayout = findViewById(R.id.penOptionLayout)
+        penSizeCircle = findViewById(R.id.penSizeCircle)
+        penSizeSeekBar = findViewById(R.id.penSizeSeekBar)
         btnPen = findViewById(R.id.btnPen)
-        thickness1 = findViewById(R.id.penThickness1)
-        thickness2 = findViewById(R.id.penThickness2)
-        thickness3 = findViewById(R.id.penThickness3)
-        thickness4 = findViewById(R.id.penThickness4)
-        thickness5 = findViewById(R.id.penThickness5)
-        colorPicker = findViewById(R.id.penColorPicker)
-        var selectedColor: Int = Color.BLACK
-        var selectedWidth: Float = 5f
+        colorBlack  = findViewById(R.id.colorBlack)
+        colorBlue   = findViewById(R.id.colorBlue)
+        colorGreen  = findViewById(R.id.colorGreen)
+        colorRed    = findViewById(R.id.colorRed)
+        colorYellow = findViewById(R.id.colorYellow)
+
+        val initialWidthDp = penSizeSeekBar.progress
+        drawingView.setCurrentStrokeWidth(initialWidthDp.toFloat())
+        resizeCircle(penSizeCircle, dpToPx(initialWidthDp))
 
         btnPen.setOnClickListener {
-            // 다른 모드일 때는 펜 옵션 감추기
-            if (penOptionLayout.visibility == View.VISIBLE){
-                penOptionLayout.visibility = View.GONE
-            }else{
-                // 다른 메뉴/팝업이 열려 있으면 닫음
-                penOptionLayout.visibility = View.VISIBLE
+            penOptionLayout.visibility = if(penOptionLayout.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
+
+        penSizeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val newWidth = if (progress<1) 1 else progress
+                drawingView.setCurrentStrokeWidth(newWidth.toFloat())
+                resizeCircle(penSizeCircle, dpToPx(newWidth))
             }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) { }
+            override fun onStopTrackingTouch(seekBar: SeekBar?) { }
+        })
+        colorBlack.setOnClickListener{
+            applyPenColor(Color.BLACK)
         }
-        thickness1.setOnClickListener {
-            selectedWidth = 4f
-            drawingView.setCurrentStrokeWidth(selectedWidth)
+        colorBlue.setOnClickListener {
+            applyPenColor(Color.parseColor("#025AB1"))
         }
-        thickness2.setOnClickListener {
-            selectedWidth = 8f
-            drawingView.setCurrentStrokeWidth(selectedWidth)
+        colorGreen.setOnClickListener {
+            applyPenColor(Color.parseColor("#2E7D32"))
         }
-        thickness3.setOnClickListener {
-            selectedWidth = 12f
-            drawingView.setCurrentStrokeWidth(selectedWidth)
+        colorRed.setOnClickListener {
+            applyPenColor(Color.parseColor("#C62828"))
         }
-        thickness4.setOnClickListener {
-            selectedWidth = 16f
-            drawingView.setCurrentStrokeWidth(selectedWidth)
+        colorYellow.setOnClickListener {
+            applyPenColor(Color.parseColor("#F9A825"))
         }
-        thickness5.setOnClickListener {
-            selectedWidth = 20f
-            drawingView.setCurrentStrokeWidth(selectedWidth)
-        }
+
         handler.post(syncRunnable)
     }
 
@@ -395,6 +401,29 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     override fun onBackPressed() { persistAll(); super.onBackPressed() }
 
+    /* =============================================================== */
+    /*  펜, 지우개 관련                                                  */
+    /* =============================================================== */
+    /** dp → px 변환 */
+    private fun dpToPx(dp: Int): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+    }
+    private fun applyPenColor(color: Int){
+        drawingView.setCurrentStrokeColor(color)
+        penSizeCircle.background.setTint(color)
+        btnPen.setColorFilter(color)
+    }
+    /** 뷰 크기(px 단위) 변경 */
+    private fun resizeCircle(view: View, sizePx: Int) {
+        val lp = view.layoutParams
+        lp.width = sizePx
+        lp.height = sizePx
+        view.layoutParams = lp
+    }
     /* =============================================================== */
     /*  애니메이션                                                      */
     /* =============================================================== */

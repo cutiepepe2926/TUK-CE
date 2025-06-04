@@ -123,55 +123,102 @@
         <LinearLayout
             android:id="@+id/penOptionLayout"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal|top"
             android:layout_marginTop="55dp"
-            android:visibility="gone"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:background="@drawable/bg_round"
-
             android:padding="8dp"
-            android:gravity="center_vertical">
+            android:clipToPadding="false"
+            android:clipChildren="false">
 
-            <View
-                android:id="@+id/penThickness1"
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:layout_margin="10dp"
-                android:background="@drawable/pen_dot"/>
-            <View
-                android:id="@+id/penThickness2"
-                android:layout_width="12dp"
-                android:layout_height="12dp"
-                android:layout_margin="10dp"
-                android:background="@drawable/pen_dot"/>
-            <View
-                android:id="@+id/penThickness3"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_margin="10dp"
-                android:background="@drawable/pen_dot"/>
-            <View
-                android:id="@+id/penThickness4"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_margin="10dp"
-                android:background="@drawable/pen_dot"/>
-            <View
-                android:id="@+id/penThickness5"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_margin="10dp"
-                android:background="@drawable/pen_dot"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <!-- 컬러 피커 -->
-            <ImageButton
-                android:id="@+id/penColorPicker"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_margin="10dp"
-                android:src="@drawable/ic_color_palette"
-                android:background="?attr/selectableItemBackgroundBorderless"/>
+                <!-- ① 투명 고정 컨테이너 (가로 40dp × 세로 40dp) -->
+                <FrameLayout
+                    android:id="@+id/penCircleContainer"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:background="@android:color/transparent"
+                    android:layout_marginStart="10dp"
+                    android:clipToPadding="false"
+                    android:clipChildren="false">
+
+                    <!-- ② 실제 크기가 변경될 동그라미(View) -->
+                    <View
+                        android:id="@+id/penSizeCircle"
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/pen_circle" />
+                </FrameLayout>
+                <!-- SeekBar: 굵기 조절용 슬라이더 -->
+                <SeekBar
+                    android:id="@+id/penSizeSeekBar"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="10dp"
+                    android:max="20"
+                    android:progress="5"
+                    android:layout_marginEnd="8dp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_gravity="center"
+                android:layout_marginTop="4dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginBottom="4dp">
+
+                <!-- ● 검정 -->
+                <View
+                    android:id="@+id/colorBlack"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/pen_circle"
+                    android:backgroundTint="@android:color/black" />
+                <!-- ● 파랑 -->
+                <View
+                    android:id="@+id/colorBlue"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/pen_circle"
+                    android:backgroundTint="#025AB1"
+                />
+                <!-- ● 초록 -->
+                <View
+                    android:id="@+id/colorGreen"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/pen_circle"
+                    android:backgroundTint="#2E7D32" />
+                <!-- ● 빨강 -->
+                <View
+                    android:id="@+id/colorRed"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/pen_circle"
+                    android:backgroundTint="#C62828" />
+                <!-- ● 노랑 -->
+                <View
+                    android:id="@+id/colorYellow"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/pen_circle"
+                    android:backgroundTint="#F9A825" />
+            </LinearLayout>
         </LinearLayout>
 
     </FrameLayout>
