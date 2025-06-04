@@ -25,5 +25,9 @@
     <string name="load_pdf">📄 PDF 불러오기</string>
     <string name="make_new_note">📝 새 노트 만들기</string>
     <string name="plus">+</string>
+    <string name="write_translate_sentence">번역할 문장을 입력하세요</string>
+    <string name="translate">번역하기</string>
+    <string name="now_loading">번역 중입니다...</string>
+    <string name="translate_result_will_display">번역 결과가 여기에 표시됩니다.</string>
 
 </resources>

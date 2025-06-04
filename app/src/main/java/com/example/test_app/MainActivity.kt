@@ -242,8 +242,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-
-
         // PDF 파일을 Bitmap으로 변환
     private fun renderPdfToBitmap(uri: Uri): Bitmap? {
         try {

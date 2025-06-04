@@ -44,6 +44,7 @@ import com.yalantis.ucrop.UCrop
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.io.RandomAccessFile
+import androidx.core.graphics.createBitmap
 
 
 class PdfViewerActivity : AppCompatActivity() {
@@ -244,7 +245,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
     private fun startCrop(reqCode: Int) {
         val scale = 1080f / pdfView.width
-        val bmp = Bitmap.createBitmap(
+        val bmp = createBitmap(
             (pdfView.width * scale).toInt(),
             (pdfView.height * scale).toInt(),
             Bitmap.Config.RGB_565
