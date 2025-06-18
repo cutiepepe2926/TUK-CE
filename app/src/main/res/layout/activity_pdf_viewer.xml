@@ -96,6 +96,7 @@
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
                 android:src="@drawable/toolbar_ic_eraser"
+                android:alpha="0.4"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <!-- 텍스트 -->
@@ -128,6 +129,7 @@
             android:layout_marginTop="55dp"
             android:orientation="vertical"
             android:background="@drawable/bg_round"
+            android:visibility="gone"
             android:padding="8dp"
             android:clipToPadding="false"
             android:clipChildren="false">
@@ -220,7 +222,6 @@
                     android:backgroundTint="#F9A825" />
             </LinearLayout>
         </LinearLayout>
-
     </FrameLayout>
 
     <!-- 4) 햄버거 눌렀을 때 펼쳐질 메뉴 -->

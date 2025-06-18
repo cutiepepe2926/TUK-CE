@@ -64,6 +64,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
     /* ---------------- 모드 ---------------- */
     private var isPenMode = true
+    private var isEraserMode = false
 
     /* ---------------- OCR ---------------- */
     private val ocrOptions   = arrayOf("텍스트 추출", "번역")
@@ -107,6 +108,10 @@ class PdfViewerActivity : AppCompatActivity() {
     private lateinit var colorGreen: View
     private lateinit var colorRed: View
     private lateinit var colorYellow: View
+
+    /* ---------------- 지우개 옵션 ------------*/
+    private lateinit var btnEraser: ImageButton
+    private lateinit var eraserSizeCircle  : View
 
     private var isMenuOpen = false
 
@@ -176,18 +181,6 @@ class PdfViewerActivity : AppCompatActivity() {
             Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show()
         }
 
-        // 지우개
-        val btnEraser = findViewById<ImageButton>(R.id.btnEraser)
-        // 🔹 필기 삭제 버튼 기능
-        btnEraser.setOnClickListener {
-            println("🧽 현재 페이지 ($currentPage) 필기 삭제")
-
-            pageStrokes[currentPage]?.clear(); drawingView.setStrokes(emptyList())
-
-            Toast.makeText(this, "현재 페이지 필기가 삭제되었습니다.", Toast.LENGTH_SHORT).show()
-        }
-
-
         // 녹음 버튼
         btnRecord = findViewById(R.id.btnRecord)
         // 🔹 음성 녹음 버튼 기능
@@ -213,49 +206,52 @@ class PdfViewerActivity : AppCompatActivity() {
 
         btnMenu.setOnClickListener { toggleSideMenu() }
 
-        // 펜 크기 조절
+        // 펜, 지우개
+        btnPen = findViewById(R.id.btnPen)
+        btnEraser = findViewById(R.id.btnEraser)
         penOptionLayout = findViewById(R.id.penOptionLayout)
         penSizeCircle = findViewById(R.id.penSizeCircle)
         penSizeSeekBar = findViewById(R.id.penSizeSeekBar)
-        btnPen = findViewById(R.id.btnPen)
+
         colorBlack  = findViewById(R.id.colorBlack)
         colorBlue   = findViewById(R.id.colorBlue)
         colorGreen  = findViewById(R.id.colorGreen)
         colorRed    = findViewById(R.id.colorRed)
         colorYellow = findViewById(R.id.colorYellow)
 
-        val initialWidthDp = penSizeSeekBar.progress
-        drawingView.setCurrentStrokeWidth(initialWidthDp.toFloat())
-        resizeCircle(penSizeCircle, dpToPx(initialWidthDp))
+        updateToolSize(penSizeSeekBar.progress)
 
         btnPen.setOnClickListener {
-            penOptionLayout.visibility = if(penOptionLayout.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            isEraserMode = false
+            drawingView.setEraserEnabled(false)
+            drawingView.setDrawingEnabled(true)
+            btnPen.alpha = 1.0f
+            btnEraser.alpha = 0.4f
+            penOptionLayout.visibility = View.VISIBLE
+            updateToolSize(penSizeSeekBar.progress)
+        }
+
+        btnEraser.setOnClickListener{
+            isEraserMode = !isEraserMode
+            drawingView.setEraserEnabled(isEraserMode)
+            btnPen.alpha = if(isEraserMode) 0.4f else 1.0f
+            btnEraser.alpha = if(isEraserMode) 1.0f else 0.4f
+            penOptionLayout.visibility = View.GONE
         }
 
         penSizeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val newWidth = if (progress<1) 1 else progress
-                drawingView.setCurrentStrokeWidth(newWidth.toFloat())
-                resizeCircle(penSizeCircle, dpToPx(newWidth))
+            override fun onProgressChanged(sb: SeekBar, prog: Int, fromUser: Boolean) {
+                if (!isEraserMode) updateToolSize(prog)
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) { }
-            override fun onStopTrackingTouch(seekBar: SeekBar?) { }
+            override fun onStartTrackingTouch(sb: SeekBar) {}
+            override fun onStopTrackingTouch(sb: SeekBar)  {}
         })
-        colorBlack.setOnClickListener{
-            applyPenColor(Color.BLACK)
-        }
-        colorBlue.setOnClickListener {
-            applyPenColor(Color.parseColor("#025AB1"))
-        }
-        colorGreen.setOnClickListener {
-            applyPenColor(Color.parseColor("#2E7D32"))
-        }
-        colorRed.setOnClickListener {
-            applyPenColor(Color.parseColor("#C62828"))
-        }
-        colorYellow.setOnClickListener {
-            applyPenColor(Color.parseColor("#F9A825"))
-        }
+
+        colorBlack.setOnClickListener{ applyPenColor(Color.BLACK) }
+        colorBlue.setOnClickListener { applyPenColor(Color.parseColor("#025AB1")) }
+        colorGreen.setOnClickListener { applyPenColor(Color.parseColor("#2E7D32")) }
+        colorRed.setOnClickListener { applyPenColor(Color.parseColor("#C62828")) }
+        colorYellow.setOnClickListener { applyPenColor(Color.parseColor("#F9A825")) }
 
         handler.post(syncRunnable)
     }
@@ -404,6 +400,16 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     /*  펜, 지우개 관련                                                  */
     /* =============================================================== */
+    private fun updateToolSize(sizeDp: Int){
+        val dp = sizeDp.coerceAtLeast(1)
+        val px = dpToPx(dp)
+        if(isEraserMode){
+            resizeCircle(eraserSizeCircle, px)
+        }else{
+            drawingView.setCurrentStrokeWidth(dp.toFloat())
+            resizeCircle(penSizeCircle, px)
+        }
+    }
     /** dp → px 변환 */
     private fun dpToPx(dp: Int): Int {
         return TypedValue.applyDimension(
@@ -419,10 +425,11 @@ class PdfViewerActivity : AppCompatActivity() {
     }
     /** 뷰 크기(px 단위) 변경 */
     private fun resizeCircle(view: View, sizePx: Int) {
-        val lp = view.layoutParams
-        lp.width = sizePx
-        lp.height = sizePx
-        view.layoutParams = lp
+        view.layoutParams = view.layoutParams.apply {
+            width = sizePx
+            height = sizePx
+        }
+        view.requestLayout()
     }
     /* =============================================================== */
     /*  애니메이션                                                      */
