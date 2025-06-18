@@ -222,13 +222,20 @@ class PdfViewerActivity : AppCompatActivity() {
         updateToolSize(penSizeSeekBar.progress)
 
         btnPen.setOnClickListener {
-            isEraserMode = false
-            drawingView.setEraserEnabled(false)
-            drawingView.setDrawingEnabled(true)
-            btnPen.alpha = 1.0f
-            btnEraser.alpha = 0.4f
-            penOptionLayout.visibility = View.VISIBLE
-            updateToolSize(penSizeSeekBar.progress)
+            if(isEraserMode){
+                isEraserMode = false
+                drawingView.setEraserEnabled(false)
+                drawingView.setDrawingEnabled(true)
+
+                btnPen.alpha = 1.0f
+                btnEraser.alpha = 0.4f
+
+                penOptionLayout.visibility = View.GONE
+            }else{
+                penOptionLayout.visibility =
+                    if(penOptionLayout.visibility == View.VISIBLE) View.GONE
+                    else View.VISIBLE
+            }
         }
 
         btnEraser.setOnClickListener{
