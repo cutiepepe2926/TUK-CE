@@ -68,7 +68,11 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="@string/choose_summarize_file"/>
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:text="@string/choose_summarize_file"
+                android:backgroundTint="#DDDDDD"
+                android:textColor="@color/black"/>
 
         </LinearLayout>
 
@@ -90,7 +94,7 @@
                     android:id="@+id/tvResult"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="여기에 요약 결과가 표시됩니다."
+                    android:text="@string/result_display_here"
                     android:textSize="18sp"
                     android:padding="8dp"
                     android:background="#F0F0F0" />

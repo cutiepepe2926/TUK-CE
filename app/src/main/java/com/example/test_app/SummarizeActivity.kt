@@ -127,7 +127,9 @@ class SummarizeActivity : AppCompatActivity() {
         // 좌측 네비게이션 하단 문서 생성(노트) 클릭 시 노트 추가 팝업 출력하기
         val btnWrite = binding.sideMenu.findViewById<View>(R.id.btnWrite)
         btnWrite.setOnClickListener {
-
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
         }
 
         // 좌측 네비게이션 하단 음성 텍스트(마이크) 클릭 시 음성 텍스트 페이지 이동

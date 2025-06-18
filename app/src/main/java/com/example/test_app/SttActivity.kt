@@ -6,8 +6,11 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +29,8 @@ import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
 import androidx.core.content.edit
+import androidx.core.view.GravityCompat
+import com.example.test_app.databinding.ProfilePopupBinding
 import com.google.gson.reflect.TypeToken
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -38,9 +43,8 @@ class SttActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySttBinding
     private lateinit var tvTaskId: TextView
     private lateinit var scrollLayout: LinearLayout
-
-
-
+    private lateinit var profileBinding: ProfilePopupBinding // 프로필 팝업 xml 바인딩
+    private var profilePopupWindow: PopupWindow? = null // 프로필 팝업 창 확인용
     private val client = OkHttpClient.Builder()
         .connectTimeout(600, java.util.concurrent.TimeUnit.SECONDS)  // 서버 연결까지 대기 시간
         .writeTimeout(600, java.util.concurrent.TimeUnit.SECONDS)    // 요청 전송까지 대기 시간
@@ -66,34 +70,124 @@ class SttActivity : AppCompatActivity() {
         binding = ActivitySttBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        scrollLayout = findViewById(R.id.scrollLayout)
-        tvTaskId = findViewById(R.id.tvTaskId)
+        scrollLayout = binding.scrollLayout
+        tvTaskId = binding.tvTaskId
+
+        // 왼쪽 상단 버튼 클릭 시 네비게이션 표시
+        binding.btnLeftSideNavigator.setOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+
+        // 우측 상단 프로필 버튼 클릭 시 프로필 팝업 표시
+        binding.btnProfile.setOnClickListener {
+            // 이미 떠 있으면 닫기
+            if (profilePopupWindow?.isShowing == true) {
+                profilePopupWindow?.dismiss()
+                return@setOnClickListener
+            }
+            // ViewBinding으로 레이아웃 inflate
+            profileBinding = ProfilePopupBinding.inflate(layoutInflater)
+
+            // 팝업 뷰 생성
+            profilePopupWindow = PopupWindow(
+                profileBinding.root,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+            )
+
+            // 팝업 뷰 스타일 세팅
+            profilePopupWindow?.elevation = 10f
+            profilePopupWindow?.isOutsideTouchable = true
+            profilePopupWindow?.isFocusable = true
+
+            // X 버튼 동작
+            profileBinding.btnClose.setOnClickListener {
+                profilePopupWindow?.dismiss()
+            }
+
+            // 로그아웃 버튼 동작
+            profileBinding.btnLogout.setOnClickListener {
+                Toast.makeText(this, "로그아웃 되었습니다", Toast.LENGTH_SHORT).show()
+                profilePopupWindow?.dismiss() //팝업해제 후 로그인 액티비티로 이동
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+
+            // 팝업 표시 위치 (버튼 아래 또는 화면 오른쪽 상단 등)
+            profilePopupWindow?.showAsDropDown(binding.btnProfile, -150, 20) // x, y 오프셋 조절
+
+        }
+
+        // 좌측 네비게이션 문서 클릭 시 메인 화면 문서 페이지 이동
+        val btnDocument = binding.sideMenu.findViewById<View>(R.id.btnDocument)
+        btnDocument.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish() // 현재 액티비티 종료
+        }
+
+        // 좌측 네비게이션 휴지통 클릭 시 휴지통 페이지 이동 (휴지통 페이지 작성 필요)
+        val btnTrash = binding.sideMenu.findViewById<View>(R.id.btnTrash)
+        btnTrash.setOnClickListener {
+
+        }
+
+        // 좌측 네비게이션 음성 텍스트 클릭 시 음성 텍스트 페이지 이동
+        val btnSTT = binding.sideMenu.findViewById<View>(R.id.btnSTT)
+        btnSTT.setOnClickListener {
+            if (this::class.java == SttActivity::class.java) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            }
+        }
+
+        // 좌측 네비게이션 텍스트 요약 클릭 시 요약 페이지 이동
+        val btnSummarize = binding.sideMenu.findViewById<View>(R.id.btnSummarize)
+        btnSummarize.setOnClickListener {
+            val intent = Intent(this, SummarizeActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
+        // 좌측 네비게이션 하단 문서 생성(노트) 클릭 시 노트 추가 팝업 출력하기
+        val btnWrite = binding.sideMenu.findViewById<View>(R.id.btnWrite)
+        btnWrite.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
+        // 좌측 네비게이션 하단 음성 텍스트(마이크) 클릭 시 음성 텍스트 페이지 이동
+        val btnSTTUnder = binding.sideMenu.findViewById<View>(R.id.btnSTT_under)
+        btnSTTUnder.setOnClickListener {
+            if (this::class.java == SttActivity::class.java) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            }
+        }
+
+        // 좌측 네비게이션 하단 텍스트 요약 클릭 시 요약 페이지 이동
+        val btnSummarizeUnder = binding.sideMenu.findViewById<View>(R.id.btnSummarize_under)
+        btnSummarizeUnder.setOnClickListener {
+            val intent = Intent(this, SummarizeActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
+        // 좌측 네비게이션 하단 설정(톱니바퀴) 클릭 시 이동 (설정 페이지 작성 필요)
+        val btnSetting = binding.sideMenu.findViewById<View>(R.id.btnSetting)
+        btnSetting.setOnClickListener {
+
+        }
 
 
-        // 파일 선택 버튼
+        // 파일 선택 후 서버로 전송
         binding.btnSelectFile.setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "audio/*"
             }
             filePickerLauncher.launch(intent)
-        }
-        
-        // 파일 전송 버튼
-        // 클릭 시 자동 분기
-        binding.btnSendFile.setOnClickListener {
-            if (isNetworkAvailable()) {
-                // 온라인 업로드
-                selectedUri?.let { uri ->
-                    uploadFile(uri)
-                } ?: Toast.makeText(this, "파일을 먼저 선택하세요.", Toast.LENGTH_SHORT).show()
-                resultText = "📡 온라인 STT 실행됨"
-            } else {
-                selectedUri?.let { uri ->
-                    sendFileToOfflineServer(uri)
-                } ?: Toast.makeText(this, "파일을 먼저 선택하세요.", Toast.LENGTH_SHORT).show()
-                resultText = "📴 오프라인 STT 실행됨"
-            }
         }
 
         restoreTaskIdButtons()
@@ -106,14 +200,52 @@ class SttActivity : AppCompatActivity() {
                 selectedUri = result.data!!.data
                 Toast.makeText(this, "✅ 파일 선택 완료", Toast.LENGTH_SHORT).show()
                 println("📂 [Android] 선택된 URI: $selectedUri")
+
+                if (isNetworkAvailable()) {
+                    // 온라인 업로드
+                    selectedUri?.let { uri ->
+                        uploadFileOnline(uri)
+                    } ?: Toast.makeText(this, "파일을 먼저 선택하세요.", Toast.LENGTH_SHORT).show()
+                    resultText = "📡 온라인 STT 실행됨"
+                } else {
+                    selectedUri?.let { uri ->
+                        uploadFileToOffline(uri)
+                    } ?: Toast.makeText(this, "파일을 먼저 선택하세요.", Toast.LENGTH_SHORT).show()
+                    resultText = "📴 오프라인 STT 실행됨"
+                }
             }
         }
 
 
+    private fun showLoading(isLoading: Boolean) {
+        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+        binding.btnSelectFile.isEnabled = !isLoading
+    }
 
-    // 오프라인 서버로 전송
-    private fun sendFileToOfflineServer(uri: Uri) {
-        // 기존 SttofflineActivity 코드 복붙 (copyUriToFile(), OkHttp 요청 등)
+    private fun copyUriToFile(uri: Uri): File? {
+        return try {
+            val inputStream = contentResolver.openInputStream(uri) ?: return null
+
+            // 🔍 파일 이름 추출
+            val fileName = queryFileName(uri) ?: "temp_audio.mp3"  // 기본 이름
+
+            val file = File(cacheDir, fileName)  // ✅ 원래 확장자 유지
+            println("📁 [Android] 임시 파일 저장 경로: ${file.absolutePath}")
+
+            val outputStream = FileOutputStream(file)
+            inputStream.copyTo(outputStream)
+            inputStream.close()
+            outputStream.close()
+
+            println("✅ [Android] 파일 복사 완료: ${file.name}, 크기: ${file.length()} bytes")
+            file
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun uploadFileToOffline(uri: Uri) {
         showLoading(true)
 
         val file = copyUriToFile(uri) ?: run {
@@ -163,35 +295,6 @@ class SttActivity : AppCompatActivity() {
         })
     }
 
-    private fun showLoading(isLoading: Boolean) {
-        //binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        //binding.btnSendFile.isEnabled = !isLoading
-        //binding.btnSelectFile.isEnabled = !isLoading
-    }
-
-    private fun copyUriToFile(uri: Uri): File? {
-        return try {
-            val inputStream = contentResolver.openInputStream(uri) ?: return null
-
-            // 🔍 파일 이름 추출
-            val fileName = queryFileName(uri) ?: "temp_audio.mp3"  // 기본 이름
-
-            val file = File(cacheDir, fileName)  // ✅ 원래 확장자 유지
-            println("📁 [Android] 임시 파일 저장 경로: ${file.absolutePath}")
-
-            val outputStream = FileOutputStream(file)
-            inputStream.copyTo(outputStream)
-            inputStream.close()
-            outputStream.close()
-
-            println("✅ [Android] 파일 복사 완료: ${file.name}, 크기: ${file.length()} bytes")
-            file
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
-
     private fun queryFileName(uri: Uri): String? {
         val cursor = contentResolver.query(uri, null, null, null, null)
         cursor?.use {
@@ -204,7 +307,7 @@ class SttActivity : AppCompatActivity() {
     }
 
     // 🔹 파일 업로드 함수
-    private fun uploadFile(fileUri: Uri, retry: Boolean = false) {
+    private fun uploadFileOnline(fileUri: Uri, retry: Boolean = false) {
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val accessToken = sharedPreferences.getString("access_token", null)
 
@@ -311,7 +414,7 @@ class SttActivity : AppCompatActivity() {
                             context = this@SttActivity,
                             onSuccess = {
                                 println("🔁 새로운 토큰으로 재시도 중")
-                                uploadFile(fileUri, retry = true) // 재시도
+                                uploadFileOnline(fileUri, retry = true) // 재시도
                             },
                             onFailure = {
                                 TokenManager.forceLogout(this@SttActivity)
