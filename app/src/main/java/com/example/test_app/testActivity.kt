@@ -13,11 +13,16 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import com.example.test_app.databinding.ActivitySttBinding
 import com.example.test_app.utils.TokenManager
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.Call
@@ -25,16 +30,9 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
-import androidx.core.content.edit
-import com.google.gson.reflect.TypeToken
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.IOException
 
-
-class SttActivity : AppCompatActivity() {
-
+class testActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySttBinding
     private lateinit var tvTaskId: TextView
     private lateinit var scrollLayout: LinearLayout
@@ -70,6 +68,8 @@ class SttActivity : AppCompatActivity() {
         tvTaskId = findViewById(R.id.tvTaskId)
 
 
+
+
         // 파일 선택 버튼
         binding.btnSelectFile.setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
@@ -78,7 +78,7 @@ class SttActivity : AppCompatActivity() {
             }
             filePickerLauncher.launch(intent)
         }
-        
+
         // 파일 전송 버튼
         // 클릭 시 자동 분기
         binding.btnSendFile.setOnClickListener {
@@ -228,7 +228,7 @@ class SttActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val responseBody = response.body()?.string() ?: "서버 응답 없음"
                     resultText = responseBody
-                    Toast.makeText(this@SttActivity, responseBody, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@testActivity, responseBody, Toast.LENGTH_SHORT).show()
                     println("✅ 파일 업로드 성공! 서버 응답: $responseBody")
                     try {
                         val json = JSONObject(responseBody)
@@ -238,10 +238,10 @@ class SttActivity : AppCompatActivity() {
                         resultText = message
                         tvTaskId.text = getString(R.string.task_id_format, taskId) // taskId : $taskID
 
-                        Toast.makeText(this@SttActivity, message, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@testActivity, message, Toast.LENGTH_SHORT).show()
 
                         // ✅ 결과 확인 버튼 동적 생성
-                        val resultButton = Button(this@SttActivity).apply {
+                        val resultButton = Button(this@testActivity).apply {
                             text = getString(R.string.result_check_format, taskId) // 결과 확인 : %taskId
 
                             setOnClickListener {
@@ -271,7 +271,7 @@ class SttActivity : AppCompatActivity() {
                                                     else -> "❓ 알 수 없는 상태: $status"
                                                 }
 
-                                                AlertDialog.Builder(this@SttActivity)
+                                                AlertDialog.Builder(this@testActivity)
                                                     .setTitle("STT 결과")
                                                     .setMessage(sttMessage)
                                                     .setPositiveButton("확인", null)
@@ -301,32 +301,32 @@ class SttActivity : AppCompatActivity() {
                         e.printStackTrace()
                         // JSON 파싱 실패 시 전체 응답 문자열 표시
                         resultText = responseBody
-                        Toast.makeText(this@SttActivity, "응답 파싱 오류", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@testActivity, "응답 파싱 오류", Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     println("🚨 응답 실패: ${response.code()}")
                     if (response.code() == 401 && !retry) {
                         // 🔄 토큰 갱신 시도
                         TokenManager.refreshAccessToken(
-                            context = this@SttActivity,
+                            context = this@testActivity,
                             onSuccess = {
                                 println("🔁 새로운 토큰으로 재시도 중")
                                 uploadFile(fileUri, retry = true) // 재시도
                             },
                             onFailure = {
-                                TokenManager.forceLogout(this@SttActivity)
+                                TokenManager.forceLogout(this@testActivity)
                             }
                         )
                     } else {
                         val errorMessage = response.errorBody()?.string() ?: "알 수 없는 오류 발생"
-                        Toast.makeText(this@SttActivity, errorMessage, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@testActivity, errorMessage, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                 println("🚨 네트워크 오류: ${t.message}")
-                Toast.makeText(this@SttActivity, "네트워크 오류 발생!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@testActivity, "네트워크 오류 발생!", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -375,7 +375,7 @@ class SttActivity : AppCompatActivity() {
             val button = Button(this).apply {
                 text = getString(R.string.result_check_format, taskId)
                 setOnClickListener {
-                    Toast.makeText(this@SttActivity, "📥 결과 요청: $taskId", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@testActivity, "📥 결과 요청: $taskId", Toast.LENGTH_SHORT).show()
                     // 결과 요청 API 호출 가능
                 }
             }
@@ -414,7 +414,7 @@ class SttActivity : AppCompatActivity() {
                             else -> "❓ 알 수 없는 상태: $status"
                         }
 
-                        AlertDialog.Builder(this@SttActivity)
+                        AlertDialog.Builder(this@testActivity)
                             .setTitle("STT 결과")
                             .setMessage(message)
                             .setPositiveButton("확인", null)
@@ -423,22 +423,22 @@ class SttActivity : AppCompatActivity() {
                     } else if (response.code() == 401) {
                         // 🔁 access_token 만료 → refresh 시도 후 재시도
                         TokenManager.refreshAccessToken(
-                            context = this@SttActivity,
+                            context = this@testActivity,
                             onSuccess = {
                                 println("🔁 토큰 재발급 성공, 재요청 중")
                                 retrySttResultRequest(taskId) // 다시 시도
                             },
                             onFailure = {
-                                TokenManager.forceLogout(this@SttActivity)
+                                TokenManager.forceLogout(this@testActivity)
                             }
                         )
                     } else {
-                        Toast.makeText(this@SttActivity, "결과 조회 실패", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@testActivity, "결과 조회 실패", Toast.LENGTH_SHORT).show()
                     }
                 }
 
                 override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    Toast.makeText(this@SttActivity, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@testActivity, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
                 }
             })
         }

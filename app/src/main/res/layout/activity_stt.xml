@@ -16,31 +16,24 @@
         android:layout_marginBottom="16dp">
 
         <Button
-            android:id="@+id/btnOnlineStt"
+            android:id="@+id/btnSelectFile"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="STT 기능"
+            android:text="STT 파일 선택"
             android:layout_gravity="top|start"/>
 
 
 
         <Button
-            android:id="@+id/btnOfflineStt"
+            android:id="@+id/btnSendFile"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="오프라인 STT"
+            android:text="파일 전송"
             android:layout_gravity="top|start"/>
     </LinearLayout>
 
-    <!-- 결과 확인 버튼 -->
-<!--    <Button-->
-<!--        android:id="@+id/btnShowResult"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="결과 확인"-->
-<!--        android:layout_marginBottom="16dp" />-->
 
     <!-- 결과 출력 영역 -->
     <ScrollView

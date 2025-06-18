@@ -158,6 +158,13 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        // 좌측 네비게이션 텍스트 요약 클릭 시 요약 페이지 이동
+        val btnSummarize = binding.sideMenu.findViewById<View>(R.id.btnSummarize)
+        btnSummarize.setOnClickListener {
+            val intent = Intent(this, SummarizeActivity::class.java)
+            startActivity(intent)
+        }
+
         // 좌측 네비게이션 하단 문서 생성(노트) 클릭 시 노트 추가 팝업 출력하기
         val btnWrite = binding.sideMenu.findViewById<View>(R.id.btnWrite)
         btnWrite.setOnClickListener {
@@ -185,6 +192,13 @@ class MainActivity : AppCompatActivity() {
         val btnSTTUnder = binding.sideMenu.findViewById<View>(R.id.btnSTT_under)
         btnSTTUnder.setOnClickListener {
             val intent = Intent(this, SttActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 하단 텍스트 요약 클릭 시 요약 페이지 이동
+        val btnSummarizeUnder = binding.sideMenu.findViewById<View>(R.id.btnSummarize_under)
+        btnSummarizeUnder.setOnClickListener {
+            val intent = Intent(this, SummarizeActivity::class.java)
             startActivity(intent)
         }
 

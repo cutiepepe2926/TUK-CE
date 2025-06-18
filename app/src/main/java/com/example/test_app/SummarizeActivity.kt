@@ -5,15 +5,21 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import com.example.test_app.databinding.ActivitySummarizeBinding
+import com.example.test_app.databinding.ProfilePopupBinding
 import com.example.test_app.utils.TokenManager
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -31,6 +37,8 @@ class SummarizeActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySummarizeBinding
     private lateinit var tvTaskId: TextView
     private lateinit var scrollLayout: LinearLayout
+    private lateinit var profileBinding: ProfilePopupBinding // 프로필 팝업 xml 바인딩
+    private var profilePopupWindow: PopupWindow? = null // 프로필 팝업 창 확인용
 
     private var resultText: String = "아직 요약된 텍스트가 없습니다."
 
@@ -39,10 +47,114 @@ class SummarizeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        scrollLayout = findViewById(R.id.scrollLayout)
+
+        // 왼쪽 상단 버튼 클릭 시 네비게이션 표시
+        binding.btnLeftSideNavigator.setOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+
+        // 우측 상단 프로필 버튼 클릭 시 프로필 팝업 표시
+        binding.btnProfile.setOnClickListener {
+            // 이미 떠 있으면 닫기
+            if (profilePopupWindow?.isShowing == true) {
+                profilePopupWindow?.dismiss()
+                return@setOnClickListener
+            }
+            // ViewBinding으로 레이아웃 inflate
+            profileBinding = ProfilePopupBinding.inflate(layoutInflater)
+
+            // 팝업 뷰 생성
+            profilePopupWindow = PopupWindow(
+                profileBinding.root,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+            )
+
+            // 팝업 뷰 스타일 세팅
+            profilePopupWindow?.elevation = 10f
+            profilePopupWindow?.isOutsideTouchable = true
+            profilePopupWindow?.isFocusable = true
+
+            // X 버튼 동작
+            profileBinding.btnClose.setOnClickListener {
+                profilePopupWindow?.dismiss()
+            }
+
+            // 로그아웃 버튼 동작
+            profileBinding.btnLogout.setOnClickListener {
+                Toast.makeText(this, "로그아웃 되었습니다", Toast.LENGTH_SHORT).show()
+                profilePopupWindow?.dismiss() //팝업해제 후 로그인 액티비티로 이동
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
+
+            // 팝업 표시 위치 (버튼 아래 또는 화면 오른쪽 상단 등)
+            profilePopupWindow?.showAsDropDown(binding.btnProfile, -150, 20) // x, y 오프셋 조절
+
+        }
+
+        // 좌측 네비게이션 문서 클릭 시 메인 화면 문서 페이지 이동
+        val btnDocument = binding.sideMenu.findViewById<View>(R.id.btnDocument)
+        btnDocument.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish() // 현재 액티비티 종료
+        }
+
+        // 좌측 네비게이션 휴지통 클릭 시 휴지통 페이지 이동 (휴지통 페이지 작성 필요)
+        val btnTrash = binding.sideMenu.findViewById<View>(R.id.btnTrash)
+        btnTrash.setOnClickListener {
+
+        }
+
+        // 좌측 네비게이션 음성 텍스트 클릭 시 음성 텍스트 페이지 이동
+        val btnSTT = binding.sideMenu.findViewById<View>(R.id.btnSTT)
+        btnSTT.setOnClickListener {
+            val intent = Intent(this, SttActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 텍스트 요약 클릭 시 요약 페이지 이동
+        val btnSummarize = binding.sideMenu.findViewById<View>(R.id.btnSummarize)
+        btnSummarize.setOnClickListener {
+            if (this::class.java == SummarizeActivity::class.java) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            }
+        }
+
+        // 좌측 네비게이션 하단 문서 생성(노트) 클릭 시 노트 추가 팝업 출력하기
+        val btnWrite = binding.sideMenu.findViewById<View>(R.id.btnWrite)
+        btnWrite.setOnClickListener {
+
+        }
+
+        // 좌측 네비게이션 하단 음성 텍스트(마이크) 클릭 시 음성 텍스트 페이지 이동
+        val btnSTTUnder = binding.sideMenu.findViewById<View>(R.id.btnSTT_under)
+        btnSTTUnder.setOnClickListener {
+            val intent = Intent(this, SttActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 하단 텍스트 요약 클릭 시 요약 페이지 이동
+        val btnSummarizeUnder = binding.sideMenu.findViewById<View>(R.id.btnSummarize_under)
+        btnSummarizeUnder.setOnClickListener {
+            if (this::class.java == SummarizeActivity::class.java) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            }
+        }
+
+        // 좌측 네비게이션 하단 설정(톱니바퀴) 클릭 시 이동 (설정 페이지 작성 필요)
+        val btnSetting = binding.sideMenu.findViewById<View>(R.id.btnSetting)
+        btnSetting.setOnClickListener {
+
+        }
+
+        scrollLayout = binding.scrollLayout
 
 
-        tvTaskId = findViewById(R.id.tvTaskId)
+        tvTaskId = binding.tvTaskId
 
         binding.btnfilesummarize.setOnClickListener {
             openOnlineFilePicker()

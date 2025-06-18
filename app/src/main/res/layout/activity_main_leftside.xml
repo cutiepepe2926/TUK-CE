@@ -117,6 +117,33 @@
 
         </LinearLayout>
 
+        <!-- 텍스트 요약 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp"
+            android:id="@+id/btnSummarize"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_summarize"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/text_summarize"
+                android:textSize="16sp"
+                android:textColor="#333333"
+                android:layout_marginStart="12dp"/>
+
+        </LinearLayout>
+
         <!-- 구분선 -->
         <View
             android:layout_width="match_parent"
@@ -153,6 +180,16 @@
             android:background="@android:color/transparent"
             android:src="@drawable/ic_stt"
             tools:ignore="ContentDescription" />
+
+        <ImageButton
+            android:id="@+id/btnSummarize_under"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_summarize"
+            tools:ignore="ContentDescription" />
+
 
         <ImageButton
             android:id="@+id/btnSetting"

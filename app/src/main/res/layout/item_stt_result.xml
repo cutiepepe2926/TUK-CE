@@ -1,0 +1,46 @@
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    android:background="#F8F8F8">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical">
+
+        <!-- 파일명 텍스트 (왼쪽) -->
+        <TextView
+            android:id="@+id/noteTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="파일명"
+            android:textSize="16sp"
+            android:textColor="#333333" />
+
+        <!-- 중간 공간을 차지하는 View -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- 결과 텍스트 (오른쪽 끝) -->
+        <TextView
+            android:id="@+id/resultTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="결과 없음"
+            android:textSize="14sp"
+            android:textColor="#888888"
+            android:paddingTop="4dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:maxEms="4" />
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

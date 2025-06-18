@@ -49,6 +49,7 @@ class SttofflineActivity : AppCompatActivity() {
         }
     }
 
+    /*넘김*/
     private fun selectAudioFile() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -155,4 +156,49 @@ class SttofflineActivity : AppCompatActivity() {
         }
         return null
     }
+
+    // 온라인 버전
+    // 🔹 파일 탐색기 열기 (MP3 파일 선택)
+    private fun openOnlineFilePicker() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "audio/*" // 🔹 모든 오디오 파일 형식 지원
+        }
+        onlinefilePickerLauncher.launch(intent)
+    }
+
+    // 온라인 파일 선택 결과 처리
+    private val onlinefilePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                val selectedFileUri = result.data!!.data
+                if (selectedFileUri != null) {
+                    println(" 선택된 온라인 음성 파일 URI: $selectedFileUri")
+                    //uploadFile(selectedFileUri) // 🔹 선택한 파일을 서버로 업로드
+                }
+            } else {
+                Toast.makeText(this, "파일 선택이 취소되었습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    // 오프라인 파일 선택
+    private fun openOfflineFilePicker() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "audio/*"
+        }
+        offlinefilePickerLauncher.launch(intent)
+    }
+
+    // 오프라인 파일 선택 결과 처리
+    private val offlinefilePickerLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                val selectedUri = result.data!!.data
+                if (selectedUri != null) {
+                    Toast.makeText(this, "파일 선택 완료", Toast.LENGTH_SHORT).show()
+                    //sendFileToOfflineServer(selectedUri)
+                }
+            }
+        }
 }
