@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
@@ -21,9 +22,11 @@ import com.example.test_app.databinding.ProfilePopupBinding
 import com.example.test_app.utils.TokenManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.Call
@@ -169,7 +172,7 @@ class SummarizeActivity : AppCompatActivity() {
     private fun openOnlineFilePicker() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "text/plain" // 🔹 모든 텍스트 파일 형식 지원
+            type = "application/pdf"  // ✅ PDF 파일만 선택 가능
         }
         textfilePickerLauncher.launch(intent)
     }
@@ -181,15 +184,39 @@ class SummarizeActivity : AppCompatActivity() {
                 val selectedFileUri = result.data!!.data
                 if (selectedFileUri != null) {
                     println("✅ 선택된 텍스트 파일 URI: $selectedFileUri")
-                    uploadFile(selectedFileUri) // 🔹 선택한 파일을 서버로 업로드
+                    showPageInputDialog(selectedFileUri)
+                //uploadFile(selectedFileUri) // 🔹 선택한 파일을 서버로 업로드
                 }
             } else {
                 Toast.makeText(this, "파일 선택이 취소되었습니다.", Toast.LENGTH_SHORT).show()
             }
         }
 
+    // 시작 페이지 마지막 페이지 입력 받는 함수
+    private fun showPageInputDialog(fileUri: Uri) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_page_input, null)
+        val startPageEditText = dialogView.findViewById<EditText>(R.id.etStartPage)
+        val endPageEditText = dialogView.findViewById<EditText>(R.id.etEndPage)
+
+        AlertDialog.Builder(this)
+            .setTitle("페이지 범위 입력")
+            .setView(dialogView)
+            .setPositiveButton("확인") { _, _ ->
+                val startPage = startPageEditText.text.toString().trim()
+                val endPage = endPageEditText.text.toString().trim()
+                if (startPage.isNotEmpty() && endPage.isNotEmpty()) {
+                    uploadFile(fileUri, startPage, endPage)
+                } else {
+                    Toast.makeText(this, "시작과 종료 페이지를 모두 입력하세요.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+
     // 파일 업로드 함수
-    private fun uploadFile(fileUri: Uri, retry: Boolean = false) {
+    private fun uploadFile(fileUri: Uri, startPage: String, endPage: String, retry: Boolean = false) {
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val accessToken = sharedPreferences.getString("access_token", null)
 
@@ -205,10 +232,12 @@ class SummarizeActivity : AppCompatActivity() {
         }
 
 
-        val requestBody = RequestBody.create("text/plain".toMediaTypeOrNull(), file)
+        val requestBody = RequestBody.create("application/pdf".toMediaTypeOrNull(), file)
         val filePart = MultipartBody.Part.createFormData("file", file.name, requestBody)
+        val startPageBody = startPage.toRequestBody("text/plain".toMediaTypeOrNull())
+        val endPageBody = endPage.toRequestBody("text/plain".toMediaTypeOrNull())
 
-        val call = RetrofitClient.fileUploadService.uploadTextFile("Bearer $accessToken", filePart)
+        val call = RetrofitClient.fileUploadService.uploadPdfFileWithPageRange("Bearer $accessToken", filePart, startPageBody, endPageBody)
 
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
@@ -320,7 +349,7 @@ class SummarizeActivity : AppCompatActivity() {
                             context = this@SummarizeActivity,
                             onSuccess = {
                                 println("🔁 새로운 토큰으로 재시도 중")
-                                uploadFile(fileUri, retry = true) // 재시도
+                                uploadFile(fileUri, startPage, endPage ,retry = true) // 재시도
                             },
                             onFailure = {
                                 TokenManager.forceLogout(this@SummarizeActivity)
@@ -343,7 +372,7 @@ class SummarizeActivity : AppCompatActivity() {
 
     // 🔹 Uri → File 변환 함수 (파일을 임시로 복사하여 저장)
     private fun uriToFile(uri: Uri): File? {
-        val tempFile = File(cacheDir, "temp_text.txt")
+        val tempFile = File(cacheDir, "temp_upload.pdf")
         return try {
             val inputStream = contentResolver.openInputStream(uri) ?: return null
             val outputStream = FileOutputStream(tempFile)
@@ -361,7 +390,9 @@ class SummarizeActivity : AppCompatActivity() {
     private fun saveSummaryTaskId(taskId: String) {
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val existingJson = sharedPreferences.getString("summary_task_id_list", "[]")
-        val taskIdList = Gson().fromJson(existingJson, MutableList::class.java) as MutableList<String>
+        val type = object : TypeToken<MutableList<String>>() {}.type
+        val taskIdList: MutableList<String> = Gson().fromJson(existingJson, type)
+
 
         if (!taskIdList.contains(taskId)) {
             taskIdList.add(taskId)
