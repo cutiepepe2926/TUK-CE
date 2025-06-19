@@ -157,16 +157,6 @@ class SttofflineActivity : AppCompatActivity() {
         return null
     }
 
-    // 온라인 버전
-    // 🔹 파일 탐색기 열기 (MP3 파일 선택)
-    private fun openOnlineFilePicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "audio/*" // 🔹 모든 오디오 파일 형식 지원
-        }
-        onlinefilePickerLauncher.launch(intent)
-    }
-
     // 온라인 파일 선택 결과 처리
     private val onlinefilePickerLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->

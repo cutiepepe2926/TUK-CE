@@ -30,6 +30,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Test_App">
         <activity
+            android:name=".SummaryResultActivity"
+            android:exported="false" />
+        <activity
             android:name=".SttofflineActivity"
             android:exported="false" />
         <activity

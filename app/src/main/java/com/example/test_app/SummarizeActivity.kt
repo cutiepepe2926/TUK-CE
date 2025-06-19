@@ -261,72 +261,88 @@ class SummarizeActivity : AppCompatActivity() {
                             text = "결과 확인: $taskId"
                             setOnClickListener {
                                 retrySummaryResultRequest(taskId)
-                                val sharedPreferences =
-                                    getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-                                val accessToken = sharedPreferences.getString("access_token", null)
+//                                val sharedPreferences =
+//                                    getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+//                                val accessToken = sharedPreferences.getString("access_token", null)
+//
+//                                if (accessToken == null) {
+//                                    Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT)
+//                                        .show()
+//                                    return@setOnClickListener
+//                                }
+//                                val call = RetrofitClient.fileUploadService.getSummarizeResult(
+//                                    "Bearer $accessToken",
+//                                    taskId
+//                                )
+//
+//                                call.enqueue(object : Callback<ResponseBody> {
+//                                    override fun onResponse(
+//                                        call: Call<ResponseBody>,
+//                                        response: Response<ResponseBody>
+//                                    ) {
+//                                        if (response.isSuccessful) {
+//                                            val body = response.body()?.string()
+//                                            try {
+//                                                val json = JSONObject(body ?: "")
+//                                                val status = json.optString("status", "")
+//
+//                                                val message = when (status) {
+//                                                    "processing" -> "🕓 처리 중입니다. 잠시만 기다려주세요."
+//                                                    "completed" -> json.optString("result", "결과 없음")
+//                                                    "failed" -> "❌ 오류 발생: ${
+//                                                        json.optString(
+//                                                            "error",
+//                                                            "알 수 없는 오류"
+//                                                        )
+//                                                    }"
+//
+//                                                    else -> "❓ 알 수 없는 상태: $status"
+//                                                }
+//
+////                                                AlertDialog.Builder(this@SummarizeActivity)
+////                                                    .setTitle("요약 결과")
+////                                                    .setMessage(message)
+////                                                    .setPositiveButton("확인", null)
+////                                                    .show()
+//                                                val intent = Intent(this@SummarizeActivity, SummaryResultActivity::class.java)
+//                                                intent.putExtra("summary_result", message)
+//                                                startActivity(intent)
+//
+//
+//                                            } catch (e: Exception) {
+//                                                e.printStackTrace()
+//                                                Toast.makeText(
+//                                                    context,
+//                                                    "결과 파싱 오류",
+//                                                    Toast.LENGTH_SHORT
+//                                                ).show()
+//                                            }
+//                                        } else {
+//                                            Toast.makeText(context, "결과 조회 실패", Toast.LENGTH_SHORT)
+//                                                .show()
+//                                        }
+//                                    }
+//
+//                                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+//                                        Toast.makeText(
+//                                            context,
+//                                            "네트워크 오류: ${t.message}",
+//                                            Toast.LENGTH_SHORT
+//                                        ).show()
+//                                    }
+//                                })
+                            }
 
-                                if (accessToken == null) {
-                                    Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT)
-                                        .show()
-                                    return@setOnClickListener
-                                }
-                                val call = RetrofitClient.fileUploadService.getSummarizeResult(
-                                    "Bearer $accessToken",
-                                    taskId
-                                )
-
-                                call.enqueue(object : Callback<ResponseBody> {
-                                    override fun onResponse(
-                                        call: Call<ResponseBody>,
-                                        response: Response<ResponseBody>
-                                    ) {
-                                        if (response.isSuccessful) {
-                                            val body = response.body()?.string()
-                                            try {
-                                                val json = JSONObject(body ?: "")
-                                                val status = json.optString("status", "")
-
-                                                val message = when (status) {
-                                                    "processing" -> "🕓 처리 중입니다. 잠시만 기다려주세요."
-                                                    "completed" -> json.optString("result", "결과 없음")
-                                                    "failed" -> "❌ 오류 발생: ${
-                                                        json.optString(
-                                                            "error",
-                                                            "알 수 없는 오류"
-                                                        )
-                                                    }"
-
-                                                    else -> "❓ 알 수 없는 상태: $status"
-                                                }
-
-                                                AlertDialog.Builder(this@SummarizeActivity)
-                                                    .setTitle("요약 결과")
-                                                    .setMessage(message)
-                                                    .setPositiveButton("확인", null)
-                                                    .show()
-
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
-                                                Toast.makeText(
-                                                    context,
-                                                    "결과 파싱 오류",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        } else {
-                                            Toast.makeText(context, "결과 조회 실패", Toast.LENGTH_SHORT)
-                                                .show()
-                                        }
+                            setOnLongClickListener {
+                                AlertDialog.Builder(this@SummarizeActivity)
+                                    .setTitle("결과 삭제")
+                                    .setMessage("해당 결과를 삭제하시겠습니까?")
+                                    .setPositiveButton("예") { _, _ ->
+                                        deleteTaskId(taskId, this)
                                     }
-
-                                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                                        Toast.makeText(
-                                            context,
-                                            "네트워크 오류: ${t.message}",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                })
+                                    .setNegativeButton("아니오", null)
+                                    .show()
+                                true
                             }
                         }
 
@@ -369,6 +385,26 @@ class SummarizeActivity : AppCompatActivity() {
         })
         
     }
+
+    // summarize 결과 삭제
+    private fun deleteTaskId(taskId: String, button: Button) {
+        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val existingJson = sharedPreferences.getString("summary_task_id_list", "[]")
+        val type = object : TypeToken<MutableList<String>>() {}.type
+        val taskIdList: MutableList<String> = Gson().fromJson(existingJson, type)
+
+        if (taskIdList.contains(taskId)) {
+            taskIdList.remove(taskId)
+            val newJson = Gson().toJson(taskIdList)
+            sharedPreferences.edit { putString("summary_task_id_list", newJson) }
+
+            // UI에서 버튼 제거
+            scrollLayout.removeView(button)
+
+            Toast.makeText(this, "삭제되었습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     // 🔹 Uri → File 변환 함수 (파일을 임시로 복사하여 저장)
     private fun uriToFile(uri: Uri): File? {
@@ -449,11 +485,16 @@ class SummarizeActivity : AppCompatActivity() {
                             else -> "❓ 알 수 없는 상태: $status"
                         }
 
-                        AlertDialog.Builder(this@SummarizeActivity)
-                            .setTitle("요약 결과")
-                            .setMessage(message)
-                            .setPositiveButton("확인", null)
-                            .show()
+//                        AlertDialog.Builder(this@SummarizeActivity)
+//                            .setTitle("요약 결과")
+//                            .setMessage(message)
+//                            .setPositiveButton("확인", null)
+//                            .show()
+
+                        val intent = Intent(this@SummarizeActivity, SummaryResultActivity::class.java)
+                        intent.putExtra("summary_result", message)
+                        startActivity(intent)
+
 
                     } else if (response.code() == 401) {
                         // 🔁 access_token 만료 → refresh 시도 후 재시도
