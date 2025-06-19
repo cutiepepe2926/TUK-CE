@@ -36,5 +36,7 @@
     <string name="choose_sound_file">음성 파일 선택</string>
     <string name="send_to_server">서버로 전송</string>
     <string name="result_display_here">결과가 여기에 표시됩니다.</string>
+    <string name="endPage">종료 페이지</string>
+    <string name="startPage">시작 페이지</string>
 
 </resources>

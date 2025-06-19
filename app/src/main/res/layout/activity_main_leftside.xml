@@ -24,55 +24,58 @@
         <EditText
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:hint="@string/Search"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp"
             android:autofillHints="Document Name"
+            android:background="@drawable/text_field"
             android:drawableStart="@drawable/ic_search"
             android:drawablePadding="8dp"
-            android:background="@drawable/text_field"
-            android:paddingHorizontal="12dp"
+            android:hint="@string/Search"
             android:inputType="text"
+            android:paddingHorizontal="12dp"
             android:textColor="#333333"
-            android:textColorHint="#999999"
-            android:layout_marginBottom="16dp" />
+            android:textColorHint="#757575"
+            tools:ignore="VisualLintTextFieldSize" />
 
         <!-- 문서 -->
         <LinearLayout
+            android:id="@+id/btnDocument"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingVertical="8dp"
-            android:id="@+id/btnDocument"
+            android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:minHeight="48dp"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp">
 
             <ImageButton
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_document"
-                tools:ignore="ContentDescription" />
+                tools:ignore="ContentDescription,SpeakableTextPresentCheck,TouchTargetSizeCheck" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
                 android:text="@string/Document"
-                android:textSize="16sp"
                 android:textColor="#333333"
-                android:layout_marginStart="12dp"/>
+                android:textSize="16sp" />
 
         </LinearLayout>
 
         <!-- 휴지통 -->
         <LinearLayout
+            android:id="@+id/btnTrash"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingVertical="8dp"
-            android:id="@+id/btnTrash"
+            android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:minHeight="48dp"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="24dp"
@@ -83,23 +86,24 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
                 android:text="@string/Trash"
-                android:textSize="16sp"
                 android:textColor="#333333"
-                android:layout_marginStart="12dp"/>
+                android:textSize="16sp" />
 
         </LinearLayout>
 
         <!-- 음성 텍스트 -->
         <LinearLayout
+            android:id="@+id/btnSTT"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingVertical="8dp"
-            android:id="@+id/btnSTT"
+            android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:minHeight="48dp"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="24dp"
@@ -110,23 +114,24 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
                 android:text="@string/VoiceText"
-                android:textSize="16sp"
                 android:textColor="#333333"
-                android:layout_marginStart="12dp"/>
+                android:textSize="16sp" />
 
         </LinearLayout>
 
         <!-- 텍스트 요약 -->
         <LinearLayout
+            android:id="@+id/btnSummarize"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingVertical="8dp"
-            android:id="@+id/btnSummarize"
+            android:background="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackground">
+            android:minHeight="48dp"
+            android:orientation="horizontal"
+            android:paddingVertical="8dp">
 
             <ImageView
                 android:layout_width="24dp"
@@ -137,10 +142,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
                 android:text="@string/text_summarize"
-                android:textSize="16sp"
                 android:textColor="#333333"
-                android:layout_marginStart="12dp"/>
+                android:textSize="16sp" />
 
         </LinearLayout>
 
@@ -170,7 +175,7 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_write"
-            tools:ignore="ContentDescription" />
+            tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
 
         <ImageButton
             android:id="@+id/btnSTT_under"
@@ -179,7 +184,7 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_stt"
-            tools:ignore="ContentDescription" />
+            tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
 
         <ImageButton
             android:id="@+id/btnSummarize_under"
@@ -188,7 +193,7 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_summarize"
-            tools:ignore="ContentDescription" />
+            tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
 
 
         <ImageButton
@@ -198,6 +203,6 @@
             android:layout_weight="1"
             android:background="@android:color/transparent"
             android:src="@drawable/ic_setting"
-            tools:ignore="ContentDescription" />
+            tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
     </LinearLayout>
 </LinearLayout>

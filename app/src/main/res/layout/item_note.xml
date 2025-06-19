@@ -38,7 +38,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    tools:ignore="ContentDescription" />
+                    tools:ignore="ContentDescription,VisualLintBounds" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- 구분선 -->
@@ -47,7 +47,8 @@
                 android:layout_height="1dp"
                 android:background="#A8A8A8"
                 android:layout_marginTop="12dp"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginBottom="4dp"
+                tools:ignore="VisualLintBounds" />
 
 
             <!-- 파일명 텍스트 -->
@@ -59,7 +60,8 @@
                 android:textAlignment="center"
                 android:textSize="32sp"
                 android:textColor="#333333"
-                android:paddingBottom="8dp"/>
+                android:paddingBottom="8dp"
+                tools:ignore="VisualLintBounds" />
             </LinearLayout>
     </FrameLayout>
 </androidx.cardview.widget.CardView>

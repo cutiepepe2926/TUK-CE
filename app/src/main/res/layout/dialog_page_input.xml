@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -9,14 +10,21 @@
         android:id="@+id/etStartPage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="시작 페이지"
-        android:inputType="number" />
+        android:hint="@string/startPage"
+        android:importantForAutofill="no"
+        android:inputType="number"
+        android:minHeight="48dp"
+        android:textColorHint="#546E7A"
+        tools:ignore="VisualLintTextFieldSize" />
 
     <EditText
         android:id="@+id/etEndPage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="종료 페이지"
+        android:layout_marginTop="10dp"
+        android:hint="@string/endPage"
         android:inputType="number"
-        android:layout_marginTop="10dp"/>
+        android:minHeight="48dp"
+        android:textColorHint="#546E7A"
+        tools:ignore="Autofill,VisualLintTextFieldSize" />
 </LinearLayout>

@@ -52,8 +52,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/alreayIDexists"
-                android:textSize="14sp"
-                android:textColor="#777777" />
+                android:textColor="#757575"
+                android:textSize="14sp" />
 
             <!--로그인 페이지 이동 버튼-->
             <TextView
@@ -92,8 +92,9 @@
                 android:background="@drawable/text_field"
                 android:hint="@string/writeID"
                 android:padding="12dp"
+                android:textColorHint="#757575"
                 android:textSize="16sp"
-                tools:ignore="Autofill,TextFields" />
+                tools:ignore="Autofill,TextFields,VisualLintTextFieldSize" />
 
             <!-- 이메일 -->
             <TextView
@@ -112,8 +113,9 @@
                 android:background="@drawable/text_field"
                 android:hint="@string/writeEmail"
                 android:padding="12dp"
+                android:textColorHint="#757575"
                 android:textSize="16sp"
-                tools:ignore="Autofill,TextFields" />
+                tools:ignore="Autofill,TextFields,VisualLintTextFieldSize" />
 
 
             <!-- 비밀번호 -->
@@ -144,9 +146,10 @@
                     android:id="@+id/Text4"
                     android:layout_width="34dp"
                     android:layout_height="34dp"
+                    android:gravity="center"
                     android:text="@string/see"
                     android:textSize="18sp"
-                    android:gravity="center" />
+                    tools:ignore="TextSizeCheck" />
             </LinearLayout>
 
             <LinearLayout
@@ -159,14 +162,15 @@
                 <EditText
                     android:id="@+id/signupPassword"
                     android:layout_width="0dp"
-                    android:layout_weight="1"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:background="@drawable/text_field"
                     android:hint="@string/writePassword"
-                    android:padding="12dp"
-                    android:textSize="16sp"
                     android:inputType="textPassword"
-                    tools:ignore="Autofill" />
+                    android:padding="12dp"
+                    android:textColorHint="#757575"
+                    android:textSize="16sp"
+                    tools:ignore="Autofill,VisualLintTextFieldSize" />
 
             </LinearLayout>
 
@@ -177,13 +181,14 @@
             android:id="@+id/btnSignup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/register"
-            android:textSize="16sp"
-            android:backgroundTint="#38C333"
-            android:textColor="#FFFFFF"
-            android:enabled="false"
             android:layout_marginTop="24dp"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"
+            android:backgroundTint="#38C333"
+            android:enabled="false"
+            android:text="@string/register"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            tools:ignore="DuplicateSpeakableTextCheck,VisualLintButtonSize" />
 
     </LinearLayout>
 

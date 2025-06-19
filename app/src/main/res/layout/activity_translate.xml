@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/translateLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -46,7 +47,8 @@
                         android:inputType="textMultiLine"
                         android:importantForAutofill="no"
                         android:maxLines="6"
-                        android:background="#E8E8E8" />
+                        android:background="#E8E8E8"
+                        tools:ignore="VisualLintTextFieldSize" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- 번역 버튼 -->
@@ -57,7 +59,8 @@
                     android:layout_marginTop="16dp"
                     android:text="@string/translate"
                     android:textColor="@color/black"
-                    android:backgroundTint="#38C333" />
+                    android:backgroundTint="#38C333"
+                    tools:ignore="VisualLintButtonSize" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

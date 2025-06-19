@@ -20,7 +20,6 @@ import androidx.core.view.GravityCompat
 import com.example.test_app.databinding.ActivitySummarizeBinding
 import com.example.test_app.databinding.ProfilePopupBinding
 import com.example.test_app.utils.TokenManager
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -34,6 +33,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
+import androidx.core.content.edit
 
 class SummarizeActivity : AppCompatActivity() {
 
@@ -397,7 +397,7 @@ class SummarizeActivity : AppCompatActivity() {
         if (!taskIdList.contains(taskId)) {
             taskIdList.add(taskId)
             val newJson = Gson().toJson(taskIdList)
-            sharedPreferences.edit().putString("summary_task_id_list", newJson).apply()
+            sharedPreferences.edit { putString("summary_task_id_list", newJson) }
         }
     }
 
@@ -405,7 +405,7 @@ class SummarizeActivity : AppCompatActivity() {
     private fun restoreTaskIdButtons() {
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val taskIdJson = sharedPreferences.getString("summary_task_id_list", "[]")
-        val taskIdList = Gson().fromJson(taskIdJson, MutableList::class.java) as List<String>
+        val taskIdList = Gson().fromJson(taskIdJson, MutableList::class.java) as List<*>
 
         for (taskId in taskIdList) {
             val button = Button(this).apply {
@@ -442,8 +442,7 @@ class SummarizeActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                     if (response.isSuccessful) {
                         val json = JSONObject(response.body()?.string() ?: "")
-                        val status = json.optString("status", "")
-                        val message = when (status) {
+                        val message = when (val status = json.optString("status", "")) {
                             "processing" -> "🕓 처리 중입니다. 잠시만 기다려주세요."
                             "completed" -> json.optString("result", "결과 없음")
                             "failed" -> "❌ 오류 발생: ${json.optString("error", "알 수 없는 오류")}"

@@ -13,13 +13,13 @@
         android:id="@+id/btnClose"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/ic_x"
-        android:background="@drawable/circle_gray_background"
-        android:scaleType="center"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_margin="4dp"
-        tools:ignore="ContentDescription" />
+        android:background="@drawable/circle_gray_background"
+        android:scaleType="center"
+        android:src="@drawable/ic_x"
+        tools:ignore="ContentDescription,TouchTargetSizeCheck,SpeakableTextPresentCheck" />
 
     <!-- 프로필 아이콘 -->
     <ImageView
