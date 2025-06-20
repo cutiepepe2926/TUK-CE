@@ -3,6 +3,7 @@ package com.example.test_app.view
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import com.example.test_app.model.PointF
@@ -27,6 +28,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     private val eraserSize: Float = 15f * resources.displayMetrics.density
     private var eraseOverlayX = -1f
     private var eraseOverlayY = -1f
+    private var touchPassthrough = false
 
     private val strokePaint = Paint().apply {
         isAntiAlias = true
@@ -53,6 +55,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     fun setTextAnnotations(annos: List<TextAnnotation>) {
         textAnnotations.clear(); textAnnotations.addAll(annos); invalidate()
     }
+    fun setTouchPassthrough(b: Boolean){ touchPassthrough = b }
     fun setCurrentPage(page: Int) { viewCurrentPage = page; invalidate() }
     fun setDrawingEnabled(b: Boolean) { drawingEnabled = b }
     fun setEraserEnabled(b: Boolean) { isEraserEnabled = b }
@@ -61,6 +64,8 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
 
     /* ---------- 터치 ---------- */
     override fun onTouchEvent(e: MotionEvent): Boolean {
+        Log.d("DRAW_TOUCH", "pass=$touchPassthrough  action=${e.action}")
+        if(touchPassthrough) return false
         if (!drawingEnabled && !isEraserEnabled) return false
         val xPdf = (e.x - pdfOffsetX) / pdfScale
         val yPdf = (e.y - pdfOffsetY) / pdfScale

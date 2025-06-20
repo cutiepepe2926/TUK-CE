@@ -362,7 +362,7 @@ class PdfViewerActivity : AppCompatActivity() {
         currentPage = index
         pdfView.fromFile(File(getBasePdfPath()))
             .enableSwipe(true)
-            .enableDoubletap(false)
+            .enableDoubletap(true)
             .pages(index)
             .onLoad(object : OnLoadCompleteListener {
                 override fun loadComplete(nbPages: Int) {
