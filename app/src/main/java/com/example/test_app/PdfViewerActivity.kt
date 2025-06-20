@@ -239,11 +239,19 @@ class PdfViewerActivity : AppCompatActivity() {
         }
 
         btnEraser.setOnClickListener{
-            isEraserMode = !isEraserMode
-            drawingView.setEraserEnabled(isEraserMode)
-            btnPen.alpha = if(isEraserMode) 0.4f else 1.0f
-            btnEraser.alpha = if(isEraserMode) 1.0f else 0.4f
-            penOptionLayout.visibility = View.GONE
+            if (!isEraserMode) {
+                // 지우개 모드 진입
+                isEraserMode = true
+                drawingView.setEraserEnabled(true)
+                drawingView.setDrawingEnabled(false)
+
+                // 버튼 시각 표시
+                btnEraser.alpha = 1.0f
+                btnPen   .alpha = 0.4f
+
+                // 펜 옵션창 숨기기
+                penOptionLayout.visibility = View.GONE
+            }
         }
 
         penSizeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {

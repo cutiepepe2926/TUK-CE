@@ -71,14 +71,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- 문서 열기 아이콘 -->
-            <ImageButton
-                android:id="@+id/btnOpenDoc"
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-                android:layout_margin="10dp"
-                android:src="@drawable/toolbar_ic_rect"
-                android:background="?attr/selectableItemBackgroundBorderless" />
 
             <!-- 펜 -->
             <ImageButton
