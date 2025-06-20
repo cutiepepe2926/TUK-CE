@@ -96,8 +96,8 @@
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
-                android:src="@drawable/toolbar_ic_text"
                 android:alpha="0.4"
+                android:src="@drawable/toolbar_ic_text"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <!-- 손(필기 모드 토글) -->
