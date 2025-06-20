@@ -36,6 +36,11 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.IOException
+import java.util.UUID
+
+
+// 오프라인 STT 결과 저장용 데이터 클래스
+data class OfflineSttResult(val id: String, val fileName: String, val result: String)
 
 
 class SttActivity : AppCompatActivity() {
@@ -190,7 +195,8 @@ class SttActivity : AppCompatActivity() {
             filePickerLauncher.launch(intent)
         }
 
-        restoreTaskIdButtons()
+        restoreTaskIdButtons() // 온라인 STT 결과 복원 추가
+        restoreOfflineSttResults()  // 오프라인 STT 결과 복원 추가
     }
 
     // 파일 선택 결과
@@ -217,10 +223,10 @@ class SttActivity : AppCompatActivity() {
         }
 
 
-    private fun showLoading(isLoading: Boolean) {
-        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        binding.btnSelectFile.isEnabled = !isLoading
-    }
+//    private fun showLoading(isLoading: Boolean) {
+//        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+//        binding.btnSelectFile.isEnabled = !isLoading
+//    }
 
     private fun copyUriToFile(uri: Uri): File? {
         return try {
@@ -246,10 +252,10 @@ class SttActivity : AppCompatActivity() {
     }
 
     private fun uploadFileToOffline(uri: Uri) {
-        showLoading(true)
+        //showLoading(true)
 
         val file = copyUriToFile(uri) ?: run {
-            showLoading(false)
+            //showLoading(false)
             Toast.makeText(this, "파일 변환 실패", Toast.LENGTH_SHORT).show()
             return
         }
@@ -273,7 +279,7 @@ class SttActivity : AppCompatActivity() {
         client.newCall(request).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
                 runOnUiThread {
-                    showLoading(false)
+                    //showLoading(false)
                     binding.tvResult.text = getString(R.string.error_server_connection, e.message)
                 }
             }
@@ -288,12 +294,99 @@ class SttActivity : AppCompatActivity() {
                 }
 
                 runOnUiThread {
-                    showLoading(false)
+                    //showLoading(false)
                     binding.tvResult.text = result
+                    saveOfflineSttResult(result)
                 }
             }
         })
     }
+
+    // 오프라인 STT 결과를 SharedPreferences에 저장
+    private fun saveOfflineSttResult(result: String) {
+        val sharedPreferences = getSharedPreferences("offline_stt_prefs", Context.MODE_PRIVATE)
+        val existingJson = sharedPreferences.getString("offline_result_list", "[]")
+        val type = object : TypeToken<MutableList<OfflineSttResult>>() {}.type
+        val resultList: MutableList<OfflineSttResult> = Gson().fromJson(existingJson, type)
+
+        val newResult = OfflineSttResult(
+            id = UUID.randomUUID().toString(),
+            fileName = "파일명_${System.currentTimeMillis()}",
+            result = result
+        )
+
+        resultList.add(newResult)
+
+        val newJson = Gson().toJson(resultList)
+        sharedPreferences.edit().putString("offline_result_list", newJson).apply()
+
+        // 바로 결과 버튼 추가
+        addOfflineResultButton(newResult)
+    }
+
+    // 오프라인 STT 결과 복원
+    private fun restoreOfflineSttResults() {
+        val sharedPreferences = getSharedPreferences("offline_stt_prefs", Context.MODE_PRIVATE)
+        val existingJson = sharedPreferences.getString("offline_result_list", "[]")
+        val type = object : TypeToken<MutableList<OfflineSttResult>>() {}.type
+        val resultList: MutableList<OfflineSttResult> = Gson().fromJson(existingJson, type)
+
+        for (result in resultList) {
+            addOfflineResultButton(result)
+        }
+    }
+
+    // 오프라인 결과 버튼 생성 함수
+    private fun addOfflineResultButton(result: OfflineSttResult) {
+        val button = Button(this).apply {
+            text = "오프라인 결과: ${result.id.take(6)}"
+
+            setOnClickListener {
+                AlertDialog.Builder(this@SttActivity)
+                    .setTitle("오프라인 STT 결과")
+                    .setMessage(result.result)
+                    .setPositiveButton("확인", null)
+                    .show()
+            }
+
+            setOnLongClickListener {
+                AlertDialog.Builder(this@SttActivity)
+                    .setTitle("결과 삭제")
+                    .setMessage("해당 결과를 삭제하시겠습니까?")
+                    .setPositiveButton("삭제") { _, _ ->
+                        deleteOfflineSttResult(result.id, this)
+                    }
+                    .setNegativeButton("취소", null)
+                    .show()
+                true
+            }
+        }
+
+        scrollLayout.addView(button)
+    }
+
+    // 오프라인 STT 결과 삭제 함수
+    private fun deleteOfflineSttResult(id: String, button: Button) {
+        val sharedPreferences = getSharedPreferences("offline_stt_prefs", Context.MODE_PRIVATE)
+        val existingJson = sharedPreferences.getString("offline_result_list", "[]")
+        val type = object : TypeToken<MutableList<OfflineSttResult>>() {}.type
+        val resultList: MutableList<OfflineSttResult> = Gson().fromJson(existingJson, type)
+
+        // 해당 id 삭제
+        resultList.removeAll { it.id == id }
+
+        val newJson = Gson().toJson(resultList)
+        sharedPreferences.edit().putString("offline_result_list", newJson).apply()
+
+        // 버튼 제거
+        scrollLayout.removeView(button)
+
+        Toast.makeText(this, "삭제되었습니다.", Toast.LENGTH_SHORT).show()
+    }
+
+
+
+
 
     private fun queryFileName(uri: Uri): String? {
         val cursor = contentResolver.query(uri, null, null, null, null)
