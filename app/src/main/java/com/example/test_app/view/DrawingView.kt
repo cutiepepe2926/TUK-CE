@@ -54,14 +54,24 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         textAnnotations.clear(); textAnnotations.addAll(annos); invalidate()
     }
     fun setCurrentPage(page: Int) { viewCurrentPage = page; invalidate() }
-    fun setDrawingEnabled(b: Boolean) { drawingEnabled = b }
-    fun setEraserEnabled(b: Boolean) { isEraserEnabled = b }
+    fun setDrawingEnabled(b: Boolean) {
+        drawingEnabled = b
+        /* ➜  드로잉/지우개가 모두 OFF 면 View 자체를 비활성화해
+           Touch-Target 선정 단계에서 제외시킨다.  */
+        isEnabled = b || isEraserEnabled
+    }
+    fun setEraserEnabled(b: Boolean) {
+        isEraserEnabled = b
+        isEnabled = drawingEnabled || b
+    }
     fun setStrokes(list: List<Stroke>) { strokes.clear(); strokes.addAll(list); invalidate() }
     fun getStrokes(): List<Stroke> = strokes
 
     /* ---------- 터치 ---------- */
     override fun onTouchEvent(e: MotionEvent): Boolean {
-        if (!drawingEnabled && !isEraserEnabled) return false
+        if (!drawingEnabled && !isEraserEnabled){
+            return false
+        }
         val xPdf = (e.x - pdfOffsetX) / pdfScale
         val yPdf = (e.y - pdfOffsetY) / pdfScale
         when (e.action) {

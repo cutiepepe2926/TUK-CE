@@ -11,14 +11,13 @@
     <com.github.barteksc.pdfviewer.PDFView
         android:id="@+id/pdfView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"/>
 
-        <com.example.test_app.view.DrawingView
-            android:id="@+id/drawingView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/transparent" />
-    </com.github.barteksc.pdfviewer.PDFView>
+    <com.example.test_app.view.DrawingView
+        android:id="@+id/drawingView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent" />
 
     <!-- 2) 하단 페이지 전환 화살표 -->
     <ImageButton
