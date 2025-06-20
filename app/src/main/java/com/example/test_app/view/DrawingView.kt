@@ -9,6 +9,7 @@ import android.view.View
 import com.example.test_app.model.PointF
 import com.example.test_app.model.Stroke
 import com.example.test_app.model.TextAnnotation
+import kotlin.math.max
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
@@ -39,6 +40,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     private val textPaint = Paint().apply {
         isAntiAlias = true
         color = Color.BLACK
+        style = Paint.Style.FILL
     }
 
     private val eraserPaint = Paint().apply {
@@ -47,6 +49,20 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         style = Paint.Style.FILL
         isAntiAlias = true
     }
+
+    private val boxFill = Paint().apply {
+        style = Paint.Style.FILL
+        color  = Color.WHITE          // 드로어블 내부 색
+        isAntiAlias = true
+    }
+
+    private val boxStroke = Paint().apply {
+        style = Paint.Style.STROKE
+        color  = Color.BLACK          // 드로어블 테두리 색
+        strokeWidth = 2f              // 나중에 줌 배율로 보정
+        isAntiAlias = true
+    }
+
 
     /* ---------- 외부 Setter ---------- */
     fun setPdfViewInfo(scale: Float, offsetX: Float, offsetY: Float) {
@@ -162,14 +178,17 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
 
 
     /* ---------- 그리기 ---------- */
+    /* ---------- 그리기 ---------- */
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
+        /* 0. PDF 좌표계로 변환 ------------------------------------------------ */
         canvas.save()
         canvas.translate(pdfOffsetX, pdfOffsetY)
-        canvas.scale(pdfScale, pdfScale)
+        canvas.scale(pdfScale, pdfScale)         // ← 이미 스케일 적용됨
 
-        // ① 기존 필기
-        for (st in strokes.filter { it.page == viewCurrentPage }) {
+        /* 1. 기존 펜 Stroke --------------------------------------------------- */
+        strokes.filter { it.page == viewCurrentPage }.forEach { st ->
             strokePaint.color = st.color; strokePaint.strokeWidth = st.width
             for (i in 0 until st.points.size - 1) {
                 val s = st.points[i]; val e = st.points[i + 1]
@@ -184,23 +203,47 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
             }
         }
 
-        // ② 텍스트 어노테이션 (줄바꿈 지원)
-        for (anno in textAnnotations.filter { it.page == viewCurrentPage }) {
-            textPaint.textSize = anno.fontSize
-            textPaint.color = Color.BLACK
-            val lines = anno.text.split('\n')
-            var y = anno.y
-            for (ln in lines) {
-                canvas.drawText(ln, anno.x, y, textPaint)
-                y += textPaint.textSize + 8f          // 줄 간 간격
-            }
-        }
-        canvas.restore()
+        /* 2. 텍스트 박스 ------------------------------------------------------ */
+        textAnnotations
+            .filter { it.page == viewCurrentPage }
+            .forEach { anno ->
 
-        // 지우개 모드일 때 터치 위에 커서 원 그리기
-        if(isEraserEnabled && eraseOverlayX >= 0 && eraseOverlayY >= 0){
+                /* 2-A. 글자 메트릭 계산 */
+                textPaint.textSize = anno.fontSize          // ★ 더 이상 *scale 하지 않음
+                textPaint.color   = Color.BLACK
+
+                val lines = anno.text.split('\n')
+                val lineGap  = 8f                           // 줄 간격
+                var maxW = 0f
+                lines.forEach { ln -> maxW = max(maxW, textPaint.measureText(ln)) }
+                val textH = lines.size * (textPaint.textSize + lineGap) - lineGap
+
+                /* 2-B. 박스(Rect) 계산 */
+                val pad   = 6f                              // drawable padding
+                val left  = anno.x - pad
+                val top   = anno.y - textPaint.textSize - pad
+                val right = anno.x + maxW + pad
+                val bot   = top + textH + 2 * pad + textPaint.textSize
+                val radius = 8f
+
+                /* 2-C. 테두리만 그리기 (배경 투명) */
+                boxStroke.strokeWidth = 2f                  // 굵기 고정
+                canvas.drawRoundRect(left, top, right, bot, radius, radius, boxStroke)
+
+                /* 2-D. 글자 그리기 (테두리 뒤에서 안 가려짐) */
+                var y = anno.y
+                lines.forEach { ln ->
+                    canvas.drawText(ln, anno.x, y, textPaint)
+                    y += textPaint.textSize + lineGap
+                }
+            }
+
+        /* 3. 지우개 커서 ------------------------------------------------------ */
+        if (isEraserEnabled && eraseOverlayX >= 0 && eraseOverlayY >= 0) {
             canvas.drawCircle(eraseOverlayX, eraseOverlayY, eraserSize, eraserPaint)
         }
+
+        canvas.restore()
     }
 
     /* -------- 펜 크기 및 색상 -------*/

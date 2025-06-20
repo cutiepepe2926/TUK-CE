@@ -163,12 +163,16 @@ class PdfViewerActivity : AppCompatActivity() {
         // "다음 페이지" 버튼
         binding.nextPageButton.setOnClickListener {
             updateCurrentPageStrokes()
+            dumpTextBoxes()
+            saveAndClearTextBoxes()      // 🔹 EditText 저장·제거
             if (currentPage < totalPages - 1) loadPage(currentPage + 1)
         }
 
         // "이전 페이지" 버튼
         binding.prevPageButton.setOnClickListener {
             updateCurrentPageStrokes()
+            dumpTextBoxes()
+            saveAndClearTextBoxes()      // 🔹 EditText 저장·제거
             if (currentPage > 0) loadPage(currentPage - 1)
         }
 
@@ -453,6 +457,16 @@ class PdfViewerActivity : AppCompatActivity() {
         textAnnos += TextAnnotation(currentPage, wrapped, pdfX, pdfY, 40f)
         drawingView.setTextAnnotations(textAnnos)
     }
+    /* ---------- 현재 페이지의 EditText를 저장하고 제거 ---------- */
+    private fun saveAndClearTextBoxes() {
+        //collectTextBoxesToAnnotations()      // ❶ EditText → TextAnnotation  (앞서 만든 함수)
+        val toRemove = mutableListOf<View>()
+        for (i in 0 until binding.root.childCount) {
+            val v = binding.root.getChildAt(i)
+            if (v is EditText) toRemove += v
+        }
+        toRemove.forEach { binding.root.removeView(it) }
+    }
 
     private fun runTranslate(bmp: Bitmap) {
         ReadImageText().processImage(bmp) { extractedText ->
@@ -470,9 +484,41 @@ class PdfViewerActivity : AppCompatActivity() {
         strokes.forEach { it.page = currentPage }
         pageStrokes[currentPage] = strokes
     }
+    /* ---------- ❶ EditText → TextAnnotation 변환 ---------- */
+    private fun collectTextBoxesToAnnotations() {
+
+        val newAnnos = mutableListOf<TextAnnotation>()
+
+        // 뷰 트리에서 EditText를 모두 찾아 PDF 좌표로 환산
+        for (i in 0 until binding.root.childCount) {
+            val v = binding.root.getChildAt(i)
+            if (v !is EditText) continue
+            if (v.text.isNullOrBlank()) continue   // 내용이 없으면 건너뜀
+
+            // 화면(View) 좌표 → PDF 좌표
+            val lp = v.layoutParams as FrameLayout.LayoutParams
+            val viewX = lp.leftMargin.toFloat()
+            val viewY = lp.topMargin.toFloat()
+            val pdfX  = (viewX - pdfView.currentXOffset) / pdfView.zoom
+            val pdfY  = (viewY - pdfView.currentYOffset) / pdfView.zoom
+
+            newAnnos += TextAnnotation(
+                page     = currentPage,
+                text     = v.text.toString(),
+                x        = pdfX,
+                y        = pdfY,
+                fontSize = 40f               // 필요하면 v.textSize 로 대체
+            )
+        }
+
+        // 같은 페이지의 예전 주석을 지우고 새로 반영
+        textAnnos.removeAll { it.page == currentPage }
+        textAnnos.addAll(newAnnos)
+    }
 
     private fun persistAll() {
         updateCurrentPageStrokes()
+        dumpTextBoxes()
         MyDocManager(this).saveMyDoc(
             File(myDocPath).name,
             getBasePdfPath(),
@@ -548,7 +594,7 @@ class PdfViewerActivity : AppCompatActivity() {
             setBackgroundResource(R.drawable.text_box_drawable)
             setTextColor(Color.BLACK)
             isSingleLine = false
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
             //내부 패딩
             setPadding(8, 8, 8, 8)
 
@@ -636,6 +682,60 @@ class PdfViewerActivity : AppCompatActivity() {
             }
         }
     }
+    /* ---------- EditText → TextAnnotation ---------- */
+    private fun dumpTextBoxes(): Boolean {
+
+        val newAnnos = mutableListOf<TextAnnotation>()
+        val toRemove = mutableListOf<View>()
+
+        // ── 1. 모든 EditText 스캔 ──────────────────────────────────────────────
+        for (i in 0 until binding.root.childCount) {
+            val v = binding.root.getChildAt(i)
+            if (v !is EditText) continue      // 텍스트 박스 아닐 때
+            if (v.text.isNullOrBlank()) {     // 내용 없으면 그냥 지움
+                toRemove += v; continue
+            }
+
+            /* 화면(View) 좌표 → PDF 좌표 변환 */
+            val lp    = v.layoutParams as FrameLayout.LayoutParams
+            val viewX = lp.leftMargin.toFloat()
+            val viewY = lp.topMargin.toFloat()
+            val pdfX  = (viewX - pdfView.currentXOffset) / pdfView.zoom
+            val pdfY  = (viewY - pdfView.currentYOffset) / pdfView.zoom
+
+            /* 글꼴 크기를 PDF 스케일 기준으로 환산 */
+            val fontPdf = v.textSize / pdfView.zoom       // ← 줌 배율 보정이 핵심
+
+            newAnnos += TextAnnotation(
+                page     = currentPage,
+                text     = v.text.toString(),
+                x        = pdfX,
+                y        = pdfY,
+                fontSize = fontPdf
+            )
+
+            toRemove += v          // 변환이 끝났으므로 뷰는 제거 대상으로 표시
+        }
+
+        // ── 2. EditText 실제 제거 ────────────────────────────────────────────
+        toRemove.forEach { binding.root.removeView(it) }
+
+        if (newAnnos.isEmpty()) return false   // 저장할 것이 없으면 바로 종료
+
+        // ── 3. 기존 어노테이션과 병합(중복 위치는 덮어쓰기) ─────────────────
+        for (na in newAnnos) {
+            textAnnos.removeAll { it.page == na.page &&
+                    kotlin.math.abs(it.x - na.x) < 2f &&
+                    kotlin.math.abs(it.y - na.y) < 2f }
+            textAnnos += na      // 누적(add) – 페이지 전체를 지우지 않음
+        }
+
+        // ── 4. DrawingView 에 즉시 반영 ────────────────────────────────────
+        drawingView.setTextAnnotations(textAnnos)
+
+        return true
+    }
+
     /* =============================================================== */
     /*  터치 모드                                                       */
     /* =============================================================== */

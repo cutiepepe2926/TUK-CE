@@ -14,7 +14,7 @@ data class Stroke(
 // - 사용자가 그린 하나의 펜 선을 표현
 // - PDF 페이지 단위로 stroke들을 분리해서 저장 가능
 
-// 3. 텍스트 주석(예: OCR 결과)을 저장하는 클래스
+// 3. 텍스트 주석을 저장하는 클래스
 data class TextAnnotation(
     val page: Int,       // 텍스트가 위치한 PDF 페이지
     val text: String,    // 표시할 텍스트 내용 (예: OCR 결과)
@@ -22,5 +22,3 @@ data class TextAnnotation(
     val y: Float,         // PDF 좌표계 Y
     val fontSize: Float = 75f // 텍스트 크기 (기본값: 75f)
 )
-// - OCR 등으로 추출된 텍스트를 PDF 상에 위치시키는 용도로 사용
-// - PDF 좌표계를 기준으로 위치를 저장함
