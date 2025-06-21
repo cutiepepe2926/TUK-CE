@@ -261,76 +261,6 @@ class SummarizeActivity : AppCompatActivity() {
                             text = "결과 확인: $taskId"
                             setOnClickListener {
                                 retrySummaryResultRequest(taskId)
-//                                val sharedPreferences =
-//                                    getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-//                                val accessToken = sharedPreferences.getString("access_token", null)
-//
-//                                if (accessToken == null) {
-//                                    Toast.makeText(context, "로그인이 필요합니다.", Toast.LENGTH_SHORT)
-//                                        .show()
-//                                    return@setOnClickListener
-//                                }
-//                                val call = RetrofitClient.fileUploadService.getSummarizeResult(
-//                                    "Bearer $accessToken",
-//                                    taskId
-//                                )
-//
-//                                call.enqueue(object : Callback<ResponseBody> {
-//                                    override fun onResponse(
-//                                        call: Call<ResponseBody>,
-//                                        response: Response<ResponseBody>
-//                                    ) {
-//                                        if (response.isSuccessful) {
-//                                            val body = response.body()?.string()
-//                                            try {
-//                                                val json = JSONObject(body ?: "")
-//                                                val status = json.optString("status", "")
-//
-//                                                val message = when (status) {
-//                                                    "processing" -> "🕓 처리 중입니다. 잠시만 기다려주세요."
-//                                                    "completed" -> json.optString("result", "결과 없음")
-//                                                    "failed" -> "❌ 오류 발생: ${
-//                                                        json.optString(
-//                                                            "error",
-//                                                            "알 수 없는 오류"
-//                                                        )
-//                                                    }"
-//
-//                                                    else -> "❓ 알 수 없는 상태: $status"
-//                                                }
-//
-////                                                AlertDialog.Builder(this@SummarizeActivity)
-////                                                    .setTitle("요약 결과")
-////                                                    .setMessage(message)
-////                                                    .setPositiveButton("확인", null)
-////                                                    .show()
-//                                                val intent = Intent(this@SummarizeActivity, SummaryResultActivity::class.java)
-//                                                intent.putExtra("summary_result", message)
-//                                                startActivity(intent)
-//
-//
-//                                            } catch (e: Exception) {
-//                                                e.printStackTrace()
-//                                                Toast.makeText(
-//                                                    context,
-//                                                    "결과 파싱 오류",
-//                                                    Toast.LENGTH_SHORT
-//                                                ).show()
-//                                            }
-//                                        } else {
-//                                            Toast.makeText(context, "결과 조회 실패", Toast.LENGTH_SHORT)
-//                                                .show()
-//                                        }
-//                                    }
-//
-//                                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-//                                        Toast.makeText(
-//                                            context,
-//                                            "네트워크 오류: ${t.message}",
-//                                            Toast.LENGTH_SHORT
-//                                        ).show()
-//                                    }
-//                                })
                             }
 
                             setOnLongClickListener {
@@ -443,12 +373,15 @@ class SummarizeActivity : AppCompatActivity() {
         val taskIdJson = sharedPreferences.getString("summary_task_id_list", "[]")
         val taskIdList = Gson().fromJson(taskIdJson, MutableList::class.java) as List<*>
 
+        // 버튼 생성 전에 기존 뷰 클리어
+        scrollLayout.removeAllViews()
+
         for (taskId in taskIdList) {
             val button = Button(this).apply {
                 text = "결과 확인: $taskId"
                 setOnClickListener {
                     Toast.makeText(this@SummarizeActivity, "📥 결과 요청: $taskId", Toast.LENGTH_SHORT).show()
-                    // 결과 요청 API 호출 가능
+                    retrySummaryResultRequest(taskId.toString())
                 }
             }
             scrollLayout.addView(button)

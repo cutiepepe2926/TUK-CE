@@ -43,7 +43,6 @@ import com.example.test_app.model.Stroke
 import com.example.test_app.model.TextAnnotation
 import com.example.test_app.utils.MyDocManager
 import com.example.test_app.utils.PdfExporter
-import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
@@ -54,6 +53,15 @@ import java.io.FileOutputStream
 import java.io.OutputStream
 import java.io.RandomAccessFile
 import androidx.core.graphics.createBitmap
+import okhttp3.ResponseBody
+import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import androidx.core.graphics.toColorInt
+import androidx.core.view.isVisible
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 
 class PdfViewerActivity : AppCompatActivity() {
@@ -78,7 +86,8 @@ class PdfViewerActivity : AppCompatActivity() {
     private var touchPassthrough = false
 
     /* ---------------- OCR ---------------- */
-    private val ocrOptions   = arrayOf("텍스트 추출", "번역")
+    private val ocrOptions   = arrayOf("텍스트 요약", "번역")
+    private var currentCropMode = 0
     private val AUTHORITY    by lazy { "${packageName}.fileprovider" }
     private val CROP_EXTRACT = 1001
     private val CROP_TRANS   = 1002
@@ -193,7 +202,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
 
         // Export 버튼은 기존 로직 그대로
-        exportButton = findViewById<ImageButton>(R.id.exportButton)
+        exportButton = findViewById(R.id.exportButton)
         exportButton.setOnClickListener {
             exportToPdf()
         }
@@ -265,7 +274,7 @@ class PdfViewerActivity : AppCompatActivity() {
                 setTextBoxesEnabled(false)    // EditText 비활성
             } else {
                 penOptionLayout.visibility =
-                    if (penOptionLayout.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                    if (penOptionLayout.isVisible) View.GONE else View.VISIBLE
             }
             updateButtonAlpha(btnPen)
         }
@@ -280,11 +289,11 @@ class PdfViewerActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(sb: SeekBar)  {}
         })
 
-        colorBlack.setOnClickListener{ applyPenColor(Color.BLACK) }
-        colorBlue.setOnClickListener { applyPenColor(Color.parseColor("#025AB1")) }
-        colorGreen.setOnClickListener { applyPenColor(Color.parseColor("#2E7D32")) }
-        colorRed.setOnClickListener { applyPenColor(Color.parseColor("#C62828")) }
-        colorYellow.setOnClickListener { applyPenColor(Color.parseColor("#F9A825")) }
+        colorBlack.setOnClickListener { applyPenColor(Color.BLACK) }
+        colorBlue.setOnClickListener { applyPenColor("#025AB1".toColorInt()) }
+        colorGreen.setOnClickListener { applyPenColor("#2E7D32".toColorInt()) }
+        colorRed.setOnClickListener { applyPenColor("#C62828".toColorInt()) }
+        colorYellow.setOnClickListener { applyPenColor("#F9A825".toColorInt()) }
 
         btnEraser.setOnClickListener {
             exitTouchMode()
@@ -369,13 +378,11 @@ class PdfViewerActivity : AppCompatActivity() {
             .enableSwipe(true)
             .enableDoubletap(true)
             .pages(index)
-            .onLoad(object : OnLoadCompleteListener {
-                override fun loadComplete(nbPages: Int) {
-                    drawingView.setCurrentPage(currentPage)
-                    drawingView.setStrokes(pageStrokes[currentPage] ?: mutableListOf())
-                    drawingView.setTextAnnotations(textAnnos)
-                }
-            }).load()
+            .onLoad {
+                drawingView.setCurrentPage(currentPage)
+                drawingView.setStrokes(pageStrokes[currentPage] ?: mutableListOf())
+                drawingView.setTextAnnotations(textAnnos)
+            }.load()
     }
 
     /* =============================================================== */
@@ -383,9 +390,54 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     private fun showOcrDialog() {
         AlertDialog.Builder(this)
-            .setItems(ocrOptions) { _, w -> startCrop(if (w == 0) CROP_EXTRACT else CROP_TRANS) }
+            .setItems(ocrOptions) { _, w -> currentCropMode = if (w == 0) CROP_EXTRACT else CROP_TRANS
+                startCrop(currentCropMode) }
             .show()
     }
+
+    private fun sendTextForSummarization(extractedText: String) {
+        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val accessToken = sharedPreferences.getString("access_token", null)
+
+        if (accessToken == null) {
+            Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val request = SummarizeRequest(extractedText)
+        val call = RetrofitClient.fileUploadService.summarizeText("Bearer $accessToken", request)
+
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                if (response.isSuccessful) {
+                    val responseBody = response.body()?.string()
+                    try {
+                        val json = JSONObject(responseBody ?: "")
+                        val taskId = json.optString("task_id", "")
+
+                        // ✅ task_id를 SummarizeActivity와 같은 SharedPreferences에 저장
+                        saveSummaryTaskId(taskId)
+
+                        Log.d("OCR_SUMMARIZE", "서버 요약 요청 완료 (Task ID: $taskId)")
+                        Toast.makeText(this@PdfViewerActivity, "요약 요청이 전송되었습니다.", Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        Toast.makeText(this@PdfViewerActivity, "응답 파싱 오류", Toast.LENGTH_SHORT).show()
+                        Log.e("OCR_SUMMARIZE", "응답 파싱 오류: ${e.message}")
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("OCR_SUMMARIZE", "요약 요청 실패: ${response.code()} - $errorBody")
+                    Toast.makeText(this@PdfViewerActivity, "요약 요청 실패: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                Toast.makeText(this@PdfViewerActivity, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+
 
     private fun startCrop(reqCode: Int) {
         val scale = 1080f / pdfView.width
@@ -427,9 +479,28 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     private fun runOcr(bmp: Bitmap) {
         ReadImageText().processImage(bmp) { extracted ->
-            runOnUiThread { addTextAnno(extracted) }
+            runOnUiThread {
+                if (currentCropMode == CROP_EXTRACT) {
+                    sendTextForSummarization(extracted)
+                } else {
+                    addTextAnno(extracted)
+                }
+            }
         }
     }
+
+    private fun saveSummaryTaskId(taskId: String) {
+        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val existingJson = sharedPreferences.getString("summary_task_id_list", "[]")
+        val type = object : TypeToken<MutableList<String>>() {}.type
+        val taskIdList: MutableList<String> = Gson().fromJson(existingJson, type)
+
+        taskIdList.add(taskId)
+
+        val newJson = Gson().toJson(taskIdList)
+        sharedPreferences.edit().putString("summary_task_id_list", newJson).apply()
+    }
+
 
     /* ---------- 문자열 래핑 ---------- */
     private fun wrapText(src: String, maxChars: Int = 30): String {

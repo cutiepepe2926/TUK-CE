@@ -10,6 +10,12 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Body
+
+data class SummarizeRequest(
+    val text: String
+)
+
 
 // 파일 업로드/결과 요청 처리
 interface FileUploadService {
@@ -38,12 +44,26 @@ interface FileUploadService {
         @Part("start_page") startPage: RequestBody, // 시작 페이지 (문자열로 전송)
         @Part("end_page") endPage: RequestBody // 종료 페이지 (문자열로 전송)
     ): Call<ResponseBody>
+    
+    // 4. 텍스트 요약 요청
+    @POST("summarize/")
+    fun summarizeText(
+        @Header("Authorization") authToken: String,
+        @Body request: SummarizeRequest
+    ): Call<ResponseBody>
 
     // 4. 요약 결과 조회
     @GET("summarize/result/{task_id}/")
     fun getSummarizeResult(
         @Header("Authorization") authToken: String, // Bearer access 토큰
         @Path("task_id") taskId: String  // 업로드 시 받은 task_id
+    ): Call<ResponseBody>
+
+    // OCR 요약 결과 조회
+    @GET("summarize/result/{task_id}/")
+    fun getOcrSummarizeResult(
+        @Header("Authorization") authToken: String,
+        @Path("task_id") taskId: String
     ): Call<ResponseBody>
 
 }

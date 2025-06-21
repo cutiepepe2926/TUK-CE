@@ -45,9 +45,6 @@
             android:name=".SttActivity"
             android:exported="true" />
         <activity
-            android:name=".OcrActivity"
-            android:exported="true" />
-        <activity
             android:name=".SignupActivity"
             android:exported="true" />
         <activity
