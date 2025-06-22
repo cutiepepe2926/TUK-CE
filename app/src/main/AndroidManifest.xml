@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" /> <!-- OCR 필요 권한 -->
     <uses-permission
         android:name="android.permission.READ_MEDIA_IMAGES"
-        tools:ignore="ScopedStorage" />
+        tools:ignore="ScopedStorage,SelectedPhotoAccess" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
 
@@ -29,6 +29,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Test_App">
+        <activity
+            android:name=".SttResultActivity"
+            android:exported="false" />
         <activity
             android:name=".SummaryResultActivity"
             android:exported="false" />
@@ -62,7 +65,8 @@
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

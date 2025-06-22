@@ -456,11 +456,14 @@ class SttActivity : AppCompatActivity() {
 
             // 그냥 누르면 결과 확인
             setOnClickListener {
-                AlertDialog.Builder(this@SttActivity)
-                    .setTitle("오프라인 STT 결과")
-                    .setMessage(result.result)
-                    .setPositiveButton("확인", null)
-                    .show()
+//                AlertDialog.Builder(this@SttActivity)
+//                    .setTitle("오프라인 STT 결과")
+//                    .setMessage(result.result)
+//                    .setPositiveButton("확인", null)
+//                    .show()
+                val intent = Intent(this@SttActivity, SttResultActivity::class.java)
+                intent.putExtra("stt_result", result.result)
+                startActivity(intent)
             }
 
             // 길게 누르면 삭제 확인 다이얼로그
@@ -540,7 +543,7 @@ class SttActivity : AppCompatActivity() {
 
         // Uri를 File로 변환
         val file = uriToFile(fileUri) ?: run {
-            println("🚨 파일 변환 실패")
+            println("파일 변환 실패")
             return
         }
 
@@ -627,11 +630,14 @@ class SttActivity : AppCompatActivity() {
                                                     else -> "알 수 없는 상태: $status"
                                                 }
 
-                                                AlertDialog.Builder(this@SttActivity)
-                                                    .setTitle("STT 결과")
-                                                    .setMessage(sttMessage)
-                                                    .setPositiveButton("확인", null)
-                                                    .show()
+//                                                AlertDialog.Builder(this@SttActivity)
+//                                                    .setTitle("STT 결과")
+//                                                    .setMessage(sttMessage)
+//                                                    .setPositiveButton("확인", null)
+//                                                    .show()
+                                                val intent = Intent(this@SttActivity, SttResultActivity::class.java)
+                                                intent.putExtra("stt_result", sttMessage)
+                                                startActivity(intent)
 
                                             } catch (e: Exception) { // JSON 파싱 실패 처리
                                                 e.printStackTrace()
@@ -649,6 +655,19 @@ class SttActivity : AppCompatActivity() {
                                     }
                                 })
                             }
+
+                            setOnLongClickListener {
+                                AlertDialog.Builder(this@SttActivity)
+                                    .setTitle("결과 삭제")
+                                    .setMessage("해당 결과를 삭제하시겠습니까?")
+                                    .setPositiveButton("삭제") { _, _ ->
+                                        deleteTaskId(taskId, this)
+                                    }
+                                    .setNegativeButton("취소", null)
+                                    .show()
+                                true
+                            }
+
                         }
 
                         // 결과 버튼 화면에 추가
@@ -776,10 +795,43 @@ class SttActivity : AppCompatActivity() {
                     //결과 요청
                     retrySttResultRequest(taskId)
                 }
+
+                setOnLongClickListener {
+                    AlertDialog.Builder(this@SttActivity)
+                        .setTitle("결과 삭제")
+                        .setMessage("해당 결과를 삭제하시겠습니까?")
+                        .setPositiveButton("삭제") { _, _ ->
+                            deleteTaskId(taskId, this)
+                        }
+                        .setNegativeButton("취소", null)
+                        .show()
+                    true
+                }
+
             }
             scrollLayout.addView(button)
         }
     }
+
+    private fun deleteTaskId(taskId: String, button: Button) {
+        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val taskIdJson = sharedPreferences.getString("task_id_list", "[]")
+        val type = object : TypeToken<MutableList<String>>() {}.type
+        val taskIdList: MutableList<String> = Gson().fromJson(taskIdJson, type)
+
+        // 리스트에서 taskId 제거
+        taskIdList.remove(taskId)
+
+        // 다시 저장
+        val newJson = Gson().toJson(taskIdList)
+        sharedPreferences.edit { putString("task_id_list", newJson) }
+
+        // 버튼 삭제
+        scrollLayout.removeView(button)
+
+        Toast.makeText(this, "삭제되었습니다.", Toast.LENGTH_SHORT).show()
+    }
+
 
     // 토큰 만료 대비 재시도 로직 (고차함수로 task 실행)
     private fun requestWithTokenRetry(task: (accessToken: String) -> Unit) {
@@ -826,11 +878,14 @@ class SttActivity : AppCompatActivity() {
                         }
 
                         // 결과 다이얼로그 표시
-                        AlertDialog.Builder(this@SttActivity)
-                            .setTitle("STT 결과")
-                            .setMessage(message)
-                            .setPositiveButton("확인", null)
-                            .show()
+//                        AlertDialog.Builder(this@SttActivity)
+//                            .setTitle("STT 결과")
+//                            .setMessage(message)
+//                            .setPositiveButton("확인", null)
+//                            .show()
+                        val intent = Intent(this@SttActivity, SttResultActivity::class.java)
+                        intent.putExtra("stt_result", message)
+                        startActivity(intent)
 
                     }
 

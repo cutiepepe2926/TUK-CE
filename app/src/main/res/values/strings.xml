@@ -50,6 +50,7 @@
     <string name="toggle_pen_or_hand">필기 모드 전환</string>
     <string name="copy">복사하기</string>
     <string name="translate_english">영어 번역</string>
+    <string name="reveal_result">결과 표시</string>
 
 
 </resources>
