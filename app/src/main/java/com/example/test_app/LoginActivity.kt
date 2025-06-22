@@ -141,6 +141,9 @@ class LoginActivity : AppCompatActivity() {
                         // 로그인 성공 시 access/refresh 토큰 저장
                         saveTokens(loginResponse.access, loginResponse.refresh)
 
+                        // 사용자 ID 저장
+                        sharedPreferences.edit { putString("user_id", username) }
+
                         // 응답 검사 체크
                         println("로그인 성공! Access Token: ${loginResponse.access}")
                         println("로그인 성공! Refresh Token: ${loginResponse.refresh}")

@@ -84,6 +84,11 @@ class SummarizeActivity : AppCompatActivity() {
             // ViewBinding으로 레이아웃 inflate
             profileBinding = ProfilePopupBinding.inflate(layoutInflater)
 
+            // 사용자 ID 프로필 창에 출력
+            val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+            val userId = sharedPreferences.getString("user_id", "Unknown")
+            profileBinding.userIdText.text = userId
+
             // 팝업 뷰 생성
             profilePopupWindow = PopupWindow(
 
@@ -113,7 +118,15 @@ class SummarizeActivity : AppCompatActivity() {
 
                 Toast.makeText(this, "로그아웃 되었습니다", Toast.LENGTH_SHORT).show()
 
-                profilePopupWindow?.dismiss() //팝업해제 후 로그인 액티비티로 이동
+                // 사용자 보안 정보 제거
+                sharedPreferences.edit {
+                    remove("access_token")
+                        .remove("refresh_token")
+                        .remove("user_id")
+                }
+
+                //팝업해제 후 로그인 액티비티로 이동
+                profilePopupWindow?.dismiss()
 
                 val intent = Intent(this, LoginActivity::class.java)
 
