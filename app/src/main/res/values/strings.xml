@@ -51,6 +51,8 @@
     <string name="copy">복사하기</string>
     <string name="translate_english">영어 번역</string>
     <string name="reveal_result">결과 표시</string>
+    <string name="summary_result_button_filename">결과 확인: %1$s</string>
+
 
 
 </resources>

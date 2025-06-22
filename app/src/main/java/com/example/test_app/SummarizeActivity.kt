@@ -253,7 +253,9 @@ class SummarizeActivity : AppCompatActivity() {
 
     // 시작/끝 페이지 입력 Dialog 표시
     private fun showPageInputDialog(fileUri: Uri) {
-        
+
+        val fileName = queryFileName(fileUri) ?: "알 수 없는 파일"
+
         // 다이얼
         val dialogView = layoutInflater.inflate(R.layout.dialog_page_input, null)
         
@@ -275,7 +277,7 @@ class SummarizeActivity : AppCompatActivity() {
                 if (startPage.isNotEmpty() && endPage.isNotEmpty()) {
 
                     // 서버 업로드 시작
-                    uploadFile(fileUri, startPage, endPage)
+                    uploadFile(fileUri, fileName, startPage, endPage)
                 }
 
                 else {
@@ -288,7 +290,7 @@ class SummarizeActivity : AppCompatActivity() {
 
 
     // 파일 업로드 함수
-    private fun uploadFile(fileUri: Uri, startPage: String, endPage: String, retry: Boolean = false) {
+    private fun uploadFile(fileUri: Uri, fileName: String, startPage: String, endPage: String, retry: Boolean = false) {
 
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
 
@@ -345,7 +347,7 @@ class SummarizeActivity : AppCompatActivity() {
 
                         // 결과 확인 버튼 동적 생성
                         val resultButton = Button(this@SummarizeActivity).apply {
-                            text = getString(R.string.summary_result_button, taskId)
+                            text = getString(R.string.summary_result_button_filename, fileName)
 
                             // 단순 클릭 시 결과 확인
                             setOnClickListener {
@@ -393,7 +395,10 @@ class SummarizeActivity : AppCompatActivity() {
 
                             onSuccess = {
                                 println("새로운 토큰으로 재시도 중")
-                                uploadFile(fileUri, startPage, endPage ,retry = true) // 재시도
+
+                                // 재시도
+                                uploadFile(fileUri, fileName, startPage, endPage, retry = true)
+
                             },
 
                             onFailure = {
@@ -521,6 +526,18 @@ class SummarizeActivity : AppCompatActivity() {
                     // 결과 재요청
                     retrySummaryResultRequest(taskId.toString())
                 }
+
+                setOnLongClickListener {
+                    AlertDialog.Builder(this@SummarizeActivity)
+                        .setTitle("결과 삭제")
+                        .setMessage("해당 결과를 삭제하시겠습니까?")
+                        .setPositiveButton("예") { _, _ ->
+                            deleteTaskId(taskId.toString(), this)
+                        }
+                        .setNegativeButton("아니오", null)
+                        .show()
+                    true
+                }
             }
 
             // 버튼 추가
@@ -614,4 +631,17 @@ class SummarizeActivity : AppCompatActivity() {
             })
         }
     }
+
+    // 선택한 Uri에서 파일 이름 추출
+    private fun queryFileName(uri: Uri): String? {
+        val cursor = contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+            if (cursor.moveToFirst() && nameIndex != -1) {
+                return cursor.getString(nameIndex)
+            }
+        }
+        return null
+    }
+
 }
