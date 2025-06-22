@@ -24,7 +24,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import org.json.JSONObject
@@ -34,7 +33,9 @@ import retrofit2.Response
 import java.io.File
 import java.io.FileOutputStream
 import androidx.core.content.edit
+import okhttp3.RequestBody.Companion.asRequestBody
 
+@Suppress("UNUSED_ANONYMOUS_PARAMETER")
 class SummarizeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySummarizeBinding
@@ -150,12 +151,6 @@ class SummarizeActivity : AppCompatActivity() {
             }
         }
 
-        // 좌측 네비게이션 하단 설정(톱니바퀴) 클릭 시 이동 (설정 페이지 작성 필요)
-        val btnSetting = binding.sideMenu.findViewById<View>(R.id.btnSetting)
-        btnSetting.setOnClickListener {
-
-        }
-
         scrollLayout = binding.scrollLayout
 
 
@@ -232,7 +227,7 @@ class SummarizeActivity : AppCompatActivity() {
         }
 
 
-        val requestBody = RequestBody.create("application/pdf".toMediaTypeOrNull(), file)
+        val requestBody = file.asRequestBody("application/pdf".toMediaTypeOrNull())
         val filePart = MultipartBody.Part.createFormData("file", file.name, requestBody)
         val startPageBody = startPage.toRequestBody("text/plain".toMediaTypeOrNull())
         val endPageBody = endPage.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -252,13 +247,15 @@ class SummarizeActivity : AppCompatActivity() {
                         saveSummaryTaskId(taskId)
                         //task_id 리스트에 저장
                         //resultText= message
-                        tvTaskId.text = "Task ID: $taskId" // ✅ TextView에 표시
+                        tvTaskId.text = getString(R.string.task_id_label, taskId)
+
 
                         Toast.makeText(this@SummarizeActivity, taskId, Toast.LENGTH_SHORT).show()
 
                         // ✅ 결과 확인 버튼 동적 생성
                         val resultButton = Button(this@SummarizeActivity).apply {
-                            text = "결과 확인: $taskId"
+                            text = getString(R.string.summary_result_button, taskId)
+
                             setOnClickListener {
                                 retrySummaryResultRequest(taskId)
                             }
@@ -378,7 +375,8 @@ class SummarizeActivity : AppCompatActivity() {
 
         for (taskId in taskIdList) {
             val button = Button(this).apply {
-                text = "결과 확인: $taskId"
+                text = getString(R.string.summary_result_button, taskId)
+
                 setOnClickListener {
                     Toast.makeText(this@SummarizeActivity, "📥 결과 요청: $taskId", Toast.LENGTH_SHORT).show()
                     retrySummaryResultRequest(taskId.toString())

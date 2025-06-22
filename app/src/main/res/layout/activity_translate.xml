@@ -39,6 +39,7 @@
                     app:boxCornerRadiusBottomStart="8dp"
                     app:boxCornerRadiusBottomEnd="8dp">
 
+                    <!-- 텍스트 입력 영역 -->
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etInputText"
                         android:layout_width="match_parent"

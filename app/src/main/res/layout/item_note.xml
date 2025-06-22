@@ -24,10 +24,12 @@
             android:padding="8dp">
 
 
+            <!--썸네일 주변 공간-->
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
+                <!--썸네일 화면-->
                 <ImageView
                     android:id="@+id/thumbnailView"
                     android:layout_width="0dp"

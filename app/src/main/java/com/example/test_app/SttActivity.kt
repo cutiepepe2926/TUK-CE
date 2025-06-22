@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -64,9 +65,13 @@ class SttActivity : AppCompatActivity() {
 
     // 네트워크 상태 확인 함수
     private fun isNetworkAvailable(): Boolean {
+//        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+//        val activeNetwork = connectivityManager.activeNetworkInfo
+//        return activeNetwork != null && activeNetwork.isConnected
         val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetwork = connectivityManager.activeNetworkInfo
-        return activeNetwork != null && activeNetwork.isConnected
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
 
@@ -177,12 +182,6 @@ class SttActivity : AppCompatActivity() {
             val intent = Intent(this, SummarizeActivity::class.java)
             startActivity(intent)
             finish()
-        }
-
-        // 좌측 네비게이션 하단 설정(톱니바퀴) 클릭 시 이동 (설정 페이지 작성 필요)
-        val btnSetting = binding.sideMenu.findViewById<View>(R.id.btnSetting)
-        btnSetting.setOnClickListener {
-
         }
 
 
@@ -318,7 +317,7 @@ class SttActivity : AppCompatActivity() {
         resultList.add(newResult)
 
         val newJson = Gson().toJson(resultList)
-        sharedPreferences.edit().putString("offline_result_list", newJson).apply()
+        sharedPreferences.edit { putString("offline_result_list", newJson) }
 
         // 바로 결과 버튼 추가
         addOfflineResultButton(newResult)
@@ -339,7 +338,8 @@ class SttActivity : AppCompatActivity() {
     // 오프라인 결과 버튼 생성 함수
     private fun addOfflineResultButton(result: OfflineSttResult) {
         val button = Button(this).apply {
-            text = "오프라인 결과: ${result.id.take(6)}"
+            val shortId = result.id.take(6)
+            text = getString(R.string.offline_result_label, shortId)
 
             setOnClickListener {
                 AlertDialog.Builder(this@SttActivity)
@@ -376,7 +376,7 @@ class SttActivity : AppCompatActivity() {
         resultList.removeAll { it.id == id }
 
         val newJson = Gson().toJson(resultList)
-        sharedPreferences.edit().putString("offline_result_list", newJson).apply()
+        sharedPreferences.edit { putString("offline_result_list", newJson) }
 
         // 버튼 제거
         scrollLayout.removeView(button)

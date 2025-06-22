@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -27,6 +28,7 @@
         android:layout_gravity="bottom|start"
         android:layout_marginStart="16dp"
         android:layout_marginBottom="16dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/toolbar_ic_arrow_left"
         android:background="@drawable/bg_round" />
 
@@ -38,6 +40,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
+        android:importantForAccessibility="no"
         android:src="@drawable/toolbar_ic_arrow_right"
         android:background="@drawable/bg_round" />
 
@@ -57,6 +60,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_gravity="start"
+            android:importantForAccessibility="no"
             android:src="@drawable/toolbar_ic_close"
             android:background="@drawable/bg_round" />
 
@@ -77,8 +81,10 @@
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:importantForAccessibility="no"
                 android:src="@drawable/toolbar_ic_pen"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                tools:ignore="TouchTargetSizeCheck" />
 
             <!-- 지우개 -->
             <ImageButton
@@ -86,9 +92,11 @@
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
-                android:src="@drawable/toolbar_ic_eraser"
                 android:alpha="0.4"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:importantForAccessibility="no"
+                android:src="@drawable/toolbar_ic_eraser"
+                tools:ignore="ImageContrastCheck,TouchTargetSizeCheck" />
 
             <!-- 텍스트 -->
             <ImageButton
@@ -97,18 +105,22 @@
                 android:layout_height="match_parent"
                 android:layout_margin="10dp"
                 android:alpha="0.4"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:importantForAccessibility="no"
                 android:src="@drawable/toolbar_ic_text"
-                android:background="?attr/selectableItemBackgroundBorderless" />
+                tools:ignore="ImageContrastCheck,TouchTargetSizeCheck" />
 
             <!-- 손(필기 모드 토글) -->
             <ImageButton
                 android:id="@+id/toggleModeButton"
                 android:layout_width="40dp"
                 android:layout_height="match_parent"
-                android:src="@drawable/toolbar_ic_hand"
                 android:layout_margin="10dp"
+                android:alpha="0.4"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:alpha="0.4" />
+                android:importantForAccessibility="no"
+                android:src="@drawable/toolbar_ic_hand"
+                tools:ignore="ImageContrastCheck,TouchTargetSizeCheck" />
 
         </LinearLayout>
 
@@ -155,7 +167,7 @@
                     android:id="@+id/penSizeSeekBar"
                     android:layout_width="200dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
+                    android:layout_marginStart="10dp"
                     android:max="20"
                     android:progress="5"
                     android:layout_marginEnd="8dp"/>
@@ -238,8 +250,10 @@
             android:id="@+id/btnMenu"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:importantForAccessibility="no"
             android:src="@drawable/toolbar_ic_menu"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            tools:ignore="TouchTargetSizeCheck" />
 
         <!-- 2) 숨겨진 메뉴 아이템들 (초기 GONE) -->
         <ImageButton
@@ -247,6 +261,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="16dp"
+            android:importantForAccessibility="no"
             android:src="@drawable/ic_record"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:visibility="gone"/>
@@ -256,6 +271,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="16dp"
+            android:importantForAccessibility="no"
             android:src="@drawable/toolbar_ic_ocr"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:visibility="gone"/>
@@ -265,6 +281,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="16dp"
+            android:importantForAccessibility="no"
             android:src="@drawable/toolbar_ic_export"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:visibility="gone"/>

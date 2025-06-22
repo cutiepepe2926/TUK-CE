@@ -5,6 +5,8 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <!--PDF 및 새 노트 추가 메뉴-->
+
     <TextView
         android:id="@+id/menu_import_pdf"
         android:layout_width="match_parent"

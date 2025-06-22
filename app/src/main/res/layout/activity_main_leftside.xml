@@ -168,6 +168,7 @@
         android:paddingTop="8dp"
         android:paddingBottom="4dp">
 
+        <!--필기 페이지 버튼-->
         <ImageButton
             android:id="@+id/btnWrite"
             android:layout_width="0dp"
@@ -177,6 +178,7 @@
             android:src="@drawable/ic_write"
             tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
 
+        <!--STT 페이지 버튼-->
         <ImageButton
             android:id="@+id/btnSTT_under"
             android:layout_width="0dp"
@@ -186,6 +188,7 @@
             android:src="@drawable/ic_stt"
             tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
 
+        <!--요약 페이지 버튼-->
         <ImageButton
             android:id="@+id/btnSummarize_under"
             android:layout_width="0dp"
@@ -195,14 +198,14 @@
             android:src="@drawable/ic_summarize"
             tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
 
-
-        <ImageButton
-            android:id="@+id/btnSetting"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:src="@drawable/ic_setting"
-            tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
+        <!--설정 버튼-->
+<!--        <ImageButton-->
+<!--            android:id="@+id/btnSetting"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="48dp"-->
+<!--            android:layout_weight="1"-->
+<!--            android:background="@android:color/transparent"-->
+<!--            android:src="@drawable/ic_setting"-->
+<!--            tools:ignore="ContentDescription,SpeakableTextPresentCheck" />-->
     </LinearLayout>
 </LinearLayout>

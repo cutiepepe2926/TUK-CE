@@ -33,9 +33,6 @@
             android:name=".SummaryResultActivity"
             android:exported="false" />
         <activity
-            android:name=".SttofflineActivity"
-            android:exported="false" />
-        <activity
             android:name=".TranslateActivity"
             android:exported="false" />
         <activity

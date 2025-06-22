@@ -38,5 +38,16 @@
     <string name="result_display_here">결과가 여기에 표시됩니다.</string>
     <string name="endPage">종료 페이지</string>
     <string name="startPage">시작 페이지</string>
+    <string name="summary_result_button">결과 확인: %1$s</string>
+    <string name="task_id_label">Task ID: %1$s</string>
+    <string name="offline_result_label">오프라인 결과: %1$s</string>
+    <string name="square">사각형</string>
+    <string name="back">뒤로가기</string>
+    <string name="eraser">지우개</string>
+    <string name="menu">메뉴</string>
+    <string name="pen">펜</string>
+    <string name="text">텍스트</string>
+    <string name="toggle_pen_or_hand">필기 모드 전환</string>
+
 
 </resources>

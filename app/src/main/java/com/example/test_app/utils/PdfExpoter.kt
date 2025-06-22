@@ -9,6 +9,7 @@ import com.itextpdf.text.Image
 import com.itextpdf.text.pdf.PdfWriter
 import java.io.File
 import java.io.FileOutputStream
+import androidx.core.graphics.createBitmap
 
 object PdfExporter {
 
@@ -59,7 +60,7 @@ object PdfRenderUtils {
     fun renderFirstPageToBitmap(context: Context, pdfFile: File): Bitmap {
         // TODO: PdfiumAndroid 사용해서 첫 페이지 bitmap 추출
         // 여기서는 임시로 1080x1920 흰색 Bitmap 반환
-        val bitmap = Bitmap.createBitmap(1080, 1920, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(1080, 1920)
         val canvas = Canvas(bitmap)
         canvas.drawColor(android.graphics.Color.WHITE)
         // "PDF page rendered" 가정

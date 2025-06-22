@@ -6,6 +6,7 @@
     android:orientation="vertical"
     android:padding="20dp">
 
+    <!--요약할 PDF 시작 페이지 입력칸-->
     <EditText
         android:id="@+id/etStartPage"
         android:layout_width="match_parent"
@@ -17,6 +18,7 @@
         android:textColorHint="#546E7A"
         tools:ignore="VisualLintTextFieldSize" />
 
+    <!--요약할 PDF 종료 페이지 입력칸-->
     <EditText
         android:id="@+id/etEndPage"
         android:layout_width="match_parent"

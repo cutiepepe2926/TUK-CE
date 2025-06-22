@@ -19,6 +19,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
+            <!--왼쪽 상단 네비게이션 아이콘-->
             <ImageButton
                 android:id="@+id/btnLeftSideNavigator"
                 android:layout_width="wrap_content"
@@ -31,11 +32,13 @@
                 android:paddingRight="7dp"
                 android:paddingTop="7dp"/>
 
+            <!--공백-->
             <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
+            <!--프로필 아이콘-->
             <ImageButton
                 android:id="@+id/btnProfile"
                 android:layout_width="wrap_content"
@@ -91,7 +94,7 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- 여기에 동적 버튼들이 추가될 예정 -->
+                <!-- 디버깅 용 결과 칸 -->
                 <TextView
                     android:id="@+id/tvResult"
                     android:layout_width="match_parent"
@@ -101,6 +104,7 @@
                     android:padding="8dp"
                     android:background="#F0F0F0" />
 
+                <!--결과들 목록-->
                 <TextView
                     android:id="@+id/tvTaskId"
                     android:layout_width="match_parent"

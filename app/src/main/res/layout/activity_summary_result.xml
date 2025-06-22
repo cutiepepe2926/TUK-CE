@@ -4,8 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/white">
 
+    <!--요약 결과 출력-->
     <TextView
         android:id="@+id/tvSummaryResult"
         android:layout_width="match_parent"

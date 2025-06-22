@@ -6,12 +6,13 @@ import android.widget.Toast
 import com.example.test_app.LoginActivity
 import com.example.test_app.RetrofitClient
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import androidx.core.content.edit
 
 // 토큰 갱신 및 로그아웃 처리 담당
 object TokenManager {
@@ -33,10 +34,8 @@ object TokenManager {
         val requestJson = JSONObject()
         requestJson.put("refresh", refreshToken)
 
-        val requestBody = RequestBody.create(
-            "application/json".toMediaTypeOrNull(),
-            requestJson.toString()
-        )
+        val requestBody = requestJson.toString()
+            .toRequestBody("application/json".toMediaTypeOrNull())
 
         // Retrofit으로 서버에 갱신 요청
         val call = RetrofitClient.authService.refreshAccessToken(requestBody)
@@ -50,10 +49,10 @@ object TokenManager {
                     val body = response.body()?.string()
 
                     // // 새 access 토큰 추출
-                    val newAccess = JSONObject(body ?: "").optString("access", null)
+                    val newAccess = JSONObject(body ?: "").optString("access", null.toString())
 
                     if (!newAccess.isNullOrEmpty()) {
-                        sharedPreferences.edit().putString("access_token", newAccess).apply()
+                        sharedPreferences.edit { putString("access_token", newAccess) }
                         onSuccess(newAccess)
                     } else {
                         onFailure()
@@ -75,7 +74,7 @@ object TokenManager {
 
         // 토큰 정보 초기화
         val sharedPreferences = context.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-        sharedPreferences.edit().clear().apply()
+        sharedPreferences.edit { clear() }
 
         Toast.makeText(context, "토큰이 만료되어 다시 로그인해주세요", Toast.LENGTH_SHORT).show()
 

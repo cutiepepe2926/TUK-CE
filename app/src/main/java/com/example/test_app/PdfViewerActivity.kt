@@ -62,8 +62,9 @@ import androidx.core.graphics.toColorInt
 import androidx.core.view.isVisible
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import androidx.core.content.edit
 
-
+@Suppress("DEPRECATION")
 class PdfViewerActivity : AppCompatActivity() {
 
     /* ---------------- UI ---------------- */
@@ -83,7 +84,7 @@ class PdfViewerActivity : AppCompatActivity() {
     private var isEraserMode = false
     private var isTextMode = false
     private var isTouchMode  = false
-    private var touchPassthrough = false
+    //private var touchPassthrough = false
 
     /* ---------------- OCR ---------------- */
     private val ocrOptions   = arrayOf("텍스트 요약", "번역")
@@ -218,7 +219,8 @@ class PdfViewerActivity : AppCompatActivity() {
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
         // 🔹 뒤로 가기 버튼 기능
         btnBack.setOnClickListener {
-            persistAll(); super.onBackPressed()
+            persistAll()
+            onBackPressedDispatcher.onBackPressed()
             Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show()
         }
 
@@ -463,6 +465,7 @@ class PdfViewerActivity : AppCompatActivity() {
             .start(this, reqCode)
     }
 
+    @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode != RESULT_OK || data == null) return
@@ -498,7 +501,7 @@ class PdfViewerActivity : AppCompatActivity() {
         taskIdList.add(taskId)
 
         val newJson = Gson().toJson(taskIdList)
-        sharedPreferences.edit().putString("summary_task_id_list", newJson).apply()
+        sharedPreferences.edit { putString("summary_task_id_list", newJson) }
     }
 
 
@@ -556,36 +559,36 @@ class PdfViewerActivity : AppCompatActivity() {
         pageStrokes[currentPage] = strokes
     }
     /* ---------- ❶ EditText → TextAnnotation 변환 ---------- */
-    private fun collectTextBoxesToAnnotations() {
-
-        val newAnnos = mutableListOf<TextAnnotation>()
-
-        // 뷰 트리에서 EditText를 모두 찾아 PDF 좌표로 환산
-        for (i in 0 until binding.root.childCount) {
-            val v = binding.root.getChildAt(i)
-            if (v !is EditText) continue
-            if (v.text.isNullOrBlank()) continue   // 내용이 없으면 건너뜀
-
-            // 화면(View) 좌표 → PDF 좌표
-            val lp = v.layoutParams as FrameLayout.LayoutParams
-            val viewX = lp.leftMargin.toFloat()
-            val viewY = lp.topMargin.toFloat()
-            val pdfX  = (viewX - pdfView.currentXOffset) / pdfView.zoom
-            val pdfY  = (viewY - pdfView.currentYOffset) / pdfView.zoom
-
-            newAnnos += TextAnnotation(
-                page     = currentPage,
-                text     = v.text.toString(),
-                x        = pdfX,
-                y        = pdfY,
-                fontSize = 40f               // 필요하면 v.textSize 로 대체
-            )
-        }
-
-        // 같은 페이지의 예전 주석을 지우고 새로 반영
-        textAnnos.removeAll { it.page == currentPage }
-        textAnnos.addAll(newAnnos)
-    }
+//    private fun collectTextBoxesToAnnotations() {
+//
+//        val newAnnos = mutableListOf<TextAnnotation>()
+//
+//        // 뷰 트리에서 EditText를 모두 찾아 PDF 좌표로 환산
+//        for (i in 0 until binding.root.childCount) {
+//            val v = binding.root.getChildAt(i)
+//            if (v !is EditText) continue
+//            if (v.text.isNullOrBlank()) continue   // 내용이 없으면 건너뜀
+//
+//            // 화면(View) 좌표 → PDF 좌표
+//            val lp = v.layoutParams as FrameLayout.LayoutParams
+//            val viewX = lp.leftMargin.toFloat()
+//            val viewY = lp.topMargin.toFloat()
+//            val pdfX  = (viewX - pdfView.currentXOffset) / pdfView.zoom
+//            val pdfY  = (viewY - pdfView.currentYOffset) / pdfView.zoom
+//
+//            newAnnos += TextAnnotation(
+//                page     = currentPage,
+//                text     = v.text.toString(),
+//                x        = pdfX,
+//                y        = pdfY,
+//                fontSize = 40f               // 필요하면 v.textSize 로 대체
+//            )
+//        }
+//
+//        // 같은 페이지의 예전 주석을 지우고 새로 반영
+//        textAnnos.removeAll { it.page == currentPage }
+//        textAnnos.addAll(newAnnos)
+//    }
 
     private fun persistAll() {
         updateCurrentPageStrokes()
@@ -616,6 +619,7 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     /*  뒤로가기                                                       */
     /* =============================================================== */
+    @Deprecated("Deprecated due to AndroidX API changes")
     override fun onBackPressed() { persistAll(); super.onBackPressed() }
 
     /* =============================================================== */
@@ -699,6 +703,7 @@ class PdfViewerActivity : AppCompatActivity() {
         private var lastX = 0f
         private var lastY = 0f
 
+        @SuppressLint("ClickableViewAccessibility")
         override fun onTouch(v: View, ev: MotionEvent): Boolean {
             // 커서(포커스) 있을 때만 이동 — 포커스 없으면 텍스트 선택·스크롤 등에 방해하지 않음
             if (!(v as EditText).isFocused) return false
