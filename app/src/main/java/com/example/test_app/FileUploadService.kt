@@ -48,8 +48,8 @@ interface FileUploadService {
     // 4. 텍스트 요약 요청
     @POST("summarize/")
     fun summarizeText(
-        @Header("Authorization") authToken: String,
-        @Body request: SummarizeRequest
+        @Header("Authorization") authToken: String, // Bearer access 토큰
+        @Body request: SummarizeRequest //요약할 텍스트 내용
     ): Call<ResponseBody>
 
     // 4. 요약 결과 조회
@@ -58,12 +58,4 @@ interface FileUploadService {
         @Header("Authorization") authToken: String, // Bearer access 토큰
         @Path("task_id") taskId: String  // 업로드 시 받은 task_id
     ): Call<ResponseBody>
-
-    // OCR 요약 결과 조회
-    @GET("summarize/result/{task_id}/")
-    fun getOcrSummarizeResult(
-        @Header("Authorization") authToken: String,
-        @Path("task_id") taskId: String
-    ): Call<ResponseBody>
-
 }

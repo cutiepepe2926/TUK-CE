@@ -153,7 +153,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
         setContentView(binding.root)
 
-        //!!신규 2개!!
+        // PDF 뷰어, 필기 뷰 초기화
         pdfView = binding.pdfView
         drawingView = binding.drawingView
 
@@ -174,7 +174,7 @@ class PdfViewerActivity : AppCompatActivity() {
         binding.nextPageButton.setOnClickListener {
             updateCurrentPageStrokes()
             dumpTextBoxes()
-            saveAndClearTextBoxes()      // 🔹 EditText 저장·제거
+            saveAndClearTextBoxes()      // EditText 저장·제거
             if (currentPage < totalPages - 1) loadPage(currentPage + 1)
         }
 
@@ -182,12 +182,13 @@ class PdfViewerActivity : AppCompatActivity() {
         binding.prevPageButton.setOnClickListener {
             updateCurrentPageStrokes()
             dumpTextBoxes()
-            saveAndClearTextBoxes()      // 🔹 EditText 저장·제거
+            saveAndClearTextBoxes()      // EditText 저장·제거
             if (currentPage > 0) loadPage(currentPage - 1)
         }
 
         // 모드 전환 버튼
         btnHand = findViewById(R.id.toggleModeButton)
+
         btnHand.setOnClickListener {
             isTouchMode = true
             isPenMode = false
@@ -204,12 +205,14 @@ class PdfViewerActivity : AppCompatActivity() {
 
         // Export 버튼은 기존 로직 그대로
         exportButton = findViewById(R.id.exportButton)
+
         exportButton.setOnClickListener {
             exportToPdf()
         }
 
         //OCR 기능
         btnOcr = findViewById(R.id.btnOcr)
+
         //OCR 버튼 기능
         btnOcr.setOnClickListener {
             showOcrDialog()
@@ -217,20 +220,19 @@ class PdfViewerActivity : AppCompatActivity() {
 
         // 뒤로 가기 버튼
         val btnBack = findViewById<ImageButton>(R.id.btnBack)
-        // 🔹 뒤로 가기 버튼 기능
+
+        // 뒤로 가기 버튼 기능
         btnBack.setOnClickListener {
             persistAll()
             onBackPressedDispatcher.onBackPressed()
-            Toast.makeText(this, "✅ 저장 완료",Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "저장 완료",Toast.LENGTH_SHORT).show()
         }
 
         // 녹음 버튼
         btnRecord = findViewById(R.id.btnRecord)
-        // 🔹 음성 녹음 버튼 기능
-        // 🔹 녹음 버튼 기능 (아이콘 변경)
-        // 🔹 녹음 버튼 기능 (아이콘 변경 & 녹음 기능 추가)
+
         btnRecord.setOnClickListener {
-            println("🎤 녹음 버튼이 클릭됨!")
+            println("녹음 버튼이 클릭됨!")
             if (isRecording) {
                 stopRecording(btnRecord)
             } else {
@@ -362,8 +364,6 @@ class PdfViewerActivity : AppCompatActivity() {
             false                                 // 다른 모드 → PDFView 기본 제스처 허용
         }
 
-
-
         handler.post(syncRunnable)
     }
 
@@ -397,8 +397,11 @@ class PdfViewerActivity : AppCompatActivity() {
             .show()
     }
 
+    // OCR 결과를 서버로 전송하여 요약 요청 (Termux Flask 서버로 POST)
     private fun sendTextForSummarization(extractedText: String) {
+
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+
         val accessToken = sharedPreferences.getString("access_token", null)
 
         if (accessToken == null) {
@@ -407,26 +410,33 @@ class PdfViewerActivity : AppCompatActivity() {
         }
 
         val request = SummarizeRequest(extractedText)
+
         val call = RetrofitClient.fileUploadService.summarizeText("Bearer $accessToken", request)
 
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     val responseBody = response.body()?.string()
+
                     try {
+
                         val json = JSONObject(responseBody ?: "")
+
                         val taskId = json.optString("task_id", "")
 
-                        // ✅ task_id를 SummarizeActivity와 같은 SharedPreferences에 저장
+                        // task_id를 SummarizeActivity와 같은 SharedPreferences에 저장
                         saveSummaryTaskId(taskId)
 
                         Log.d("OCR_SUMMARIZE", "서버 요약 요청 완료 (Task ID: $taskId)")
+
                         Toast.makeText(this@PdfViewerActivity, "요약 요청이 전송되었습니다.", Toast.LENGTH_SHORT).show()
                     } catch (e: Exception) {
                         Toast.makeText(this@PdfViewerActivity, "응답 파싱 오류", Toast.LENGTH_SHORT).show()
                         Log.e("OCR_SUMMARIZE", "응답 파싱 오류: ${e.message}")
                     }
-                } else {
+                }
+
+                else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("OCR_SUMMARIZE", "요약 요청 실패: ${response.code()} - $errorBody")
                     Toast.makeText(this@PdfViewerActivity, "요약 요청 실패: ${response.code()}", Toast.LENGTH_SHORT).show()
@@ -439,8 +449,7 @@ class PdfViewerActivity : AppCompatActivity() {
         })
     }
 
-
-
+    // 크롭 작업 시작 (UCrop 라이브러리 사용)
     private fun startCrop(reqCode: Int) {
         val scale = 1080f / pdfView.width
         val bmp = createBitmap(
@@ -466,6 +475,7 @@ class PdfViewerActivity : AppCompatActivity() {
     }
 
     @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)}\n      with the appropriate {@link ActivityResultContract} and handling the result in the\n      {@link ActivityResultCallback#onActivityResult(Object) callback}.")
+    // 이미지 크롭 결과 처리 (OCR 수행)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode != RESULT_OK || data == null) return
@@ -506,7 +516,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
 
     /* ---------- 문자열 래핑 ---------- */
-    private fun wrapText(src: String, maxChars: Int = 30): String {
+    private fun wrapText(src: String, maxChars: Int = 10): String {
         val words = src.split("\\s+".toRegex())
         val sb = StringBuilder()
         var lineLen = 0
@@ -522,7 +532,7 @@ class PdfViewerActivity : AppCompatActivity() {
     }
 
     private fun addTextAnno(raw: String) {
-        val wrapped = wrapText(raw, 10)      // ← 40글자마다 줄바꿈
+        val wrapped = wrapText(raw)      // ← 40글자마다 줄바꿈
         val cx = pdfView.width / 2f
         val cy = pdfView.height / 2f
         val pdfX = (cx - pdfView.currentXOffset) / pdfView.zoom
@@ -663,6 +673,7 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     /*  텍스트 박스                                                      */
     /* =============================================================== */
+    @SuppressLint("ClickableViewAccessibility")
     private fun addTextBoxAt(viewX: Float, viewY: Float){
         // 새로운 EditText
         val et = EditText(this).apply{
@@ -1017,7 +1028,7 @@ class PdfViewerActivity : AppCompatActivity() {
             recordPermission == PackageManager.PERMISSION_GRANTED
         } catch (e: Exception) {
             e.printStackTrace()
-            println("🚨 권한 확인 중 오류 발생: ${e.message}")
+            println("권한 확인 중 오류 발생: ${e.message}")
             false // 예외 발생 시 false 반환 (앱 크래시 방지)
         }
     }
@@ -1027,15 +1038,15 @@ class PdfViewerActivity : AppCompatActivity() {
     // ✅ 녹음 권한 요청 함수
     private fun requestPermissions() {
         try {
-            println("🔔 권한 요청 실행")
+            println("권한 요청 실행")
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.RECORD_AUDIO), // 🚀 파일 저장 권한 제거
+                arrayOf(Manifest.permission.RECORD_AUDIO), //파일 저장 권한 제거
                 200
             )
         } catch (e: Exception) {
             e.printStackTrace()
-            println("🚨 권한 요청 중 오류 발생: ${e.message}")
+            println("권한 요청 중 오류 발생: ${e.message}")
         }
     }
 
@@ -1046,9 +1057,9 @@ class PdfViewerActivity : AppCompatActivity() {
 
         if (requestCode == 200) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                println("✅ 오디오 녹음 권한이 승인되었습니다!")
+                println("오디오 녹음 권한이 승인되었습니다!")
             } else {
-                println("❌ 오디오 녹음 권한이 거부되었습니다.")
+                println("오디오 녹음 권한이 거부되었습니다.")
             }
         }
     }

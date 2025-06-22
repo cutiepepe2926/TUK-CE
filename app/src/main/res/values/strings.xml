@@ -21,13 +21,13 @@
     <string name="writeEmail">이메일을 입력해 주세요.</string>
     <string name="NoteTitle">노트 제목</string>
     <string name="logout">로그아웃</string>
-    <string name="error_server_connection">❌ 서버 연결 실패: %1$s</string>
+    <string name="error_server_connection">서버 연결 실패: %1$s</string>
     <string name="load_pdf">📄 PDF 불러오기</string>
     <string name="make_new_note">📝 새 노트 만들기</string>
     <string name="plus">+</string>
     <string name="write_translate_sentence">번역할 문장을 입력하세요</string>
     <string name="translate">번역하기</string>
-    <string name="now_loading">번역 중입니다...</string>
+    <string name="now_loading">번역 중입니다&#8230;</string>
     <string name="translate_result_will_display">번역 결과가 여기에 표시됩니다.</string>
     <string name="task_id_format">Task ID: %1$s</string>
     <string name="result_check_format">결과 확인: %1$s</string>

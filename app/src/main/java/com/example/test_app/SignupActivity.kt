@@ -105,14 +105,14 @@ class SignupActivity : AppCompatActivity() {
 
                 else {
                     // 오류 응답 처리
-                    println("🚨 회원가입 실패: ${response.errorBody()?.string()}")
+                    println("회원가입 실패: ${response.errorBody()?.string()}")
                     Toast.makeText(this@SignupActivity, "회원가입 실패!", Toast.LENGTH_SHORT).show()
                 }
             }
 
             // 네트워크 오류 등 요청 실패 시
             override fun onFailure(call: Call<SignupResponse>, t: Throwable) {
-                println("🚨 네트워크 오류: ${t.message}")
+                println("네트워크 오류: ${t.message}")
                 Toast.makeText(this@SignupActivity, "네트워크 오류 발생!", Toast.LENGTH_SHORT).show()
             }
         })

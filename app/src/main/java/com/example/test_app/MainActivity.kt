@@ -39,27 +39,36 @@ import androidx.core.graphics.scale
 
 class MainActivity : AppCompatActivity() {
 
-    //바인딩 초기 선언
-    private lateinit var binding: ActivityMainBinding // 메인 액티비티 xml 바인딩
-    private lateinit var profileBinding: ProfilePopupBinding // 프로필 팝업 xml 바인딩
-    private var profilePopupWindow: PopupWindow? = null // 프로필 팝업 창 확인용
+    // 메인 액티비티 xml 바인딩
+    private lateinit var binding: ActivityMainBinding
 
+    // 프로필 팝업 xml 바인딩
+    private lateinit var profileBinding: ProfilePopupBinding
+
+    // 프로필 팝업 창 확인용
+    private var profilePopupWindow: PopupWindow? = null
+
+    // 노트 어댑터 선언
     private lateinit var noteAdapter: NoteAdapter
+
+    // 노트 리스트 데이터
     private val noteList = mutableListOf<Note>()
 
-    // PDF 선택 런처
+    // PDF 선택기 런처 (파일 탐색기 실행 결과 처리)
     private val pdfPickerLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let {
-                showTitleDialogThenCreateNote(it) // 아래 함수로 분리
+
+                // 선택된 PDF 파일 처리 함수 호출
+                showTitleDialogThenCreateNote(it)
             }
         }
     
     
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
 
+        super.onCreate(savedInstanceState)
 
         //바인딩 초기화 및 바인딩 객체 획득
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -74,7 +83,9 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
             finish()
-        } else {
+        }
+
+        else {
             // 로그인 정보가 있으면 메인 화면 표시
             setContentView(binding.root)
         }
@@ -181,10 +192,15 @@ class MainActivity : AppCompatActivity() {
             }
 
             createNote.setOnClickListener {
+
+                // 새 노트 생성 다이얼로그 호출
                 showNewNoteDialog()
+                
+                // 다이얼로그 해제
                 dialog.dismiss()
             }
 
+            // 바텀시트 다이얼로그 출력
             dialog.show()
         }
 
@@ -202,33 +218,39 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // 좌측 네비게이션 하단 설정(톱니바퀴) 클릭 시 이동 (설정 페이지 작성 필요)
-        val btnSetting = binding.sideMenu.findViewById<View>(R.id.btnSetting)
-        btnSetting.setOnClickListener {
-
-        }
-
         // 리사이클러뷰 & 어댑터 설정
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewNotes)
-        //recyclerView.layoutManager = LinearLayoutManager(this)
+
         val spanCount = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             4 // 가로 모드에서는 더 많은 열
-        } else {
+        }
+
+        else {
             3 // 세로 모드에서는 기본 열 수
         }
 
+        // Grid 형태로 레이아웃 설정
         recyclerView.layoutManager = GridLayoutManager(this, spanCount)
 
+        // 어댑터 생성 (노트 리스트 바인딩)
         noteAdapter = NoteAdapter(
+
+            // 노트 리스트 연결
             noteList,
-            onItemClick = { note -> openNote(note) }, // 클릭 시 호출
-            onItemLongClick = { note -> showNoteOptionsDialog(note) } // 롱클릭 시 호출
+
+            // 클릭 시 노트 열기
+            onItemClick = { note -> openNote(note) },
+
+            // 롱클릭 시 노트 옵션 호출
+            onItemLongClick = { note -> showNoteOptionsDialog(note) }
         )
 
+        // 어댑터 RecyclerView에 연결
         recyclerView.adapter = noteAdapter
 
         //BottomSheetDialog 생성 버튼
         val btnAdd = findViewById<Button>(R.id.addBtn)
+
         btnAdd.setOnClickListener {
             val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_add_menu, binding.root,false)
             val dialog = BottomSheetDialog(this)
@@ -238,11 +260,15 @@ class MainActivity : AppCompatActivity() {
             val createNote = bottomSheetView.findViewById<TextView>(R.id.menu_create_new_note)
 
             importPdf.setOnClickListener {
+
+                // PDF 선택 호출
                 pdfPickerLauncher.launch(arrayOf("application/pdf"))
                 dialog.dismiss()
             }
 
             createNote.setOnClickListener {
+
+                // 새 노트 생성 다이얼로그 호출
                 showNewNoteDialog()
                 dialog.dismiss()
             }
@@ -252,73 +278,86 @@ class MainActivity : AppCompatActivity() {
 
         // 앱 실행 시 저장된 노트 목록 불러오기 (notes.json)
         loadNoteList()
+        
+        //노트 어댑터 갱신
         noteAdapter.notifyDataSetChanged()
 
     }
 
-        // PDF 파일을 Bitmap으로 변환
+    // PDF 파일을 Bitmap으로 렌더링하는 함수 (썸네일 생성용)
     private fun renderPdfToBitmap(uri: Uri): Bitmap? {
+
         try {
 
-            // 파일 존재 여부 확인 (디버깅 로그 추가)
-            println("PDF 파일 확인: $uri")
-
+            // PDF 파일 열기 (파일 디스크립터 기반으로 접근)
             val parcelFileDescriptor = contentResolver.openFileDescriptor(uri, "r")
-            //PDF 파일을 Uri를 통해 열기
 
             //파일이 존재하지 않을 시
             if (parcelFileDescriptor == null) {
-                println("🚨 파일을 찾을 수 없음! PDF가 존재하지 않습니다.")
+                println("파일을 찾을 수 없음! PDF가 존재하지 않습니다.")
                 return null
             }
 
             val pdfiumCore = PdfiumCore(this)
             val pdfDocument = pdfiumCore.newDocument(parcelFileDescriptor)
 
+            // 첫 페이지 열기
             pdfiumCore.openPage(pdfDocument, 0)
-            // 첫 번째 페이지 열기
 
-            // 해상도를 원본 크기 또는 2배로 설정
-            //val scaleFactor = 2 // 원하는 배율로 조정 가능 (2배 해상도)
+            // 비트맵 생성 (PDF 페이지 렌더링용)
             val width = pdfiumCore.getPageWidthPoint(pdfDocument, 0)
             val height = pdfiumCore.getPageHeightPoint(pdfDocument, 0) * 2
 
-            val bitmap = createBitmap(width, height, Bitmap.Config.RGB_565) //Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(width, height, Bitmap.Config.RGB_565)
             pdfiumCore.renderPageBitmap(pdfDocument, bitmap, 0, 0, 0, width, height)
 
-            println(" PDF 첫 페이지 렌더링 완료: ${bitmap.width}x${bitmap.height}")  //
+            println(" PDF 첫 페이지 렌더링 완료: ${bitmap.width}x${bitmap.height}")
 
-            pdfiumCore.closeDocument(pdfDocument) // 리소스 해제
-            parcelFileDescriptor.close() //파일 탐색 닫기
+            // 리소스 해제
+            pdfiumCore.closeDocument(pdfDocument)
 
-            bitmap.scale(300, 400) // 썸네일 크기 조정
+            //파일 탐색 닫기
+            parcelFileDescriptor.close()
+
+            // 썸네일 크기로 스케일 조정
+            bitmap.scale(300, 400)
 
             return bitmap
+
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
-            println("🚨 파일을 찾을 수 없음! 경로 오류: $uri")
+
         } catch (e: Exception) {
             e.printStackTrace()
-            println("🚨 PDF 렌더링 중 오류 발생: ${e.message}")
         }
         return null
     }
 
-    //!!신규!! 아래는 통합될 함수 목록들임.
-
+    // PDF 선택 후 노트 이름 입력받아 Note 생성
     private fun showTitleDialogThenCreateNote(uri: Uri) {
+
         val builder = AlertDialog.Builder(this)
+
         builder.setTitle("노트 이름을 입력하세요")
+
         val input = EditText(this)
+
         builder.setView(input)
+
         builder.setPositiveButton("확인") { _, _ ->
+
             val title = input.text.toString()
+
             if (title.isNotEmpty()) {
+
+                // PDF에서 Note 객체 생성
                 val note = PdfUtils.createNoteFromPdf(this, uri, title)
 
-                // .mydoc 파일에서 실제 base.pdf 경로를 추출
+                // MyDocManager로 base.pdf 파일 경로 추출
                 val myDocData = MyDocManager(this).loadMyDoc(File(note.myDocPath))
-                val basePdfFile = File(myDocData.pdfFilePath) // 여기가 실제 PDF 경로
+
+                // 실제 원본 PDF 경로
+                val basePdfFile = File(myDocData.pdfFilePath)
 
                 // 썸네일 생성 및 저장
                 val bitmap = renderPdfToBitmap(Uri.fromFile(basePdfFile)) // 또는 원본 PDF 경로
@@ -335,10 +374,16 @@ class MainActivity : AppCompatActivity() {
                     file.absolutePath
                 }
 
-                // 노트에 썸네일 경로 포함시켜서 리스트에 추가
+                // 노트에 썸네일 경로 포함하여 Note 객체 업데이트
                 val finalNote = note.copy(thumbnailPath = thumbnailPath)
+
+                // 리스트에 노트 추가
                 noteList.add(finalNote)
+
+                // 리사이클러뷰 갱신
                 noteAdapter.notifyItemInserted(noteList.size - 1)
+
+                // 변경된 리스트 저장
                 saveNoteList()
             }
         }
@@ -347,18 +392,33 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    // 2) 새 파일(빈 PDF) 생성 → mydoc 및 노트 생성
+    // 새 노트 생성 다이얼로그 (빈 PDF 생성)
     private fun showNewNoteDialog() {
+
         val builder = AlertDialog.Builder(this)
+
         builder.setTitle("새 노트 이름을 입력하세요")
+
         val input = EditText(this)
+
         builder.setView(input)
+
         builder.setPositiveButton("확인") { _, _ ->
+
             val title = input.text.toString()
+
             if (title.isNotEmpty()) {
+
+                // 빈 PDF Note 생성
                 val note = PdfUtils.createBlankNote(this, title)
+
+                // 노트 추가
                 noteList.add(note)
+
+                
                 noteAdapter.notifyItemInserted(noteList.size - 1)
+
+                // 노트 저장
                 saveNoteList()
             }
         }
@@ -366,15 +426,22 @@ class MainActivity : AppCompatActivity() {
         builder.show()
     }
 
-    // 노트 클릭 시 PdfViewerActivity로 전환
+    // 노트 클릭 시 PdfViewerActivity로 이동 (노트 열기)
     private fun openNote(note: Note) {
+
         val intent = Intent(this, PdfViewerActivity::class.java)
+
+        // 노트 ID 전달
         intent.putExtra("noteId", note.id)
+
+        // mydoc 경로 전달
         intent.putExtra("myDocPath", note.myDocPath)
+
         startActivity(intent)
     }
 
-    // 노트 목록을 filesDir의 "notes.json"에 저장
+
+    // 현재 노트 리스트를 파일에 저장 (notes.json)
     private fun saveNoteList() {
         val notesFile = File(filesDir, "notes.json")
         val gson = Gson()
@@ -382,7 +449,7 @@ class MainActivity : AppCompatActivity() {
         notesFile.writeText(json)
     }
 
-    // 저장된 "notes.json" 파일로부터 노트 목록을 불러옴
+    // 앱 시작 시 저장된 노트 파일 불러오기
     private fun loadNoteList() {
         val notesFile = File(filesDir, "notes.json")
         if (notesFile.exists()) {
@@ -395,7 +462,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // 노트 옵션 선택 다이얼로그
+    // 노트 롱클릭 시 노트 옵션 다이얼로그 (이름 변경, 삭제)
     private fun showNoteOptionsDialog(note: Note) {
         val options = arrayOf("이름 바꾸기", "삭제")
 
@@ -411,7 +478,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    // 이름 바꾸기 다이얼로그
+    // 노트 이름 변경 다이얼로그
     private fun showRenameDialog(note: Note) {
         val input = EditText(this)
         input.setText(note.title)
@@ -434,7 +501,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    // 삭제 확인
+    // 노트 삭제 확인 다이얼로그
     private fun confirmDeleteNote(note: Note) {
         AlertDialog.Builder(this)
             .setTitle("노트 삭제")
@@ -446,7 +513,7 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
-    // 삭제 함수
+    // 실제 삭제 로직 (리스트에서 제거 및 저장)
     private fun deleteNote(note: Note) {
         val index = noteList.indexOfFirst { it.id == note.id }
         if (index != -1) {
@@ -455,6 +522,4 @@ class MainActivity : AppCompatActivity() {
             saveNoteList()
         }
     }
-
-
 }

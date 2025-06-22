@@ -20,14 +20,18 @@ import androidx.core.graphics.toColorInt
 @Suppress("DEPRECATION")
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var binding : ActivityLoginBinding // ActivityLogin 바인딩 선언
+    // ActivityLogin 바인딩 선언
+    private lateinit var binding : ActivityLoginBinding
 
-    private lateinit var sharedPreferences: SharedPreferences // 토큰 저장용 (auth_prefs)
+    // 토큰 저장용 (auth_prefs)
+    private lateinit var sharedPreferences: SharedPreferences
 
-    private var isPasswordHidden = false // 비밀번호 표시 상태 토글 변수
+    // 비밀번호 표시 상태 토글 변수
+    private var isPasswordHidden = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
 
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -37,32 +41,42 @@ class LoginActivity : AppCompatActivity() {
 
         // 비밀번호 저장 체크 여부 처리
         val rememberPassword = binding.loginPassword.text.toString()
+
         val rememberCheck = binding.rememberPasswd
 
         if (rememberCheck.isChecked) {
+
             // 체크되어 있으면 비밀번호 저장
             val prefs = getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+
             prefs.edit { putString("saved_password", rememberPassword) }
-        } else {
+        }
+
+        else {
+
             // 체크 안되어 있으면 비밀번호 제거
             val prefs = getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+
             prefs.edit { remove("saved_password") }
         }
 
         //// 저장된 비밀번호 자동 입력
         val prefs = getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
+
         val savedPassword = prefs.getString("saved_password", "")
+
         if (!savedPassword.isNullOrEmpty()) {
             binding.loginPassword.setText(savedPassword)
             rememberCheck.isChecked = true // 체크 상태도 자동 설정
         }
 
-
         setContentView(binding.root)
 
         // 로그인 버튼 클릭 시
         binding.btnLogin.setOnClickListener {
+
             val username = binding.loginId.text.toString().trim()
+
             val password = binding.loginPassword.text.toString().trim()
 
             // 유효성 검사
@@ -110,9 +124,12 @@ class LoginActivity : AppCompatActivity() {
 
     // 로그인 요청 함수
     private fun loginUser(username: String, password: String) {
-        val call = RetrofitClient.authService.loginUser(username, password) // Retrofit 함수 호출
+
+        // Retrofit 함수 호출
+        val call = RetrofitClient.authService.loginUser(username, password)
 
         call.enqueue(object : Callback<LoginResponse> {
+
             override fun onResponse(call: Call<LoginResponse>, response: Response<LoginResponse>) {
 
                 if (response.isSuccessful) {
@@ -134,16 +151,20 @@ class LoginActivity : AppCompatActivity() {
                         startActivity(intent)
                         finish()
                     }
-                } else {
+                }
+
+                else {
+
                     // 로그인 실패 시 에러 출력
-                    println("🚨 로그인 실패: ${response.errorBody()?.string()}")
+                    println("로그인 실패: ${response.errorBody()?.string()}")
                     Toast.makeText(this@LoginActivity, "로그인 실패! 이메일과 비밀번호를 확인하세요.", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
+
                 // 네트워크 오류 발생 시 출력
-                println("🚨 네트워크 오류: ${t.message}")
+                println("네트워크 오류: ${t.message}")
                 Toast.makeText(this@LoginActivity, "네트워크 오류 발생!", Toast.LENGTH_SHORT).show()
             }
         })
