@@ -861,25 +861,25 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     /*  녹음                                                           */
     /* =============================================================== */
-    // ✅ WAV 녹음 시작 함수
+    // WAV 녹음 시작 함수
     @SuppressLint("MissingPermission")
     private fun startRecording(btnRecord: ImageButton) {
         if (!checkPermissions()) {
-            println("🚨 권한이 없어서 녹음을 시작할 수 없습니다!")
+            println("권한이 없어서 녹음을 시작할 수 없습니다!")
             requestPermissions()
             return
         }
 
         isRecording = true
-        btnRecord.setImageResource(R.drawable.ic_recording) // 🔴 아이콘 변경
+        btnRecord.setImageResource(R.drawable.ic_recording) // 아이콘 변경
 
-        val fileName = generateFileName().replace(".mp3", ".wav") // 🔁 파일 이름 확장자 변경
-        //val storageDir = getExternalFilesDir(Environment.DIRECTORY_MUSIC) // 🔹 앱 내부 저장소 사용
-        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) //🔹 다운로드 파일
-        val audioFile = File(storageDir, fileName) // 🔹 파일 생성
+        val fileName = generateFileName().replace(".mp3", ".wav") // 파일 이름 확장자 변경
+        //val storageDir = getExternalFilesDir(Environment.DIRECTORY_MUSIC) // 앱 내부 저장소 사용
+        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) //다운로드 파일
+        val audioFile = File(storageDir, fileName) // 파일 생성
         audioFilePath = audioFile.absolutePath
 
-        println("📂 파일 저장 경로: $audioFilePath") // ✅ 파일 경로 출력
+        println("파일 저장 경로: $audioFilePath") // 파일 경로 출력
 
         try {
             val sampleRate = 16000
@@ -912,31 +912,31 @@ class PdfViewerActivity : AppCompatActivity() {
                 audioRecord = null
                 updateWavHeader(audioFile)
                 outputStream.close()
-                println("✅ WAV 파일 저장 완료: $audioFilePath")
+                println("WAV 파일 저장 완료: $audioFilePath")
             }
 
             recordingThread?.start()
-            println("🎤 WAV 녹음 시작됨!")
+            println("WAV 녹음 시작됨!")
 
         } catch (e: Exception) {
             e.printStackTrace()
-            println("🚨 녹음 중 오류 발생: ${e.message}")
+            println("녹음 중 오류 발생: ${e.message}")
         }
     }
 
 
-    // ✅ 녹음 중지 함수
+    // 녹음 중지 함수
     private fun stopRecording(btnRecord: ImageButton) {
-        println("🛑 녹음 중지 요청됨")
+        println("녹음 중지 요청됨")
 
         try {
             isRecording = false
             recordingThread?.join()
             btnRecord.setImageResource(R.drawable.ic_record) // 🎤 아이콘 변경
-            println("✅ 녹음 완료! 파일 저장 위치: $audioFilePath")
+            println("녹음 완료! 파일 저장 위치: $audioFilePath")
         } catch (e: Exception) {
             e.printStackTrace()
-            println("🚨 녹음 중지 중 오류 발생: ${e.message}")
+            println("녹음 중지 중 오류 발생: ${e.message}")
         }
     }
 
@@ -1012,13 +1012,13 @@ class PdfViewerActivity : AppCompatActivity() {
 
 
 
-    // ✅ 파일 이름 생성 함수 (yyyyMMdd_HHmm.mp3 형식)
+    // 파일 이름 생성 함수 (yyyyMMdd_HHmm.mp3 형식)
     private fun generateFileName(): String {
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
         return "record_$timeStamp.wav"
     }
 
-    // ✅ 녹음 권한 확인 함수
+    // 녹음 권한 확인 함수
     private fun checkPermissions(): Boolean {
         return try {
             val recordPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
@@ -1035,7 +1035,7 @@ class PdfViewerActivity : AppCompatActivity() {
 
 
 
-    // ✅ 녹음 권한 요청 함수
+    // 녹음 권한 요청 함수
     private fun requestPermissions() {
         try {
             println("권한 요청 실행")
