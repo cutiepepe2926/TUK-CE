@@ -1,10 +1,17 @@
 package com.example.test_app
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
+import android.widget.PopupWindow
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
+import androidx.core.view.GravityCompat
 import com.example.test_app.databinding.ActivityTranslateBinding
+import com.example.test_app.databinding.ProfilePopupBinding
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -27,6 +34,12 @@ class TranslateActivity : AppCompatActivity() {
         .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)     // 서버 응답까지 최대 60초 대기
         .build()
 
+    // 프로필 팝업 xml 바인딩
+    private lateinit var profileBinding: ProfilePopupBinding
+
+    // 프로필 팝업 창 확인용
+    private var profilePopupWindow: PopupWindow? = null
+
     // Flask 서버 주소 (Termux에서 구동 중인 서버)
     private val flaskUrl = "http://127.0.0.1:8000/translate"
 
@@ -38,6 +51,148 @@ class TranslateActivity : AppCompatActivity() {
         binding = ActivityTranslateBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
+
+        // 왼쪽 상단 버튼 클릭 시 네비게이션 표시
+        binding.btnLeftSideNavigator.setOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+
+        // 우측 상단 프로필 버튼 클릭 시 프로필 팝업 표시
+        binding.btnProfile.setOnClickListener {
+
+            // 이미 떠 있으면 닫기
+            if (profilePopupWindow?.isShowing == true) {
+
+                profilePopupWindow?.dismiss()
+
+                return@setOnClickListener
+            }
+
+            // ViewBinding으로 레이아웃 inflate
+            profileBinding = ProfilePopupBinding.inflate(layoutInflater)
+
+            // 사용자 ID 프로필 창에 출력
+            val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+            val userId = sharedPreferences.getString("user_id", "Unknown")
+            profileBinding.userIdText.text = userId
+
+            // 팝업 뷰 생성
+            profilePopupWindow = PopupWindow(
+
+                profileBinding.root,
+
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+
+                true
+            )
+
+            // 팝업 뷰 스타일 세팅
+            profilePopupWindow?.elevation = 10f
+
+            profilePopupWindow?.isOutsideTouchable = true
+
+            profilePopupWindow?.isFocusable = true
+
+            // X 버튼 동작
+            profileBinding.btnClose.setOnClickListener {
+                profilePopupWindow?.dismiss()
+            }
+
+            // 로그아웃 버튼 동작
+            profileBinding.btnLogout.setOnClickListener {
+
+                Toast.makeText(this, "로그아웃 되었습니다", Toast.LENGTH_SHORT).show()
+
+                // 사용자 보안 정보 제거
+                sharedPreferences.edit {
+                    remove("access_token")
+                        .remove("refresh_token")
+                        .remove("user_id")
+                }
+
+                //팝업해제 후 로그인 액티비티로 이동
+                profilePopupWindow?.dismiss()
+
+                val intent = Intent(this, LoginActivity::class.java)
+
+                startActivity(intent)
+
+                finish()
+            }
+
+            // 팝업 표시 위치 (버튼 아래 또는 화면 오른쪽 상단 등)
+            profilePopupWindow?.showAsDropDown(binding.btnProfile, -150, 20) // x, y 오프셋 조절
+
+        }
+
+        // 좌측 네비게이션 문서 클릭 시 메인 화면 문서 페이지 이동
+        val btnDocument = binding.sideMenu.findViewById<View>(R.id.btnDocument)
+
+        btnDocument.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 영어 번역 클릭 시 번역 페이지 이동
+        val btnTranslate = binding.sideMenu.findViewById<View>(R.id.btnTranslate)
+
+        btnTranslate.setOnClickListener {
+            if (this::class.java == TranslateActivity::class.java) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            }
+        }
+
+        // 좌측 네비게이션 음성 텍스트 클릭 시 음성 텍스트 페이지 이동
+        val btnSTT = binding.sideMenu.findViewById<View>(R.id.btnSTT)
+
+        btnSTT.setOnClickListener {
+            val intent = Intent(this, SttActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 텍스트 요약 클릭 시 요약 페이지 이동
+        val btnSummarize = binding.sideMenu.findViewById<View>(R.id.btnSummarize)
+
+        btnSummarize.setOnClickListener {
+            val intent = Intent(this, SummarizeActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 하단 문서 생성(노트) 클릭 시 노트 추가 팝업 출력하기
+        val btnWrite = binding.sideMenu.findViewById<View>(R.id.btnWrite)
+
+        btnWrite.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
+
+        // 좌측 네비게이션 하단 음성 텍스트(마이크) 클릭 시 음성 텍스트 페이지 이동
+        val btnSTTUnder = binding.sideMenu.findViewById<View>(R.id.btnSTT_under)
+
+        btnSTTUnder.setOnClickListener {
+            val intent = Intent(this, SttActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 하단 텍스트 요약 클릭 시 요약 페이지 이동
+        val btnSummarizeUnder = binding.sideMenu.findViewById<View>(R.id.btnSummarize_under)
+
+        btnSummarizeUnder.setOnClickListener {
+            val intent = Intent(this, SummarizeActivity::class.java)
+            startActivity(intent)
+        }
+
+        // 좌측 네비게이션 하단 영어 번역 클릭 시 번역 페이지 이동
+        val btnTranslateUnder = binding.sideMenu.findViewById<View>(R.id.btnTranslate_under)
+
+        btnTranslateUnder.setOnClickListener {
+            if (this::class.java == TranslateActivity::class.java) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            }
+        }
 
         // PdfViewerActivity로부터 OCR 결과 문자열을 받아옴
         val ocrText = intent.getStringExtra("ocrText")
@@ -57,9 +212,9 @@ class TranslateActivity : AppCompatActivity() {
                 val clip = android.content.ClipData.newPlainText("번역 결과", resultText)
                 clipboard.setPrimaryClip(clip)
 
-                android.widget.Toast.makeText(this, "복사되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "복사되었습니다.", Toast.LENGTH_SHORT).show()
             } else {
-                android.widget.Toast.makeText(this, "복사할 내용이 없습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "복사할 내용이 없습니다.", Toast.LENGTH_SHORT).show()
             }
         }
 

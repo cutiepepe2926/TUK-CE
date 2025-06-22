@@ -146,14 +146,14 @@ class SummarizeActivity : AppCompatActivity() {
         btnDocument.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
-            finish() // 현재 액티비티 종료
         }
 
-        // 좌측 네비게이션 휴지통 클릭 시 휴지통 페이지 이동 (휴지통 페이지 작성 필요)
-        val btnTrash = binding.sideMenu.findViewById<View>(R.id.btnTrash)
+        // 좌측 네비게이션 영어 번역 클릭 시 번역 페이지 이동
+        val btnTranslate = binding.sideMenu.findViewById<View>(R.id.btnTranslate)
 
-        btnTrash.setOnClickListener {
-
+        btnTranslate.setOnClickListener {
+            val intent = Intent(this, TranslateActivity::class.java)
+            startActivity(intent)
         }
 
         // 좌측 네비게이션 음성 텍스트 클릭 시 음성 텍스트 페이지 이동
@@ -197,6 +197,14 @@ class SummarizeActivity : AppCompatActivity() {
             if (this::class.java == SummarizeActivity::class.java) {
                 binding.drawerLayout.closeDrawer(GravityCompat.START)
             }
+        }
+
+        // 좌측 네비게이션 하단 영어 번역 클릭 시 번역 페이지 이동
+        val btnTranslateUnder = binding.sideMenu.findViewById<View>(R.id.btnTranslate_under)
+
+        btnTranslateUnder.setOnClickListener {
+            val intent = Intent(this, TranslateActivity::class.java)
+            startActivity(intent)
         }
 
         // 동적 버튼이 들어갈 레이아웃
