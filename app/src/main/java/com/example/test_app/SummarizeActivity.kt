@@ -519,6 +519,7 @@ class SummarizeActivity : AppCompatActivity() {
             val button = Button(this).apply {
                 text = getString(R.string.summary_result_button, taskId)
 
+                //summary_result_button_filename
                 setOnClickListener {
 
                     Toast.makeText(this@SummarizeActivity, "📥 결과 요청: $taskId", Toast.LENGTH_SHORT).show()
