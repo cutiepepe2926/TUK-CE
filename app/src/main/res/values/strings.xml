@@ -48,6 +48,7 @@
     <string name="pen">펜</string>
     <string name="text">텍스트</string>
     <string name="toggle_pen_or_hand">필기 모드 전환</string>
+    <string name="copy">복사하기</string>
 
 
 </resources>

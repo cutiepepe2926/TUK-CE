@@ -1,5 +1,6 @@
 package com.example.test_app
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -47,6 +48,21 @@ class TranslateActivity : AppCompatActivity() {
 
         }
 
+        // 복사 버튼 클릭 이벤트
+        binding.btnCopy.setOnClickListener {
+            val resultText = binding.tvResult.text.toString()
+
+            if (resultText.isNotBlank()) {
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                val clip = android.content.ClipData.newPlainText("번역 결과", resultText)
+                clipboard.setPrimaryClip(clip)
+
+                android.widget.Toast.makeText(this, "복사되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+            } else {
+                android.widget.Toast.makeText(this, "복사할 내용이 없습니다.", android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+
         // 번역 요청 버튼 클릭 시
         binding.btnSendToServer.setOnClickListener {
 
@@ -67,6 +83,8 @@ class TranslateActivity : AppCompatActivity() {
             }
         }
     }
+
+
 
     // Flask 서버로 번역 요청 보내기
     private fun sendToFlaskServer(userInput: String) {
