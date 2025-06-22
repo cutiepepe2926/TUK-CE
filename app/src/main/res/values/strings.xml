@@ -1,3 +1,58 @@
 <resources>
     <string name="app_name">Test_App</string>
+    <string name="VoiceText">음성 텍스트</string>
+    <string name="Trash">휴지통</string>
+    <string name="Document">문서</string>
+    <string name="Search">검색</string>
+    <string name="register">회원가입</string>
+    <string name="findPassword">비밀번호 찾기</string>
+    <string name="login">로그인</string>
+    <string name="ID">아이디</string>
+    <string name="InputID">아이디를 입력하세요</string>
+    <string name="Password">비밀번호</string>
+    <string name="HidePasswordIcon">비밀번호 숨김 아이콘</string>
+    <string name="rememberPassword">비밀번호 기억하기</string>
+    <string name="writePassword">비밀번호를 입력하세요</string>
+    <string name="see">보기</string>
+    <string name="closebutton">닫기 버튼</string>
+    <string name="alreayIDexists">이미 계정이 존재합니까?</string>
+    <string name="writeID">아이디를 입력해 주세요.</string>
+    <string name="email">이메일</string>
+    <string name="writeEmail">이메일을 입력해 주세요.</string>
+    <string name="NoteTitle">노트 제목</string>
+    <string name="logout">로그아웃</string>
+    <string name="error_server_connection">서버 연결 실패: %1$s</string>
+    <string name="load_pdf">📄 PDF 불러오기</string>
+    <string name="make_new_note">📝 새 노트 만들기</string>
+    <string name="plus">+</string>
+    <string name="write_translate_sentence">번역할 문장을 입력하세요</string>
+    <string name="translate">번역하기</string>
+    <string name="now_loading">번역 중입니다&#8230;</string>
+    <string name="translate_result_will_display">번역 결과가 여기에 표시됩니다.</string>
+    <string name="task_id_format">Task ID: %1$s</string>
+    <string name="result_check_format">결과 확인: %1$s</string>
+    <string name="text_summarize">텍스트 요약</string>
+    <string name="choose_summarize_file">요약 파일 선택</string>
+    <string name="choose_sound_file">음성 파일 선택</string>
+    <string name="send_to_server">서버로 전송</string>
+    <string name="result_display_here">결과가 여기에 표시됩니다.</string>
+    <string name="endPage">종료 페이지</string>
+    <string name="startPage">시작 페이지</string>
+    <string name="summary_result_button">결과 확인: %1$s</string>
+    <string name="task_id_label">Task ID: %1$s</string>
+    <string name="offline_result_label">오프라인 결과: %1$s</string>
+    <string name="square">사각형</string>
+    <string name="back">뒤로가기</string>
+    <string name="eraser">지우개</string>
+    <string name="menu">메뉴</string>
+    <string name="pen">펜</string>
+    <string name="text">텍스트</string>
+    <string name="toggle_pen_or_hand">필기 모드 전환</string>
+    <string name="copy">복사하기</string>
+    <string name="translate_english">영어 번역</string>
+    <string name="reveal_result">결과 표시</string>
+    <string name="summary_result_button_filename">결과 확인: %1$s</string>
+
+
+
 </resources>

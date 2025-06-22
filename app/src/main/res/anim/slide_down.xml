@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 위에서 아래로 내려오며 등장 -->
+    <translate
+        android:fromYDelta="-100%"
+        android:toYDelta="0%"
+        android:duration="200"/>
+    <!-- 서서히 투명→불투명 -->
+    <alpha
+        android:fromAlpha="0.0"
+        android:toAlpha="1.0"
+        android:duration="200"/>
+</set>

@@ -1,5 +1,6 @@
 package com.example.test_app
 
+// 회원가입 요청에 대한 서버 응답을 담는 데이터 클래스
 data class SignupResponse(
-    val message: String // 서버에서 반환하는 JSON의 필드명과 맞춰야 함. 안했더니 오류생겼음
+    val message: String
 )

@@ -15,10 +15,11 @@
         android:id="@+id/x"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:contentDescription="@string/closebutton"
         android:src="@drawable/ic_x"
-        android:contentDescription="닫기 버튼"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        tools:ignore="ImageContrastCheck" />
 
     <!-- 로그인 입력 영역 -->
     <LinearLayout
@@ -36,7 +37,7 @@
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="로그인"
+            android:text="@string/login"
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_marginTop="16dp" />
@@ -45,18 +46,22 @@
             android:id="@+id/Text2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="아이디"
+            android:text="@string/ID"
             android:layout_marginTop="10dp"
             android:gravity="center_vertical" />
 
+        <!--아이디 입력 영역-->
         <EditText
             android:id="@+id/loginId"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
+            android:autofillHints="ID"
             android:background="@drawable/text_field"
-            android:hint="아이디를 입력하세요"
-            android:padding="10dp" />
+            android:hint="@string/InputID"
+            android:padding="10dp"
+            android:textColorHint="#757575"
+            android:textSize="18sp"
+            tools:ignore="TextFields,VisualLintTextFieldSize" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -70,34 +75,40 @@
                 android:layout_width="0dp"
                 android:layout_height="34dp"
                 android:layout_weight="1"
-                android:text="비밀번호"
+                android:text="@string/Password"
                 android:gravity="center_vertical" />
 
+            <!--비밀번호 숨김 아이콘-->
             <TextView
                 android:id="@+id/hide"
                 android:layout_width="34dp"
                 android:layout_height="34dp"
                 android:background="@drawable/ic_hide"
                 android:backgroundTint="#D8D8D8"
-                android:contentDescription="비밀번호 숨김 아이콘" />
+                android:contentDescription="@string/HidePasswordIcon" />
 
             <TextView
                 android:id="@+id/Text4"
                 android:layout_width="34dp"
                 android:layout_height="34dp"
-                android:text="보기"
+                android:gravity="center"
+                android:text="@string/see"
                 android:textSize="18sp"
-                android:gravity="center" />
+                tools:ignore="TextSizeCheck" />
         </LinearLayout>
 
+        <!--비밀번호 입력 영역-->
         <EditText
             android:id="@+id/loginPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
+            android:autofillHints="Password"
             android:background="@drawable/text_field"
-            android:hint="비밀번호를 입력하세요"
-            android:padding="10dp" />
+            android:hint="@string/writePassword"
+            android:padding="10dp"
+            android:textColorHint="#757575"
+            android:textSize="18sp"
+            tools:ignore="TextFields,VisualLintTextFieldSize" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -105,6 +116,7 @@
             android:orientation="horizontal"
             android:layout_marginTop="10dp">
 
+            <!--비밀번호 기억 체크박스-->
             <CheckBox
                 android:id="@+id/remember_passwd"
                 android:layout_width="wrap_content"
@@ -114,7 +126,7 @@
                 android:id="@+id/Text5"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="비밀번호 기억하기"
+                android:text="@string/rememberPassword"
                 android:textStyle="bold"
                 android:layout_marginStart="8dp"
                 android:gravity="center_vertical" />
@@ -124,31 +136,35 @@
             android:layout_width="match_parent"
             android:layout_height="25dp" />
 
+        <!--로그인 버튼-->
         <Button
             android:id="@+id/btnLogin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:backgroundTint="#38C333"
-            android:text="로그인"
-            android:textStyle="bold"
+            android:text="@string/login"
+            android:textColor="#455A64"
             android:textSize="16sp"
-            tools:ignore="TouchTargetSizeCheck" />
+            android:textStyle="bold"
+            tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck,VisualLintButtonSize" />
 
+        <!--비밀번호 찾기 버튼-->
         <TextView
             android:id="@+id/alread_have"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="비밀번호 찾기"
+            android:text="@string/findPassword"
             android:textStyle="bold"
             android:gravity="center"
             android:layout_marginTop="16dp" />
 
+        <!--회원가입 페이지 이동 버튼-->
         <TextView
             android:id="@+id/btnSignup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="회원가입"
+            android:text="@string/register"
             android:textStyle="bold"
             android:gravity="center"
             android:layout_marginTop="8dp" />

@@ -49,8 +49,8 @@ class ReadImageText {
     }
 
     // OCR이 끝난 후 메모리 해제
-    fun close() {
+    /*fun close() {
         recognizerKorean.close()
         recognizerLatin.close()
-    }
+    }*/
 }

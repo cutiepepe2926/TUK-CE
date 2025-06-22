@@ -12,6 +12,7 @@ object PdfUtils {
 
     // 1) 새 파일(빈 PDF) 생성 -> mydoc
     fun createBlankNote(context: Context, title: String): Note {
+
         // 1-1. 빈 PDF 생성 (예: iText 사용 or 간단히 1페이지짜리 PDF)
         val blankPdf = File(context.filesDir, "blank_${System.currentTimeMillis()}.pdf")
         createSinglePagePdf(blankPdf) // 아래에서 구현
@@ -24,6 +25,7 @@ object PdfUtils {
             strokes = emptyList(),
             annotations = emptyList()
         )
+        //→ 방금 만든 PDF를 .mydoc 형식으로 저장 (필기, 주석은 없음)
 
         // 1-3. Note 객체 생성
         noteIdCounter++
@@ -32,6 +34,7 @@ object PdfUtils {
             title = title,
             myDocPath = File(context.filesDir, myDocName).absolutePath
         )
+        //→ 노트 정보 (id, 제목, .mydoc 경로)를 담은 Note 객체 반환
     }
 
     // 2) 외부 PDF -> mydoc

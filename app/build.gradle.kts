@@ -22,6 +22,16 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    packaging {
+        resources {
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            excludes += "META-INF/LICENSE"
+            excludes += "META-INF/LICENSE.txt"
+            excludes += "META-INF/NOTICE"
+            excludes += "META-INF/NOTICE.txt"
+        }
+    }
+
 
     buildTypes {
         release {
@@ -32,10 +42,16 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    configurations.all {
+        exclude(group = "org.bouncycastle", module = "bcprov-jdk14")
+    }
+
     kotlinOptions {
         jvmTarget = "11"
     }
@@ -50,6 +66,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.language.id.common)
+    implementation(libs.identity.jvm)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -58,7 +75,10 @@ dependencies {
     //implementation("com.github.mhiew:AndroidPdfViewer:3.1.0-beta.1")
     implementation("com.github.mhiew:android-pdf-viewer:3.2.0-beta.3")
     // (빈 PDF 생성, PDF 합성 시 iText / PdfBox 등 추가 가능)
-    implementation("com.itextpdf:itextpdf:5.0.6")
+    //implementation("com.itextpdf:itextpdf:5.0.6")
+    implementation("com.itextpdf:itextpdf:5.5.13.3")
+
+
     // JSON 파싱 (Gson)
     implementation ("com.google.code.gson:gson:2.8.8")
     //BottomSheetDialog 라이브러리
@@ -92,9 +112,6 @@ dependencies {
 
     // 이미지 크롭
     implementation ("com.github.yalantis:ucrop:2.2.10")
-
-    // ML Kit 번역 라이브러리 추가
-    implementation ("com.google.mlkit:translate:17.0.2")
 
     // TERMUX 통신 라이브러리
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
