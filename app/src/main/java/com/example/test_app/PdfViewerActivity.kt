@@ -398,7 +398,7 @@ class PdfViewerActivity : AppCompatActivity() {
     }
 
     // OCR 결과를 서버로 전송하여 요약 요청 (Termux Flask 서버로 POST)
-    private fun sendTextForSummarization(extractedText: String) {
+    private fun sendTextForSummarization(extractedText: String, fileName: String){
 
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
 
@@ -425,7 +425,8 @@ class PdfViewerActivity : AppCompatActivity() {
                         val taskId = json.optString("task_id", "")
 
                         // task_id를 SummarizeActivity와 같은 SharedPreferences에 저장
-                        saveSummaryTaskId(taskId)
+                        saveSummaryTaskId(taskId, fileName)
+
 
                         Log.d("OCR_SUMMARIZE", "서버 요약 요청 완료 (Task ID: $taskId)")
 
@@ -494,7 +495,7 @@ class PdfViewerActivity : AppCompatActivity() {
         ReadImageText().processImage(bmp) { extracted ->
             runOnUiThread {
                 if (currentCropMode == CROP_EXTRACT) {
-                    sendTextForSummarization(extracted)
+                    showTitleInputDialog(extracted)
                 } else {
                     addTextAnno(extracted)
                 }
@@ -502,17 +503,38 @@ class PdfViewerActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveSummaryTaskId(taskId: String) {
+    private fun showTitleInputDialog(extractedText: String) {
+        val editText = EditText(this)
+        editText.hint = "요약 제목을 입력하세요"
+
+        AlertDialog.Builder(this)
+            .setTitle("요약 제목 입력")
+            .setView(editText)
+            .setPositiveButton("확인") { _, _ ->
+                val fileName = editText.text.toString().trim()
+                if (fileName.isNotEmpty()) {
+                    sendTextForSummarization(extractedText, fileName)
+                } else {
+                    Toast.makeText(this, "제목을 입력해야 합니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+
+    private fun saveSummaryTaskId(taskId: String, fileName: String) {
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val existingJson = sharedPreferences.getString("summary_task_id_list", "[]")
-        val type = object : TypeToken<MutableList<String>>() {}.type
-        val taskIdList: MutableList<String> = Gson().fromJson(existingJson, type)
+        val type = object : TypeToken<MutableList<SummaryTask>>() {}.type
+        val taskList: MutableList<SummaryTask> = Gson().fromJson(existingJson, type)
 
-        taskIdList.add(taskId)
+        taskList.add(SummaryTask(taskId, fileName))
 
-        val newJson = Gson().toJson(taskIdList)
+        val newJson = Gson().toJson(taskList)
         sharedPreferences.edit { putString("summary_task_id_list", newJson) }
     }
+
 
 
     /* ---------- 문자열 래핑 ---------- */

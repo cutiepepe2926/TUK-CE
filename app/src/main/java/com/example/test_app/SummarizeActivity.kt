@@ -35,6 +35,8 @@ import java.io.FileOutputStream
 import androidx.core.content.edit
 import okhttp3.RequestBody.Companion.asRequestBody
 
+data class SummaryTask(val taskId: String, val fileName: String)
+
 @Suppress("UNUSED_ANONYMOUS_PARAMETER")
 class SummarizeActivity : AppCompatActivity() {
 
@@ -63,6 +65,8 @@ class SummarizeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContentView(binding.root)
+
+        //migrateLegacyDataIfNeeded()
 
 
         // 왼쪽 상단 버튼 클릭 시 네비게이션 표시
@@ -218,6 +222,8 @@ class SummarizeActivity : AppCompatActivity() {
             openOnlineFilePicker()
         }
 
+
+
         // 기존 저장된 taskId 버튼 복원
         restoreTaskIdButtons()
     }
@@ -231,6 +237,34 @@ class SummarizeActivity : AppCompatActivity() {
         // 런처 실행
         pdfFilePickerLauncher.launch(intent)
     }
+
+//    private fun migrateLegacyDataIfNeeded() {
+//        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+//        val taskIdJson = sharedPreferences.getString("summary_task_id_list", "[]") ?: "[]"
+//
+//        try {
+//            // 새 구조로 정상 파싱 시도 (이렇게 수정!!)
+//            val newType = object : TypeToken<MutableList<SummaryTask>>() {}.type
+//            val parsed = Gson().fromJson<MutableList<SummaryTask>>(taskIdJson, newType)
+//            // 새 구조면 변환 불필요 → 여기서 그대로 종료
+//            return
+//        } catch (e: Exception) {
+//            // 구버전 데이터라면 마이그레이션 수행
+//            val legacyType = object : TypeToken<MutableList<String>>() {}.type
+//            val legacyList: MutableList<String> = Gson().fromJson(taskIdJson, legacyType)
+//
+//            val newList = legacyList.map { taskId ->
+//                SummaryTask(taskId, fileName = "이름없음")
+//            }.toMutableList()
+//
+//            val newJson = Gson().toJson(newList)
+//            sharedPreferences.edit { putString("summary_task_id_list", newJson) }
+//        }
+//    }
+
+
+
+
 
     //파일 선택 결과 처리
     private val pdfFilePickerLauncher =
@@ -328,7 +362,7 @@ class SummarizeActivity : AppCompatActivity() {
 
                     resultText = responseBody
 
-                    Toast.makeText(this@SummarizeActivity, responseBody, Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@SummarizeActivity, responseBody, Toast.LENGTH_SHORT).show()
 
                     println("파일 업로드 성공! 서버 응답: $responseBody")
 
@@ -338,12 +372,12 @@ class SummarizeActivity : AppCompatActivity() {
 
                         val taskId = json.optString("task_id", "N/A")
 
-                        saveSummaryTaskId(taskId) // task_id 저장
+                        saveSummaryTaskId(taskId, fileName) // task_id 저장
 
                         tvTaskId.text = getString(R.string.task_id_label, taskId)
 
 
-                        Toast.makeText(this@SummarizeActivity, taskId, Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(this@SummarizeActivity, taskId, Toast.LENGTH_SHORT).show()
 
                         // 결과 확인 버튼 동적 생성
                         val resultButton = Button(this@SummarizeActivity).apply {
@@ -429,28 +463,22 @@ class SummarizeActivity : AppCompatActivity() {
         // 기존 저장된 task_id 리스트 가져오기
         val existingJson = sharedPreferences.getString("summary_task_id_list", "[]")
 
-        val type = object : TypeToken<MutableList<String>>() {}.type
+        val type = object : TypeToken<MutableList<SummaryTask>>() {}.type
 
         // JSON 문자열을 리스트로 변환
-        val taskIdList: MutableList<String> = Gson().fromJson(existingJson, type)
+        val taskList: MutableList<SummaryTask> = Gson().fromJson(existingJson, type)
 
-        // 해당 task_id가 리스트에 있을 경우
-        if (taskIdList.contains(taskId)) {
+        taskList.removeAll { it.taskId == taskId }
 
-            // 리스트에서 삭제
-            taskIdList.remove(taskId)
+        val newJson = Gson().toJson(taskList)
+        sharedPreferences.edit { putString("summary_task_id_list", newJson) }
 
-            val newJson = Gson().toJson(taskIdList)
+        scrollLayout.removeView(button)
+        Toast.makeText(this, "삭제되었습니다.", Toast.LENGTH_SHORT).show()
 
-            // SharedPreferences에 저장
-            sharedPreferences.edit { putString("summary_task_id_list", newJson) }
-
-            // UI에서 버튼 제거
-            scrollLayout.removeView(button)
-
-            Toast.makeText(this, "삭제되었습니다.", Toast.LENGTH_SHORT).show()
-        }
     }
+
+
 
 
     // Uri → File로 변환 (실제 업로드할 파일 생성)
@@ -481,27 +509,18 @@ class SummarizeActivity : AppCompatActivity() {
     }
 
     // task_id 저장함수
-    private fun saveSummaryTaskId(taskId: String) {
-
+    private fun saveSummaryTaskId(taskId: String, fileName: String) {
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-
-        // 기존 저장된 리스트 가져오기
         val existingJson = sharedPreferences.getString("summary_task_id_list", "[]")
+        val type = object : TypeToken<MutableList<SummaryTask>>() {}.type
+        val taskList: MutableList<SummaryTask> = Gson().fromJson(existingJson, type)
 
-        val type = object : TypeToken<MutableList<String>>() {}.type
+        taskList.add(SummaryTask(taskId, fileName))
 
-        val taskIdList: MutableList<String> = Gson().fromJson(existingJson, type)
-
-        // 중복 저장 방지
-        if (!taskIdList.contains(taskId)) {
-
-            taskIdList.add(taskId)
-
-            val newJson = Gson().toJson(taskIdList)
-
-            sharedPreferences.edit { putString("summary_task_id_list", newJson) }
-        }
+        val newJson = Gson().toJson(taskList)
+        sharedPreferences.edit { putString("summary_task_id_list", newJson) }
     }
+
 
     // 앱 시작 시 기존 저장된 task_id 버튼 복원
     private fun restoreTaskIdButtons() {
@@ -510,39 +529,58 @@ class SummarizeActivity : AppCompatActivity() {
 
         val taskIdJson = sharedPreferences.getString("summary_task_id_list", "[]")
 
-        val taskIdList = Gson().fromJson(taskIdJson, MutableList::class.java) as List<*>
+        try {
+            // 새 구조 파싱 시도
+            val type = object : TypeToken<MutableList<SummaryTask>>() {}.type
+            val taskList: List<SummaryTask> = Gson().fromJson(taskIdJson, type)
 
-        // 버튼 생성 전에 기존 뷰 클리어
-        scrollLayout.removeAllViews()
+            for (task in taskList) {
+                val button = Button(this).apply {
+                    text = getString(R.string.summary_result_button_filename, task.fileName)
 
-        for (taskId in taskIdList) {
-            val button = Button(this).apply {
-                text = getString(R.string.summary_result_button, taskId)
-
-                //summary_result_button_filename
-                setOnClickListener {
-
-                    Toast.makeText(this@SummarizeActivity, "📥 결과 요청: $taskId", Toast.LENGTH_SHORT).show()
-
-                    // 결과 재요청
-                    retrySummaryResultRequest(taskId.toString())
+                    setOnClickListener {
+                        retrySummaryResultRequest(task.taskId)
+                    }
+                    setOnLongClickListener {
+                        AlertDialog.Builder(this@SummarizeActivity)
+                            .setTitle("결과 삭제")
+                            .setMessage("해당 결과를 삭제하시겠습니까?")
+                            .setPositiveButton("예") { _, _ ->
+                                deleteTaskId(task.taskId, this)
+                            }
+                            .setNegativeButton("아니오", null)
+                            .show()
+                        true
+                    }
                 }
-
-                setOnLongClickListener {
-                    AlertDialog.Builder(this@SummarizeActivity)
-                        .setTitle("결과 삭제")
-                        .setMessage("해당 결과를 삭제하시겠습니까?")
-                        .setPositiveButton("예") { _, _ ->
-                            deleteTaskId(taskId.toString(), this)
-                        }
-                        .setNegativeButton("아니오", null)
-                        .show()
-                    true
-                }
+                scrollLayout.addView(button)
             }
 
-            // 버튼 추가
-            scrollLayout.addView(button)
+        } catch (e: Exception) {
+            // 기존 task_id (구버전 데이터) 호환 처리
+            val legacyType = object : TypeToken<MutableList<String>>() {}.type
+            val taskIdList: List<String> = Gson().fromJson(taskIdJson, legacyType)
+
+            for (taskId in taskIdList) {
+                val button = Button(this).apply {
+                    text = getString(R.string.summary_result_button, taskId)
+                    setOnClickListener {
+                        retrySummaryResultRequest(taskId)
+                    }
+                    setOnLongClickListener {
+                        AlertDialog.Builder(this@SummarizeActivity)
+                            .setTitle("결과 삭제")
+                            .setMessage("해당 결과를 삭제하시겠습니까?")
+                            .setPositiveButton("예") { _, _ ->
+                                deleteTaskId(taskId, this)
+                            }
+                            .setNegativeButton("아니오", null)
+                            .show()
+                        true
+                    }
+                }
+                scrollLayout.addView(button)
+            }
         }
     }
 
