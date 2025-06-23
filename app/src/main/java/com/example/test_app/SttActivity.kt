@@ -43,6 +43,9 @@ import java.util.UUID
 // 오프라인 STT 결과 저장용 데이터 클래스
 data class OfflineSttResult(val id: String, val fileName: String, val result: String)
 
+// 온라인 STT 결과 저장용 데이터 클래스
+data class OnlineSttResult(val taskId: String, val fileName: String)
+
 
 class SttActivity : AppCompatActivity() {
 
@@ -77,6 +80,10 @@ class SttActivity : AppCompatActivity() {
     // 결과 기본 텍스트
     private var resultText: String = "아직 인식된 텍스트가 없습니다."
 
+    // 음성 파일 이름
+    private var selectedFileName: String = ""
+
+
     // 네트워크 상태 확인 함수
     private fun isNetworkAvailable(): Boolean {
 //        val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -103,6 +110,8 @@ class SttActivity : AppCompatActivity() {
         binding = ActivitySttBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
+
+        //migrateLegacyOnlineSttDataIfNeeded()
 
         // 동적 버튼 추가용 레이아웃 바인딩
         scrollLayout = binding.scrollLayout
@@ -258,6 +267,32 @@ class SttActivity : AppCompatActivity() {
         restoreOfflineSttResults()
     }
 
+//    private fun migrateLegacyOnlineSttDataIfNeeded() {
+//        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+//        val taskIdJson = sharedPreferences.getString("task_id_list", "[]") ?: "[]"
+//
+//        try {
+//            // 먼저 새 구조로 파싱 시도 (이미 새 구조라면 아무것도 안 함)
+//            val newType = object : TypeToken<MutableList<OnlineSttResult>>() {}.type
+//            val parsed = Gson().fromJson<MutableList<OnlineSttResult>>(taskIdJson, newType)
+//            return  // 새 구조로 이미 되어 있으면 변환 불필요
+//        } catch (e: Exception) {
+//            // 구버전 데이터로 추정
+//            val legacyType = object : TypeToken<MutableList<String>>() {}.type
+//            val legacyList: MutableList<String> = Gson().fromJson(taskIdJson, legacyType)
+//
+//            // 구버전 task_id 리스트를 새 구조로 변환
+//            val newList = legacyList.map { taskId ->
+//                OnlineSttResult(taskId, fileName = "이름없음")
+//            }.toMutableList()
+//
+//            // 변환된 새 구조로 SharedPreferences 덮어쓰기
+//            val newJson = Gson().toJson(newList)
+//            sharedPreferences.edit { putString("task_id_list", newJson) }
+//        }
+//    }
+
+
     // 파일 선택 결과를 처리하는 ActivityResult 콜백 등록
     private val filePickerLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -265,7 +300,11 @@ class SttActivity : AppCompatActivity() {
 
                 selectedUri = result.data!!.data
 
+                //val fileName = queryFileName(selectedUri!!) ?: "알 수 없는 파일"
+
                 Toast.makeText(this, "파일 선택 완료", Toast.LENGTH_SHORT).show()
+
+                selectedFileName = queryFileName(selectedUri!!) ?: "알 수 없는 파일"
 
                 // 네트워크 연결 여부 확인
                 if (isNetworkAvailable()) {
@@ -274,7 +313,7 @@ class SttActivity : AppCompatActivity() {
                     selectedUri?.let { uri ->
 
                         // 온라인 서버로 업로드 시작
-                        uploadFileOnline(uri)
+                        uploadFileOnline(uri, selectedFileName)
 
                     } ?: Toast.makeText(this, "파일을 먼저 선택하세요.", Toast.LENGTH_SHORT).show()
 
@@ -529,7 +568,7 @@ class SttActivity : AppCompatActivity() {
     }
 
     // 온라인 STT 서버로 파일 업로드 (서버는 Retrofit 사용)
-    private fun uploadFileOnline(fileUri: Uri, retry: Boolean = false) {
+    private fun uploadFileOnline(fileUri: Uri, fileName: String, retry: Boolean = false) {
 
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
 
@@ -567,7 +606,7 @@ class SttActivity : AppCompatActivity() {
                     // 서버 응답 전체 저장
                     resultText = responseBody
 
-                    Toast.makeText(this@SttActivity, responseBody, Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(this@SttActivity, responseBody, Toast.LENGTH_SHORT).show()
 
                     println("파일 업로드 성공! 서버 응답: $responseBody")
 
@@ -581,7 +620,7 @@ class SttActivity : AppCompatActivity() {
                         val taskId = json.optString("task_id", "N/A")
 
                         // task_id 저장 (SharedPreferences)
-                        saveTaskId(taskId)
+                        saveTaskId(taskId, fileName)
 
                         // 결과 메세지 업데이트
                         resultText = message
@@ -589,11 +628,11 @@ class SttActivity : AppCompatActivity() {
                         // 화면에 task_id 표시
                         tvTaskId.text = getString(R.string.task_id_format, taskId) // taskId : $taskID
 
-                        Toast.makeText(this@SttActivity, message, Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(this@SttActivity, message, Toast.LENGTH_SHORT).show()
 
                         // 결과 확인 버튼 동적 생성
                         val resultButton = Button(this@SttActivity).apply {
-                            text = getString(R.string.result_check_format, taskId) // 결과 확인 : %taskId
+                            text = getString(R.string.result_check_filename_format, fileName)
 
                             setOnClickListener {
 
@@ -698,7 +737,7 @@ class SttActivity : AppCompatActivity() {
 
                             onSuccess = {
                                 println("새로운 토큰으로 재시도 중")
-                                uploadFileOnline(fileUri, retry = true) // 재시도
+                                uploadFileOnline(fileUri, selectedFileName, retry = true)
                             },
 
                             onFailure = {
@@ -752,24 +791,23 @@ class SttActivity : AppCompatActivity() {
     }
 
     // 온라인 STT 결과 task_id 저장 (SharedPreferences 이용)
-    private fun saveTaskId(taskId: String) {
+    private fun saveTaskId(taskId: String, fileName: String) {
 
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
 
         val existingJson = sharedPreferences.getString("task_id_list", "[]")
 
-        val type = object : TypeToken<MutableList<String>>() {}.type
+        val type = object : TypeToken<MutableList<OnlineSttResult>>() {}.type
 
-        val taskIdList: MutableList<String> = Gson().fromJson(existingJson, type)
+        val taskIdList: MutableList<OnlineSttResult> = Gson().fromJson(existingJson, type)
 
-        // 중복 저장 방지
-        if (!taskIdList.contains(taskId)) {
+        // 중복 검사 (taskId 기준으로)
+        if (taskIdList.none { it.taskId == taskId }) {
 
-            taskIdList.add(taskId)
+            taskIdList.add(OnlineSttResult(taskId, fileName))
 
             val newJson = Gson().toJson(taskIdList)
 
-            // 저장
             sharedPreferences.edit { putString("task_id_list", newJson) }
         }
     }
@@ -781,19 +819,20 @@ class SttActivity : AppCompatActivity() {
 
         val taskIdJson = sharedPreferences.getString("task_id_list", "[]")
 
-        val type = object : TypeToken<List<String>>() {}.type
+        val type = object : TypeToken<MutableList<OnlineSttResult>>() {}.type
 
-        val taskIdList: List<String> = Gson().fromJson(taskIdJson, type)
+        val taskIdList: List<OnlineSttResult> = Gson().fromJson(taskIdJson, type)
 
         // 저장된 모든 task_id에 대해 버튼 생성
-        for (taskId in taskIdList) {
+        for (task in taskIdList) {
             val button = Button(this).apply {
-                text = getString(R.string.result_check_format, taskId)
+                text = getString(R.string.result_check_filename_format, task.fileName)
+
                 setOnClickListener {
                     Toast.makeText(this@SttActivity, "결과 요청: $taskId", Toast.LENGTH_SHORT).show()
                     
                     //결과 요청
-                    retrySttResultRequest(taskId)
+                    retrySttResultRequest(task.taskId)
                 }
 
                 setOnLongClickListener {
@@ -801,7 +840,7 @@ class SttActivity : AppCompatActivity() {
                         .setTitle("결과 삭제")
                         .setMessage("해당 결과를 삭제하시겠습니까?")
                         .setPositiveButton("삭제") { _, _ ->
-                            deleteTaskId(taskId, this)
+                            deleteTaskId(task.taskId, this)
                         }
                         .setNegativeButton("취소", null)
                         .show()
@@ -816,11 +855,11 @@ class SttActivity : AppCompatActivity() {
     private fun deleteTaskId(taskId: String, button: Button) {
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val taskIdJson = sharedPreferences.getString("task_id_list", "[]")
-        val type = object : TypeToken<MutableList<String>>() {}.type
-        val taskIdList: MutableList<String> = Gson().fromJson(taskIdJson, type)
+        val type = object : TypeToken<MutableList<OnlineSttResult>>() {}.type
+        val taskIdList: MutableList<OnlineSttResult> = Gson().fromJson(taskIdJson, type)
 
         // 리스트에서 taskId 제거
-        taskIdList.remove(taskId)
+        taskIdList.removeAll { it.taskId == taskId }
 
         // 다시 저장
         val newJson = Gson().toJson(taskIdList)
