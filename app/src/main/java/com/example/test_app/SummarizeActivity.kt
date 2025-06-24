@@ -66,7 +66,7 @@ class SummarizeActivity : AppCompatActivity() {
 
         setContentView(binding.root)
 
-        //migrateLegacyDataIfNeeded()
+        migrateLegacyDataIfNeeded()
 
 
         // 왼쪽 상단 버튼 클릭 시 네비게이션 표시
@@ -238,29 +238,29 @@ class SummarizeActivity : AppCompatActivity() {
         pdfFilePickerLauncher.launch(intent)
     }
 
-//    private fun migrateLegacyDataIfNeeded() {
-//        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-//        val taskIdJson = sharedPreferences.getString("summary_task_id_list", "[]") ?: "[]"
-//
-//        try {
-//            // 새 구조로 정상 파싱 시도 (이렇게 수정!!)
-//            val newType = object : TypeToken<MutableList<SummaryTask>>() {}.type
-//            val parsed = Gson().fromJson<MutableList<SummaryTask>>(taskIdJson, newType)
-//            // 새 구조면 변환 불필요 → 여기서 그대로 종료
-//            return
-//        } catch (e: Exception) {
-//            // 구버전 데이터라면 마이그레이션 수행
-//            val legacyType = object : TypeToken<MutableList<String>>() {}.type
-//            val legacyList: MutableList<String> = Gson().fromJson(taskIdJson, legacyType)
-//
-//            val newList = legacyList.map { taskId ->
-//                SummaryTask(taskId, fileName = "이름없음")
-//            }.toMutableList()
-//
-//            val newJson = Gson().toJson(newList)
-//            sharedPreferences.edit { putString("summary_task_id_list", newJson) }
-//        }
-//    }
+    private fun migrateLegacyDataIfNeeded() {
+        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val taskIdJson = sharedPreferences.getString("summary_task_id_list", "[]") ?: "[]"
+
+        try {
+            // 새 구조로 정상 파싱 시도 (이렇게 수정!!)
+            val newType = object : TypeToken<MutableList<SummaryTask>>() {}.type
+            val parsed = Gson().fromJson<MutableList<SummaryTask>>(taskIdJson, newType)
+            // 새 구조면 변환 불필요 → 여기서 그대로 종료
+            return
+        } catch (e: Exception) {
+            // 구버전 데이터라면 마이그레이션 수행
+            val legacyType = object : TypeToken<MutableList<String>>() {}.type
+            val legacyList: MutableList<String> = Gson().fromJson(taskIdJson, legacyType)
+
+            val newList = legacyList.map { taskId ->
+                SummaryTask(taskId, fileName = "이름없음")
+            }.toMutableList()
+
+            val newJson = Gson().toJson(newList)
+            sharedPreferences.edit { putString("summary_task_id_list", newJson) }
+        }
+    }
 
 
 

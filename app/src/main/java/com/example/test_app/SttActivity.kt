@@ -111,7 +111,7 @@ class SttActivity : AppCompatActivity() {
 
         setContentView(binding.root)
 
-        //migrateLegacyOnlineSttDataIfNeeded()
+        migrateLegacyOnlineSttDataIfNeeded()
 
         // 동적 버튼 추가용 레이아웃 바인딩
         scrollLayout = binding.scrollLayout
@@ -267,30 +267,30 @@ class SttActivity : AppCompatActivity() {
         restoreOfflineSttResults()
     }
 
-//    private fun migrateLegacyOnlineSttDataIfNeeded() {
-//        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
-//        val taskIdJson = sharedPreferences.getString("task_id_list", "[]") ?: "[]"
-//
-//        try {
-//            // 먼저 새 구조로 파싱 시도 (이미 새 구조라면 아무것도 안 함)
-//            val newType = object : TypeToken<MutableList<OnlineSttResult>>() {}.type
-//            val parsed = Gson().fromJson<MutableList<OnlineSttResult>>(taskIdJson, newType)
-//            return  // 새 구조로 이미 되어 있으면 변환 불필요
-//        } catch (e: Exception) {
-//            // 구버전 데이터로 추정
-//            val legacyType = object : TypeToken<MutableList<String>>() {}.type
-//            val legacyList: MutableList<String> = Gson().fromJson(taskIdJson, legacyType)
-//
-//            // 구버전 task_id 리스트를 새 구조로 변환
-//            val newList = legacyList.map { taskId ->
-//                OnlineSttResult(taskId, fileName = "이름없음")
-//            }.toMutableList()
-//
-//            // 변환된 새 구조로 SharedPreferences 덮어쓰기
-//            val newJson = Gson().toJson(newList)
-//            sharedPreferences.edit { putString("task_id_list", newJson) }
-//        }
-//    }
+    private fun migrateLegacyOnlineSttDataIfNeeded() {
+        val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val taskIdJson = sharedPreferences.getString("task_id_list", "[]") ?: "[]"
+
+        try {
+            // 먼저 새 구조로 파싱 시도 (이미 새 구조라면 아무것도 안 함)
+            val newType = object : TypeToken<MutableList<OnlineSttResult>>() {}.type
+            val parsed = Gson().fromJson<MutableList<OnlineSttResult>>(taskIdJson, newType)
+            return  // 새 구조로 이미 되어 있으면 변환 불필요
+        } catch (e: Exception) {
+            // 구버전 데이터로 추정
+            val legacyType = object : TypeToken<MutableList<String>>() {}.type
+            val legacyList: MutableList<String> = Gson().fromJson(taskIdJson, legacyType)
+
+            // 구버전 task_id 리스트를 새 구조로 변환
+            val newList = legacyList.map { taskId ->
+                OnlineSttResult(taskId, fileName = "이름없음")
+            }.toMutableList()
+
+            // 변환된 새 구조로 SharedPreferences 덮어쓰기
+            val newJson = Gson().toJson(newList)
+            sharedPreferences.edit { putString("task_id_list", newJson) }
+        }
+    }
 
 
     // 파일 선택 결과를 처리하는 ActivityResult 콜백 등록
