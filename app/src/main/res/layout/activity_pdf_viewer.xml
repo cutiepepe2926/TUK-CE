@@ -91,15 +91,6 @@
                 android:alpha="0.4"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
-            <!-- 텍스트 -->
-            <ImageButton
-                android:id="@+id/btnText"
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-                android:layout_margin="10dp"
-                android:src="@drawable/toolbar_ic_text"
-                android:background="?attr/selectableItemBackgroundBorderless" />
-
             <!-- 손(필기 모드 토글) -->
             <ImageButton
                 android:id="@+id/toggleModeButton"
