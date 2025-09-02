@@ -7,7 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitClient {
 
     // 기본 주소 설정
-    private const val BASE_URL = "https://www.omniwrite.r-e.kr/api/"
+    private const val BASE_URL = "https://www.omniwrite.r-e.kr:8443/api/"
 
     // Retrofit 객체 생성
     private val retrofit: Retrofit by lazy {
