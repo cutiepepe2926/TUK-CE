@@ -68,8 +68,8 @@ class MainActivity : AppCompatActivity() {
     
     @SuppressLint("NotifyDataSetChanged")
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
+
 
         //바인딩 초기화 및 바인딩 객체 획득
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             }
             // ViewBinding으로 레이아웃 inflate
             profileBinding = ProfilePopupBinding.inflate(layoutInflater)
-            
+
             // 사용자 ID 프로필 창에 출력
             val userId = sharedPreferences.getString("user_id", "Unknown")
             profileBinding.userIdText.text = userId
@@ -210,7 +210,7 @@ class MainActivity : AppCompatActivity() {
 
                 // 새 노트 생성 다이얼로그 호출
                 showNewNoteDialog()
-                
+
                 // 다이얼로그 해제
                 dialog.dismiss()
             }
@@ -272,7 +272,6 @@ class MainActivity : AppCompatActivity() {
 
         //BottomSheetDialog 생성 버튼
         val btnAdd = findViewById<Button>(R.id.addBtn)
-
         btnAdd.setOnClickListener {
             val bottomSheetView = layoutInflater.inflate(R.layout.bottom_sheet_add_menu, binding.root,false)
             val dialog = BottomSheetDialog(this)
@@ -300,7 +299,7 @@ class MainActivity : AppCompatActivity() {
 
         // 앱 실행 시 저장된 노트 목록 불러오기 (notes.json)
         loadNoteList()
-        
+
         //노트 어댑터 갱신
         noteAdapter.notifyDataSetChanged()
 
@@ -308,11 +307,11 @@ class MainActivity : AppCompatActivity() {
 
     // PDF 파일을 Bitmap으로 렌더링하는 함수 (썸네일 생성용)
     private fun renderPdfToBitmap(uri: Uri): Bitmap? {
-
         try {
 
             // PDF 파일 열기 (파일 디스크립터 기반으로 접근)
             val parcelFileDescriptor = contentResolver.openFileDescriptor(uri, "r")
+            //PDF 파일을 Uri를 통해 열기
 
             //파일이 존재하지 않을 시
             if (parcelFileDescriptor == null) {
@@ -325,6 +324,7 @@ class MainActivity : AppCompatActivity() {
 
             // 첫 페이지 열기
             pdfiumCore.openPage(pdfDocument, 0)
+            // 첫 번째 페이지 열기
 
             // 비트맵 생성 (PDF 페이지 렌더링용)
             val width = pdfiumCore.getPageWidthPoint(pdfDocument, 0)
@@ -357,19 +357,12 @@ class MainActivity : AppCompatActivity() {
 
     // PDF 선택 후 노트 이름 입력받아 Note 생성
     private fun showTitleDialogThenCreateNote(uri: Uri) {
-
         val builder = AlertDialog.Builder(this)
-
         builder.setTitle("노트 이름을 입력하세요")
-
         val input = EditText(this)
-
         builder.setView(input)
-
         builder.setPositiveButton("확인") { _, _ ->
-
             val title = input.text.toString()
-
             if (title.isNotEmpty()) {
 
                 // PDF에서 Note 객체 생성
@@ -416,19 +409,13 @@ class MainActivity : AppCompatActivity() {
 
     // 새 노트 생성 다이얼로그 (빈 PDF 생성)
     private fun showNewNoteDialog() {
-
         val builder = AlertDialog.Builder(this)
 
         builder.setTitle("새 노트 이름을 입력하세요")
-
         val input = EditText(this)
-
         builder.setView(input)
-
         builder.setPositiveButton("확인") { _, _ ->
-
             val title = input.text.toString()
-
             if (title.isNotEmpty()) {
 
                 // 빈 PDF Note 생성
@@ -436,8 +423,6 @@ class MainActivity : AppCompatActivity() {
 
                 // 노트 추가
                 noteList.add(note)
-
-                
                 noteAdapter.notifyItemInserted(noteList.size - 1)
 
                 // 노트 저장
@@ -450,7 +435,6 @@ class MainActivity : AppCompatActivity() {
 
     // 노트 클릭 시 PdfViewerActivity로 이동 (노트 열기)
     private fun openNote(note: Note) {
-
         val intent = Intent(this, PdfViewerActivity::class.java)
 
         // 노트 ID 전달

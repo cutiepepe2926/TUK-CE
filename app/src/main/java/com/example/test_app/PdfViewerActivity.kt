@@ -43,6 +43,7 @@ import com.example.test_app.model.Stroke
 import com.example.test_app.model.TextAnnotation
 import com.example.test_app.utils.MyDocManager
 import com.example.test_app.utils.PdfExporter
+import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener
 import android.view.animation.AnimationUtils
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
@@ -82,9 +83,6 @@ class PdfViewerActivity : AppCompatActivity() {
     /* ---------------- 모드 ---------------- */
     private var isPenMode = true
     private var isEraserMode = false
-    private var isTextMode = false
-    private var isTouchMode  = false
-    //private var touchPassthrough = false
 
     /* ---------------- OCR ---------------- */
     private val ocrOptions   = arrayOf("텍스트 요약", "번역")
@@ -134,14 +132,6 @@ class PdfViewerActivity : AppCompatActivity() {
     private lateinit var btnEraser: ImageButton
     private lateinit var eraserSizeCircle  : View
 
-    /* ---------------- 지우개 옵션 ------------*/
-    private lateinit var btnText: ImageButton
-
-    /* ---------- 텍스트를 위한 제스처 옵션 ----------*/
-    private lateinit var gestureDetector: GestureDetector
-
-    private lateinit var btnHand: ImageButton
-
     private var isMenuOpen = false
 
     @SuppressLint("ClickableViewAccessibility")
@@ -173,46 +163,31 @@ class PdfViewerActivity : AppCompatActivity() {
         // "다음 페이지" 버튼
         binding.nextPageButton.setOnClickListener {
             updateCurrentPageStrokes()
-            dumpTextBoxes()
-            saveAndClearTextBoxes()      // EditText 저장·제거
             if (currentPage < totalPages - 1) loadPage(currentPage + 1)
         }
 
         // "이전 페이지" 버튼
         binding.prevPageButton.setOnClickListener {
             updateCurrentPageStrokes()
-            dumpTextBoxes()
-            saveAndClearTextBoxes()      // EditText 저장·제거
             if (currentPage > 0) loadPage(currentPage - 1)
         }
 
         // 모드 전환 버튼
-        btnHand = findViewById(R.id.toggleModeButton)
-
-        btnHand.setOnClickListener {
-            isTouchMode = true
-            isPenMode = false
-            isEraserMode = false
-            isTextMode = false
-
-            drawingView.setDrawingEnabled(false)
-            drawingView.setEraserEnabled(false)
-
-            updateButtonAlpha(btnHand)
+        binding.toggleModeButton.setOnClickListener {
+            isPenMode = !isPenMode
+            drawingView.setDrawingEnabled(isPenMode)
+            // pen 모드일 때(연하게), drag 모드일 때(진하게)
+            binding.toggleModeButton.alpha = if (isPenMode) 0.4f else 1.0f
         }
 
-
-
         // Export 버튼은 기존 로직 그대로
-        exportButton = findViewById(R.id.exportButton)
-
+        exportButton = findViewById<ImageButton>(R.id.exportButton)
         exportButton.setOnClickListener {
             exportToPdf()
         }
 
         //OCR 기능
         btnOcr = findViewById(R.id.btnOcr)
-
         //OCR 버튼 기능
         btnOcr.setOnClickListener {
             showOcrDialog()
@@ -267,23 +242,37 @@ class PdfViewerActivity : AppCompatActivity() {
         updateToolSize(penSizeSeekBar.progress)
 
         btnPen.setOnClickListener {
-            exitTouchMode()
-            if (!isPenMode) {
-                isPenMode    = true
+            if(isEraserMode){
                 isEraserMode = false
-                isTextMode   = false
-                drawingView.setDrawingEnabled(true)
                 drawingView.setEraserEnabled(false)
+                drawingView.setDrawingEnabled(true)
+
+                btnPen.alpha = 1.0f
+                btnEraser.alpha = 0.4f
+
                 penOptionLayout.visibility = View.GONE
-                setTextBoxesEnabled(false)    // EditText 비활성
-            } else {
+            }else{
                 penOptionLayout.visibility =
-                    if (penOptionLayout.isVisible) View.GONE else View.VISIBLE
+                    if(penOptionLayout.visibility == View.VISIBLE) View.GONE
+                    else View.VISIBLE
             }
-            updateButtonAlpha(btnPen)
         }
 
+        btnEraser.setOnClickListener{
+            if (!isEraserMode) {
+                // 지우개 모드 진입
+                isEraserMode = true
+                drawingView.setEraserEnabled(true)
+                drawingView.setDrawingEnabled(false)
 
+                // 버튼 시각 표시
+                btnEraser.alpha = 1.0f
+                btnPen   .alpha = 0.4f
+
+                // 펜 옵션창 숨기기
+                penOptionLayout.visibility = View.GONE
+            }
+        }
 
         penSizeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar, prog: Int, fromUser: Boolean) {
@@ -293,76 +282,11 @@ class PdfViewerActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(sb: SeekBar)  {}
         })
 
-        colorBlack.setOnClickListener { applyPenColor(Color.BLACK) }
-        colorBlue.setOnClickListener { applyPenColor("#025AB1".toColorInt()) }
-        colorGreen.setOnClickListener { applyPenColor("#2E7D32".toColorInt()) }
-        colorRed.setOnClickListener { applyPenColor("#C62828".toColorInt()) }
-        colorYellow.setOnClickListener { applyPenColor("#F9A825".toColorInt()) }
-
-        btnEraser.setOnClickListener {
-            exitTouchMode()
-            if (!isEraserMode) {
-                isPenMode    = false
-                isEraserMode = true
-                isTextMode   = false
-                drawingView.setEraserEnabled(true)
-                drawingView.setDrawingEnabled(false)
-                penOptionLayout.visibility = View.GONE
-                updateButtonAlpha(btnEraser)
-                setTextBoxesEnabled(false)
-            }
-        }
-
-
-        // 텍스트 관련 설정
-        btnText = findViewById(R.id.btnText)
-        btnText.setOnClickListener {
-            exitTouchMode()
-            isTextMode   = true
-            isTouchMode = false
-            isPenMode = false
-            isEraserMode = false
-
-            drawingView.setDrawingEnabled(false)
-            drawingView.setEraserEnabled(false)
-            penOptionLayout.visibility = View.GONE
-            updateButtonAlpha(btnText)
-
-            setTextBoxesEnabled(isTextMode)     // ← 텍스트 모드 ON/OFF 시 EditText 활성/비활성
-        }
-
-        // 텍스트 모드에서 더블탭
-        gestureDetector = GestureDetector(this,
-            object: GestureDetector.SimpleOnGestureListener() {
-                override fun onDoubleTap(e: MotionEvent): Boolean {
-                    if (isTextMode) {
-                        addTextBoxAt(e.x, e.y)   // 텍스트 박스만 추가
-                        return true              // 모드는 그대로 유지
-                    }
-                    return false
-                }
-            })
-        // pdf뷰에 터치 리스너 붙이기
-        pdfView.setOnTouchListener { _, ev ->
-            // ① 텍스트 모드일 때, 아무 곳이나 누르면 커서·키보드 숨김
-            if (isTextMode && ev.action == MotionEvent.ACTION_DOWN) {
-                currentFocus?.let { v ->
-                    if (v is EditText) {
-                        v.clearFocus()
-                        val imm = getSystemService(Context.INPUT_METHOD_SERVICE)
-                                as InputMethodManager
-                        imm.hideSoftInputFromWindow(v.windowToken, 0)
-                    }
-                }
-            }
-
-            // ② 텍스트 모드 자체의 더블탭 처리
-            if (isTextMode) {
-                gestureDetector.onTouchEvent(ev)
-                return@setOnTouchListener true   // 이벤트 소비
-            }
-            false                                 // 다른 모드 → PDFView 기본 제스처 허용
-        }
+        colorBlack.setOnClickListener{ applyPenColor(Color.BLACK) }
+        colorBlue.setOnClickListener { applyPenColor(Color.parseColor("#025AB1")) }
+        colorGreen.setOnClickListener { applyPenColor(Color.parseColor("#2E7D32")) }
+        colorRed.setOnClickListener { applyPenColor(Color.parseColor("#C62828")) }
+        colorYellow.setOnClickListener { applyPenColor(Color.parseColor("#F9A825")) }
 
         handler.post(syncRunnable)
     }
@@ -377,14 +301,14 @@ class PdfViewerActivity : AppCompatActivity() {
     private fun loadPage(index: Int) {
         currentPage = index
         pdfView.fromFile(File(getBasePdfPath()))
-            .enableSwipe(true)
-            .enableDoubletap(true)
-            .pages(index)
-            .onLoad {
-                drawingView.setCurrentPage(currentPage)
-                drawingView.setStrokes(pageStrokes[currentPage] ?: mutableListOf())
-                drawingView.setTextAnnotations(textAnnos)
-            }.load()
+            .enableSwipe(false).pages(index)
+            .onLoad(object : OnLoadCompleteListener {
+                override fun loadComplete(nbPages: Int) {
+                    drawingView.setCurrentPage(currentPage)
+                    drawingView.setStrokes(pageStrokes[currentPage] ?: mutableListOf())
+                    drawingView.setTextAnnotations(textAnnos)
+                }
+            }).load()
     }
 
     /* =============================================================== */
@@ -392,8 +316,7 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     private fun showOcrDialog() {
         AlertDialog.Builder(this)
-            .setItems(ocrOptions) { _, w -> currentCropMode = if (w == 0) CROP_EXTRACT else CROP_TRANS
-                startCrop(currentCropMode) }
+            .setItems(ocrOptions) { _, w -> startCrop(if (w == 0) CROP_EXTRACT else CROP_TRANS) }
             .show()
     }
 
@@ -536,7 +459,6 @@ class PdfViewerActivity : AppCompatActivity() {
     }
 
 
-
     /* ---------- 문자열 래핑 ---------- */
     private fun wrapText(src: String, maxChars: Int = 10): String {
         val words = src.split("\\s+".toRegex())
@@ -563,16 +485,6 @@ class PdfViewerActivity : AppCompatActivity() {
         textAnnos += TextAnnotation(currentPage, wrapped, pdfX, pdfY, 40f)
         drawingView.setTextAnnotations(textAnnos)
     }
-    /* ---------- 현재 페이지의 EditText를 저장하고 제거 ---------- */
-    private fun saveAndClearTextBoxes() {
-        //collectTextBoxesToAnnotations()      // ❶ EditText → TextAnnotation  (앞서 만든 함수)
-        val toRemove = mutableListOf<View>()
-        for (i in 0 until binding.root.childCount) {
-            val v = binding.root.getChildAt(i)
-            if (v is EditText) toRemove += v
-        }
-        toRemove.forEach { binding.root.removeView(it) }
-    }
 
     private fun runTranslate(bmp: Bitmap) {
         ReadImageText().processImage(bmp) { extractedText ->
@@ -590,41 +502,9 @@ class PdfViewerActivity : AppCompatActivity() {
         strokes.forEach { it.page = currentPage }
         pageStrokes[currentPage] = strokes
     }
-    /* ---------- ❶ EditText → TextAnnotation 변환 ---------- */
-//    private fun collectTextBoxesToAnnotations() {
-//
-//        val newAnnos = mutableListOf<TextAnnotation>()
-//
-//        // 뷰 트리에서 EditText를 모두 찾아 PDF 좌표로 환산
-//        for (i in 0 until binding.root.childCount) {
-//            val v = binding.root.getChildAt(i)
-//            if (v !is EditText) continue
-//            if (v.text.isNullOrBlank()) continue   // 내용이 없으면 건너뜀
-//
-//            // 화면(View) 좌표 → PDF 좌표
-//            val lp = v.layoutParams as FrameLayout.LayoutParams
-//            val viewX = lp.leftMargin.toFloat()
-//            val viewY = lp.topMargin.toFloat()
-//            val pdfX  = (viewX - pdfView.currentXOffset) / pdfView.zoom
-//            val pdfY  = (viewY - pdfView.currentYOffset) / pdfView.zoom
-//
-//            newAnnos += TextAnnotation(
-//                page     = currentPage,
-//                text     = v.text.toString(),
-//                x        = pdfX,
-//                y        = pdfY,
-//                fontSize = 40f               // 필요하면 v.textSize 로 대체
-//            )
-//        }
-//
-//        // 같은 페이지의 예전 주석을 지우고 새로 반영
-//        textAnnos.removeAll { it.page == currentPage }
-//        textAnnos.addAll(newAnnos)
-//    }
 
     private fun persistAll() {
         updateCurrentPageStrokes()
-        dumpTextBoxes()
         MyDocManager(this).saveMyDoc(
             File(myDocPath).name,
             getBasePdfPath(),
@@ -657,10 +537,6 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     /*  펜, 지우개 관련                                                  */
     /* =============================================================== */
-    private fun updateButtonAlpha(active: ImageButton?) {
-        val all = listOf(btnPen, btnEraser, btnText, btnHand)
-        all.forEach { it.alpha = if (it == active) 1.0f else 0.4f }
-    }
     private fun updateToolSize(sizeDp: Int){
         val dp = sizeDp.coerceAtLeast(1)
         val px = dpToPx(dp)
@@ -692,168 +568,6 @@ class PdfViewerActivity : AppCompatActivity() {
         }
         view.requestLayout()
     }
-    /* =============================================================== */
-    /*  텍스트 박스                                                      */
-    /* =============================================================== */
-    @SuppressLint("ClickableViewAccessibility")
-    private fun addTextBoxAt(viewX: Float, viewY: Float){
-        // 새로운 EditText
-        val et = EditText(this).apply{
-            setBackgroundResource(R.drawable.text_box_drawable)
-            setTextColor(Color.BLACK)
-            isSingleLine = false
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
-            //내부 패딩
-            setPadding(8, 8, 8, 8)
-
-            // 포커스 잃었을 때 내용 없으면 자동 삭제
-            onFocusChangeListener = View.OnFocusChangeListener { v, hasFocus ->
-                if (!hasFocus && text.isNullOrBlank()) {
-                    (v.parent as? FrameLayout)?.removeView(v)
-                }
-            }
-        }
-
-        // 위치는 터치 지점에 중앙 정렬
-        val params = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.WRAP_CONTENT,
-            FrameLayout.LayoutParams.WRAP_CONTENT
-        )
-        params.leftMargin = (viewX - 20.dp).toInt()
-        params.topMargin  = (viewY - 10.dp).toInt()
-        binding.root.addView(et, params)
-
-        et.setOnTouchListener(MoveTouchListener())
-        // 포커스 받고 키보드 띄우기
-        et.requestFocus()
-        et.post{
-            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(et, InputMethodManager.SHOW_IMPLICIT)
-        }
-    }
-    // 텍스트 박스 이동 전용 클래스
-    inner class MoveTouchListener : View.OnTouchListener {
-        private var lastX = 0f
-        private var lastY = 0f
-
-        @SuppressLint("ClickableViewAccessibility")
-        override fun onTouch(v: View, ev: MotionEvent): Boolean {
-            // 커서(포커스) 있을 때만 이동 — 포커스 없으면 텍스트 선택·스크롤 등에 방해하지 않음
-            if (!(v as EditText).isFocused) return false
-
-            when (ev.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    lastX = ev.rawX
-                    lastY = ev.rawY
-                    return true           // 내가 DOWN 을 소비함
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    val dx = (ev.rawX - lastX).toInt()
-                    val dy = (ev.rawY - lastY).toInt()
-                    val lp = v.layoutParams as FrameLayout.LayoutParams
-                    lp.leftMargin += dx
-                    lp.topMargin  += dy
-                    v.layoutParams = lp
-                    lastX = ev.rawX
-                    lastY = ev.rawY
-                    return true
-                }
-            }
-            return false
-        }
-    }
-    // dp 확장프로퍼티
-    private val Int.dp: Float
-        get() = this * resources.displayMetrics.density
-    // 텍스트 박스들의 모드 전환
-    private fun setTextBoxesEnabled(enable: Boolean) {
-        for (i in 0 until binding.root.childCount) {
-            val v = binding.root.getChildAt(i)
-            if (v is EditText) {
-                v.isFocusableInTouchMode = enable
-                v.isFocusable = enable
-                v.isClickable = enable
-                // 이동용 터치 리스너도 켜거나 끔
-                if (enable) {
-                    v.setOnTouchListener(MoveTouchListener())
-                } else {
-                    v.setOnTouchListener(null)
-                    v.clearFocus()
-                }
-            }
-        }
-        // 텍스트 모드 종료 시 키보드 내리기
-        if (!enable) {
-            drawingView.isClickable = true
-            currentFocus?.let { view ->
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(view.windowToken, 0)
-            }
-        }
-    }
-    /* ---------- EditText → TextAnnotation ---------- */
-    private fun dumpTextBoxes(): Boolean {
-
-        val newAnnos = mutableListOf<TextAnnotation>()
-        val toRemove = mutableListOf<View>()
-
-        // ── 1. 모든 EditText 스캔 ──────────────────────────────────────────────
-        for (i in 0 until binding.root.childCount) {
-            val v = binding.root.getChildAt(i)
-            if (v !is EditText) continue      // 텍스트 박스 아닐 때
-            if (v.text.isNullOrBlank()) {     // 내용 없으면 그냥 지움
-                toRemove += v; continue
-            }
-
-            /* 화면(View) 좌표 → PDF 좌표 변환 */
-            val lp    = v.layoutParams as FrameLayout.LayoutParams
-            val viewX = lp.leftMargin.toFloat()
-            val viewY = lp.topMargin.toFloat()
-            val pdfX  = (viewX - pdfView.currentXOffset) / pdfView.zoom
-            val pdfY  = (viewY - pdfView.currentYOffset) / pdfView.zoom
-
-            /* 글꼴 크기를 PDF 스케일 기준으로 환산 */
-            val fontPdf = v.textSize / pdfView.zoom       // ← 줌 배율 보정이 핵심
-
-            newAnnos += TextAnnotation(
-                page     = currentPage,
-                text     = v.text.toString(),
-                x        = pdfX,
-                y        = pdfY,
-                fontSize = fontPdf
-            )
-
-            toRemove += v          // 변환이 끝났으므로 뷰는 제거 대상으로 표시
-        }
-
-        // ── 2. EditText 실제 제거 ────────────────────────────────────────────
-        toRemove.forEach { binding.root.removeView(it) }
-
-        if (newAnnos.isEmpty()) return false   // 저장할 것이 없으면 바로 종료
-
-        // ── 3. 기존 어노테이션과 병합(중복 위치는 덮어쓰기) ─────────────────
-        for (na in newAnnos) {
-            textAnnos.removeAll { it.page == na.page &&
-                    kotlin.math.abs(it.x - na.x) < 2f &&
-                    kotlin.math.abs(it.y - na.y) < 2f }
-            textAnnos += na      // 누적(add) – 페이지 전체를 지우지 않음
-        }
-
-        // ── 4. DrawingView 에 즉시 반영 ────────────────────────────────────
-        drawingView.setTextAnnotations(textAnnos)
-
-        return true
-    }
-
-    /* =============================================================== */
-    /*  터치 모드                                                       */
-    /* =============================================================== */
-    private fun exitTouchMode(){
-        if(!isTouchMode) return
-        isTouchMode = false
-        updateButtonAlpha(null)
-    }
-
     /* =============================================================== */
     /*  애니메이션                                                      */
     /* =============================================================== */
