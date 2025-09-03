@@ -187,7 +187,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
             strokes.filter { it.page == viewCurrentPage }.forEach { st ->
                 strokePaint.color = st.color; strokePaint.strokeWidth = st.width
                 for (i in 0 until st.points.size - 1) {
-                    val s = st.points[i];
+                    val s = st.points[i]
                     val e = st.points[i + 1]
                     drawLine(s.x, s.y, e.x, e.y, strokePaint)
                 }
@@ -195,7 +195,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
             currentStroke?.let { st ->
                 strokePaint.color = st.color; strokePaint.strokeWidth = st.width
                 for (i in 0 until st.points.size - 1) {
-                    val s = st.points[i];
+                    val s = st.points[i]
                     val e = st.points[i + 1]
                     drawLine(s.x, s.y, e.x, e.y, strokePaint)
                 }
