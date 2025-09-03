@@ -30,8 +30,6 @@ import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.util.TypedValue
-import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.View
 import android.view.animation.Animation
 import android.widget.LinearLayout
@@ -45,9 +43,7 @@ import com.example.test_app.utils.MyDocManager
 import com.example.test_app.utils.PdfExporter
 import com.github.barteksc.pdfviewer.listener.OnLoadCompleteListener
 import android.view.animation.AnimationUtils
-import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import android.widget.FrameLayout
 import android.widget.SeekBar
 import com.yalantis.ucrop.UCrop
 import java.io.FileOutputStream
@@ -59,8 +55,6 @@ import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import androidx.core.graphics.toColorInt
-import androidx.core.view.isVisible
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import androidx.core.content.edit

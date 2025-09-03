@@ -1,5 +1,6 @@
 package com.example.test_app.view
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
@@ -11,7 +12,6 @@ import com.example.test_app.model.Stroke
 import com.example.test_app.model.TextAnnotation
 import kotlin.math.max
 import androidx.core.graphics.withTranslation
-import kotlin.math.hypot
 
 class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) {
 
@@ -75,6 +75,7 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
     fun getStrokes(): List<Stroke> = strokes
 
     /* ---------- 터치 ---------- */
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(e: MotionEvent): Boolean {
         Log.d("DRAW_TOUCH", "pass=$touchPassthrough  action=${e.action}")
         if(touchPassthrough) return false
@@ -179,56 +180,57 @@ class DrawingView(context: Context, attrs: AttributeSet) : View(context, attrs) 
         super.onDraw(canvas)
 
         /* 0. PDF 좌표계로 변환 ------------------------------------------------ */
-        canvas.save()
-        canvas.translate(pdfOffsetX, pdfOffsetY)
-        canvas.scale(pdfScale, pdfScale)         // ← 이미 스케일 적용됨
+        canvas.withTranslation(pdfOffsetX, pdfOffsetY) {
+            scale(pdfScale, pdfScale)         // ← 이미 스케일 적용됨
 
-        /* 1. 기존 펜 Stroke --------------------------------------------------- */
-        strokes.filter { it.page == viewCurrentPage }.forEach { st ->
-            strokePaint.color = st.color; strokePaint.strokeWidth = st.width
-            for (i in 0 until st.points.size - 1) {
-                val s = st.points[i]; val e = st.points[i + 1]
-                canvas.drawLine(s.x, s.y, e.x, e.y, strokePaint)
-            }
-        }
-        currentStroke?.let { st ->
-            strokePaint.color = st.color; strokePaint.strokeWidth = st.width
-            for (i in 0 until st.points.size - 1) {
-                val s = st.points[i]; val e = st.points[i + 1]
-                canvas.drawLine(s.x, s.y, e.x, e.y, strokePaint)
-            }
-        }
-
-        /* 2. 텍스트 박스 ------------------------------------------------------ */
-        if (showTextAnno) {
-            textAnnotations.filter { it.page == viewCurrentPage }.forEach { an ->
-                textPaint.textSize = an.fontSize
-                val lines = an.text.split('\n')
-                val gap = 8f
-                var maxW = 0f
-                lines.forEach { maxW = max(maxW, textPaint.measureText(it)) }
-                val textH = lines.size * (textPaint.textSize + gap) - gap
-                val pad = 6f
-                val left = an.x - pad
-                val top  = an.y - textPaint.textSize - pad
-                val right = an.x + maxW + pad
-                val bot   = top + textH + 2 * pad + textPaint.textSize
-                canvas.drawRoundRect(left, top, right, bot, 8f, 8f, boxStroke)
-                /* 글자 */
-                var y = an.y
-                lines.forEach {
-                    canvas.drawText(it, an.x, y, textPaint)
-                    y += textPaint.textSize + gap
+            /* 1. 기존 펜 Stroke --------------------------------------------------- */
+            strokes.filter { it.page == viewCurrentPage }.forEach { st ->
+                strokePaint.color = st.color; strokePaint.strokeWidth = st.width
+                for (i in 0 until st.points.size - 1) {
+                    val s = st.points[i];
+                    val e = st.points[i + 1]
+                    drawLine(s.x, s.y, e.x, e.y, strokePaint)
                 }
             }
-        }
+            currentStroke?.let { st ->
+                strokePaint.color = st.color; strokePaint.strokeWidth = st.width
+                for (i in 0 until st.points.size - 1) {
+                    val s = st.points[i];
+                    val e = st.points[i + 1]
+                    drawLine(s.x, s.y, e.x, e.y, strokePaint)
+                }
+            }
 
-        /* 3. 지우개 커서 ------------------------------------------------------ */
-        if (isEraserEnabled && eraseOverlayX >= 0 && eraseOverlayY >= 0) {
-            canvas.drawCircle(eraseOverlayX, eraseOverlayY, eraserSize, eraserPaint)
-        }
+            /* 2. 텍스트 박스 ------------------------------------------------------ */
+            if (showTextAnno) {
+                textAnnotations.filter { it.page == viewCurrentPage }.forEach { an ->
+                    textPaint.textSize = an.fontSize
+                    val lines = an.text.split('\n')
+                    val gap = 8f
+                    var maxW = 0f
+                    lines.forEach { maxW = max(maxW, textPaint.measureText(it)) }
+                    val textH = lines.size * (textPaint.textSize + gap) - gap
+                    val pad = 6f
+                    val left = an.x - pad
+                    val top = an.y - textPaint.textSize - pad
+                    val right = an.x + maxW + pad
+                    val bot = top + textH + 2 * pad + textPaint.textSize
+                    drawRoundRect(left, top, right, bot, 8f, 8f, boxStroke)
+                    /* 글자 */
+                    var y = an.y
+                    lines.forEach {
+                        drawText(it, an.x, y, textPaint)
+                        y += textPaint.textSize + gap
+                    }
+                }
+            }
 
-        canvas.restore()
+            /* 3. 지우개 커서 ------------------------------------------------------ */
+            if (isEraserEnabled && eraseOverlayX >= 0 && eraseOverlayY >= 0) {
+                drawCircle(eraseOverlayX, eraseOverlayY, eraserSize, eraserPaint)
+            }
+
+        }
     }
 
     /* -------- 펜 크기 및 색상 -------*/
