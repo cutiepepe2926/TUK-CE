@@ -58,6 +58,8 @@ import retrofit2.Response
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import androidx.core.content.edit
+import androidx.core.view.isVisible
+import androidx.core.graphics.toColorInt
 
 @Suppress("DEPRECATION")
 class PdfViewerActivity : AppCompatActivity() {
@@ -247,7 +249,7 @@ class PdfViewerActivity : AppCompatActivity() {
                 penOptionLayout.visibility = View.GONE
             }else{
                 penOptionLayout.visibility =
-                    if(penOptionLayout.visibility == View.VISIBLE) View.GONE
+                    if(penOptionLayout.isVisible) View.GONE
                     else View.VISIBLE
             }
         }
@@ -277,10 +279,10 @@ class PdfViewerActivity : AppCompatActivity() {
         })
 
         colorBlack.setOnClickListener{ applyPenColor(Color.BLACK) }
-        colorBlue.setOnClickListener { applyPenColor(Color.parseColor("#025AB1")) }
-        colorGreen.setOnClickListener { applyPenColor(Color.parseColor("#2E7D32")) }
-        colorRed.setOnClickListener { applyPenColor(Color.parseColor("#C62828")) }
-        colorYellow.setOnClickListener { applyPenColor(Color.parseColor("#F9A825")) }
+        colorBlue.setOnClickListener { applyPenColor("#025AB1".toColorInt()) }
+        colorGreen.setOnClickListener { applyPenColor("#2E7D32".toColorInt()) }
+        colorRed.setOnClickListener { applyPenColor("#C62828".toColorInt()) }
+        colorYellow.setOnClickListener { applyPenColor("#F9A825".toColorInt()) }
 
         handler.post(syncRunnable)
     }
