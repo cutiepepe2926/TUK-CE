@@ -79,7 +79,7 @@ class PdfViewerActivity : AppCompatActivity() {
     /* ---------------- 모드 ---------------- */
     private var isPenMode = true
     private var isEraserMode = false
-
+    private var isZoomMode = false
     /* ---------------- OCR ---------------- */
     private val ocrOptions   = arrayOf("텍스트 요약", "번역")
     private var currentCropMode = 0
@@ -128,6 +128,9 @@ class PdfViewerActivity : AppCompatActivity() {
     private lateinit var btnEraser: ImageButton
     private lateinit var eraserSizeCircle  : View
 
+    /* ---------------- 줌 옵션 ------------*/
+    private lateinit var btnZoom: ImageButton
+
     private var isMenuOpen = false
 
     @SuppressLint("ClickableViewAccessibility")
@@ -166,14 +169,6 @@ class PdfViewerActivity : AppCompatActivity() {
         binding.prevPageButton.setOnClickListener {
             updateCurrentPageStrokes()
             if (currentPage > 0) loadPage(currentPage - 1)
-        }
-
-        // 모드 전환 버튼
-        binding.toggleModeButton.setOnClickListener {
-            isPenMode = !isPenMode
-            drawingView.setDrawingEnabled(isPenMode)
-            // pen 모드일 때(연하게), drag 모드일 때(진하게)
-            binding.toggleModeButton.alpha = if (isPenMode) 0.4f else 1.0f
         }
 
         // Export 버튼은 기존 로직 그대로
@@ -225,6 +220,7 @@ class PdfViewerActivity : AppCompatActivity() {
         // 펜, 지우개
         btnPen = findViewById(R.id.btnPen)
         btnEraser = findViewById(R.id.btnEraser)
+        btnZoom = findViewById(R.id.toggleModeButton)
         penOptionLayout = findViewById(R.id.penOptionLayout)
         penSizeCircle = findViewById(R.id.penSizeCircle)
         penSizeSeekBar = findViewById(R.id.penSizeSeekBar)
@@ -238,13 +234,17 @@ class PdfViewerActivity : AppCompatActivity() {
         updateToolSize(penSizeSeekBar.progress)
 
         btnPen.setOnClickListener {
-            if(isEraserMode){
+            if(!isPenMode){ // penMode가 false일 때
+                // 필기 모드 진입
+                isPenMode = true
                 isEraserMode = false
+                isZoomMode = false
                 drawingView.setEraserEnabled(false)
                 drawingView.setDrawingEnabled(true)
 
                 btnPen.alpha = 1.0f
                 btnEraser.alpha = 0.4f
+                btnZoom.alpha = 0.4f
 
                 penOptionLayout.visibility = View.GONE
             }else{
@@ -258,11 +258,31 @@ class PdfViewerActivity : AppCompatActivity() {
             if (!isEraserMode) {
                 // 지우개 모드 진입
                 isEraserMode = true
+                isPenMode = false
+                isZoomMode = false
                 drawingView.setEraserEnabled(true)
                 drawingView.setDrawingEnabled(false)
 
                 // 버튼 시각 표시
                 btnEraser.alpha = 1.0f
+                btnPen   .alpha = 0.4f
+                btnZoom.alpha = 0.4f
+
+                // 펜 옵션창 숨기기
+                penOptionLayout.visibility = View.GONE
+            }
+        }
+
+        btnZoom.setOnClickListener {
+            if(!isZoomMode){
+                // 줌 모드 진입
+                isZoomMode = true
+                drawingView.setEraserEnabled(false)
+                drawingView.setDrawingEnabled(false)
+
+                // 버튼 시각 표시
+                btnZoom.alpha = 1.0f
+                btnEraser.alpha = 0.4f
                 btnPen   .alpha = 0.4f
 
                 // 펜 옵션창 숨기기
