@@ -270,7 +270,6 @@ class SttActivity : AppCompatActivity() {
     private fun migrateLegacyOnlineSttDataIfNeeded() {
         val sharedPreferences = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
         val taskIdJson = sharedPreferences.getString("task_id_list", "[]") ?: "[]"
-
         try {
             // 먼저 새 구조로 파싱 시도 (이미 새 구조라면 아무것도 안 함)
             val newType = object : TypeToken<MutableList<OnlineSttResult>>() {}.type
