@@ -99,16 +99,16 @@
                 tools:ignore="ImageContrastCheck,TouchTargetSizeCheck" />
 
             <!-- 텍스트 -->
-            <ImageButton
-                android:id="@+id/btnText"
-                android:layout_width="40dp"
-                android:layout_height="match_parent"
-                android:layout_margin="10dp"
-                android:alpha="0.4"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:importantForAccessibility="no"
-                android:src="@drawable/toolbar_ic_text"
-                tools:ignore="ImageContrastCheck,TouchTargetSizeCheck" />
+<!--            <ImageButton-->
+<!--                android:id="@+id/btnText"-->
+<!--                android:layout_width="40dp"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_margin="10dp"-->
+<!--                android:alpha="0.4"-->
+<!--                android:background="?attr/selectableItemBackgroundBorderless"-->
+<!--                android:importantForAccessibility="no"-->
+<!--                android:src="@drawable/toolbar_ic_text"-->
+<!--                tools:ignore="ImageContrastCheck,TouchTargetSizeCheck" />-->
 
             <!-- 손(필기 모드 토글) -->
             <ImageButton

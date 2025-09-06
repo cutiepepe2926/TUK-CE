@@ -38,7 +38,7 @@ import androidx.core.graphics.scale
 import androidx.core.content.edit
 
 
-class MainActivity : AppCompatActivity() {
+class   MainActivity : AppCompatActivity() {
 
     // 메인 액티비티 xml 바인딩
     private lateinit var binding: ActivityMainBinding

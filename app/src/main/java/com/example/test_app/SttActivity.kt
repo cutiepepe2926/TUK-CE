@@ -648,51 +648,51 @@ class SttActivity : AppCompatActivity() {
                                     return@setOnClickListener
                                 }
 
-                                val sttCall = RetrofitClient.fileUploadService.getSttResult("Bearer $accessSTTtoken", taskId)
+                                //val sttCall = RetrofitClient.fileUploadService.getSttResult("Bearer $accessSTTtoken", taskId)
 
-                                sttCall.enqueue(object : Callback<ResponseBody> {
-
-                                    override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-
-                                        if (response.isSuccessful) {
-
-                                            val body = response.body()?.string()
-
-                                            try {
-                                                val sttJson = JSONObject(body ?: "")
-                                                val status = sttJson.optString("status", "")
-
-                                                val sttMessage = when (status) {
-                                                    "processing" -> "처리 중입니다. 잠시만 기다려주세요."
-                                                    "completed" -> sttJson.optString("result", "결과 없음")
-                                                    "failed" -> "오류 발생: ${sttJson.optString("error", "알 수 없는 오류")}"
-                                                    else -> "알 수 없는 상태: $status"
-                                                }
-
-//                                                AlertDialog.Builder(this@SttActivity)
-//                                                    .setTitle("STT 결과")
-//                                                    .setMessage(sttMessage)
-//                                                    .setPositiveButton("확인", null)
-//                                                    .show()
-                                                val intent = Intent(this@SttActivity, SttResultActivity::class.java)
-                                                intent.putExtra("stt_result", sttMessage)
-                                                startActivity(intent)
-
-                                            } catch (e: Exception) { // JSON 파싱 실패 처리
-                                                e.printStackTrace()
-                                                Toast.makeText(context, "결과 파싱 오류", Toast.LENGTH_SHORT).show()
-                                            }
-                                        }
-
-                                        else {
-                                            Toast.makeText(context, "결과 조회 실패", Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
-
-                                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {  // 네트워크 통신 실패 시
-                                        Toast.makeText(context, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
-                                    }
-                                })
+//                                sttCall.enqueue(object : Callback<ResponseBody> {
+//
+//                                    override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+//
+//                                        if (response.isSuccessful) {
+//
+//                                            val body = response.body()?.string()
+//
+//                                            try {
+//                                                val sttJson = JSONObject(body ?: "")
+//                                                val status = sttJson.optString("status", "")
+//
+//                                                val sttMessage = when (status) {
+//                                                    "processing" -> "처리 중입니다. 잠시만 기다려주세요."
+//                                                    "completed" -> sttJson.optString("result", "결과 없음")
+//                                                    "failed" -> "오류 발생: ${sttJson.optString("error", "알 수 없는 오류")}"
+//                                                    else -> "알 수 없는 상태: $status"
+//                                                }
+//
+////                                                AlertDialog.Builder(this@SttActivity)
+////                                                    .setTitle("STT 결과")
+////                                                    .setMessage(sttMessage)
+////                                                    .setPositiveButton("확인", null)
+////                                                    .show()
+//                                                val intent = Intent(this@SttActivity, SttResultActivity::class.java)
+//                                                intent.putExtra("stt_result", sttMessage)
+//                                                startActivity(intent)
+//
+//                                            } catch (e: Exception) { // JSON 파싱 실패 처리
+//                                                e.printStackTrace()
+//                                                Toast.makeText(context, "결과 파싱 오류", Toast.LENGTH_SHORT).show()
+//                                            }
+//                                        }
+//
+//                                        else {
+//                                            Toast.makeText(context, "결과 조회 실패", Toast.LENGTH_SHORT).show()
+//                                        }
+//                                    }
+//
+//                                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {  // 네트워크 통신 실패 시
+//                                        Toast.makeText(context, "네트워크 오류: ${t.message}", Toast.LENGTH_SHORT).show()
+//                                    }
+//                                })
                             }
 
                             setOnLongClickListener {
