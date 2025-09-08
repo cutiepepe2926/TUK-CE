@@ -522,7 +522,7 @@ class SummarizeActivity : AppCompatActivity() {
                 //summary_result_button_filename
                 setOnClickListener {
 
-                    Toast.makeText(this@SummarizeActivity, "📥 결과 요청: $taskId", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@SummarizeActivity, " 결과 요청: $taskId", Toast.LENGTH_SHORT).show()
 
                     // 결과 재요청
                     retrySummaryResultRequest(taskId.toString())
