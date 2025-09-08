@@ -330,9 +330,24 @@ class PdfViewerActivity : AppCompatActivity() {
     /* =============================================================== */
     /*  OCR → uCrop                                                   */
     /* =============================================================== */
+//    private fun showOcrDialog() {
+//        AlertDialog.Builder(this)
+//            .setItems(ocrOptions) { _, w -> startCrop(if (w == 0) CROP_EXTRACT else CROP_TRANS) }
+//            .show()
+//    }
     private fun showOcrDialog() {
         AlertDialog.Builder(this)
-            .setItems(ocrOptions) { _, w -> startCrop(if (w == 0) CROP_EXTRACT else CROP_TRANS) }
+            .setItems(ocrOptions) { _, w ->
+                if (w == 0) {
+                    // 텍스트 요약 모드로 설정
+                    currentCropMode = CROP_EXTRACT   // ← 추가: 모드 플래그 지정
+                    startCrop(CROP_EXTRACT)
+                } else {
+                    // 번역 모드로 설정
+                    currentCropMode = CROP_TRANS     // ← 추가: 모드 플래그 지정
+                    startCrop(CROP_TRANS)
+                }
+            }
             .show()
     }
 
