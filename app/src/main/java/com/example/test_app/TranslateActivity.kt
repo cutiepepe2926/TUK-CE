@@ -21,6 +21,12 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Looper
+import android.os.Handler
+import okhttp3.FormBody
+import com.example.test_app.utils.TokenManager
 
 class TranslateActivity : AppCompatActivity() {
 
@@ -42,6 +48,15 @@ class TranslateActivity : AppCompatActivity() {
 
     // Flask 서버 주소 (Termux에서 구동 중인 서버)
     private val flaskUrl = "http://127.0.0.1:8000/translate"
+
+    // 온라인 번역 서버 URL
+    private val onlineBaseUrl = "https://www.omniwrite.r-e.kr:8443"
+    private val onlinePostUrl = "$onlineBaseUrl/api/translation/"
+    private val onlineResultUrlPrefix = "$onlineBaseUrl/api/translation/result/"
+
+    // 온라인 결과 폴링 관련 설정
+    private val pollMaxAttempts = 20              // 최대 재시도 횟수(예: 20회)
+    private val pollIntervalMs = 1500L           // 재시도 간격(1.5초)
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -229,7 +244,14 @@ class TranslateActivity : AppCompatActivity() {
 
                 showLoading(true) // 로딩 화면 표시
 
-                sendToFlaskServer(inputText) // 서버 요청 실행
+                if (isNetworkAvailable()) {
+                    // 온라인: 원격 서버에 번역 요청
+                    sendToOnlineServer(inputText)
+                } else {
+                    // 오프라인: 기존 로컬 Flask 서버로 요청
+                    sendToFlaskServer(inputText)
+                }
+
             }
             else {
 
@@ -310,5 +332,216 @@ class TranslateActivity : AppCompatActivity() {
         binding.loadingText.visibility = if (isLoading) View.VISIBLE else View.GONE
 
         binding.btnSendToServer.isEnabled = !isLoading // 로딩 중에는 버튼 비활성화
+    }
+
+    // 네트워크 연결 상태 확인 함수
+    private fun isNetworkAvailable(): Boolean {
+        // ConnectivityManager를 통해 현재 활성 네트워크의 기능(capabilities)을 확인
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+
+        // 실제 인터넷 연결 가능한지 여부 판정
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
+    // 토큰 확인 후 작업 실행(없으면 로그아웃 유도, 401이면 갱신 후 재시도)
+    // STT에서 쓰던 패턴을 번역에도 그대로 사용
+    private fun requestWithTokenRetry(task: (accessTokenHeader: String) -> Unit) {
+        val sp = getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+        val access = sp.getString("access_token", null)
+        val refresh = sp.getString("refresh_token", null)
+
+        if (access == null || refresh == null) {
+            Toast.makeText(this, "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            TokenManager.forceLogout(this)  // 로그인 화면으로 유도
+            return
+        }
+
+        task("Bearer $access") // 정상 토큰으로 우선 시도
+    }
+
+    // 온라인 서버로 번역 요청(POST) → task_id 수신 후 결과 폴링(GET)
+    // ── 온라인 번역 업로드: x-www-form-urlencoded + Authorization: Bearer <access> ──
+    private fun sendToOnlineServer(userInput: String) {
+        // 먼저 토큰 확인/적용
+        requestWithTokenRetry { accessHeader ->
+
+            // 서버가 요구한 x-www-form-urlencoded 바디 구성
+            // src_lang=en, tgt_lang=ko, text=<번역할 문장>
+            val formBody = FormBody.Builder()
+                .add("src_lang", "en")
+                .add("tgt_lang", "ko")
+                .add("text", userInput)
+                .build()
+
+            // POST 요청 생성(토큰 헤더 포함)
+            val request = Request.Builder()
+                .url(onlinePostUrl)
+                .addHeader("Authorization", accessHeader) // ★ 토큰 추가
+                .post(formBody)
+                .build()
+
+            // 비동기 요청 전송
+            client.newCall(request).enqueue(object : okhttp3.Callback {
+
+                override fun onFailure(call: okhttp3.Call, e: IOException) {
+                    runOnUiThread {
+                        showLoading(false)
+                        binding.tvResult.text = "온라인 서버 연결 실패: ${e.message ?: "알 수 없는 오류"}"
+                    }
+                }
+
+                override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                    val bodyStr = response.body?.string()
+
+                    // 401 등의 인증 에러 처리: 토큰 갱신 후 재시도
+                    if (response.code == 401) {
+                        TokenManager.refreshAccessToken(
+                            context = this@TranslateActivity,
+                            onSuccess = {
+                                // 갱신 성공 → 재시도
+                                sendToOnlineServer(userInput)
+                            },
+                            onFailure = {
+                                runOnUiThread {
+                                    showLoading(false)
+                                    TokenManager.forceLogout(this@TranslateActivity)
+                                }
+                            }
+                        )
+                        return
+                    }
+
+                    if (!response.isSuccessful) {
+                        runOnUiThread {
+                            showLoading(false)
+                            binding.tvResult.text = "요청 실패(${response.code}): ${bodyStr ?: "서버 응답 없음"}"
+                        }
+                        return
+                    }
+
+                    // 정상 응답: { "task_id": "..." }
+                    val taskId = try {
+                        val json = org.json.JSONObject(bodyStr ?: "{}")
+                        json.optString("task_id", "")
+                    } catch (e: Exception) {
+                        ""
+                    }
+
+                    if (taskId.isBlank()) {
+                        runOnUiThread {
+                            showLoading(false)
+                            binding.tvResult.text = "task_id를 받지 못했습니다. 응답: ${bodyStr ?: "없음"}"
+                        }
+                        return
+                    }
+
+                    // UI 갱신 후 결과 폴링 시작
+                    runOnUiThread {
+                        binding.tvResult.text = "작업 접수됨..."
+                    }
+                    fetchOnlineResult(taskId, attempt = 0) // 결과 폴링 시작
+                }
+            })
+        }
+    }
+
+
+    // task_id로 결과 조회(GET) + 폴링
+    // ── task_id로 결과 조회(GET) 후 status 확인 → 완료되면 result만 표시 ──
+    private fun fetchOnlineResult(taskId: String, attempt: Int) {
+
+        requestWithTokenRetry { accessHeader ->
+
+            val request = Request.Builder()
+                .url(onlineResultUrlPrefix + taskId)
+                .addHeader("Authorization", accessHeader) // ★ 토큰 포함
+                .get()
+                .build()
+
+            client.newCall(request).enqueue(object : okhttp3.Callback {
+
+                override fun onFailure(call: okhttp3.Call, e: IOException) {
+                    runOnUiThread {
+                        showLoading(false)
+                        binding.tvResult.text = "결과 조회 실패: ${e.message ?: "알 수 없는 오류"}"
+                    }
+                }
+
+                override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+                    val bodyStr = response.body?.string()
+
+                    // 401이면 토큰 갱신 후 재시도
+                    if (response.code == 401) {
+                        TokenManager.refreshAccessToken(
+                            context = this@TranslateActivity,
+                            onSuccess = { fetchOnlineResult(taskId, attempt) },
+                            onFailure = {
+                                runOnUiThread {
+                                    showLoading(false)
+                                    TokenManager.forceLogout(this@TranslateActivity)
+                                }
+                            }
+                        )
+                        return
+                    }
+
+                    if (!response.isSuccessful) {
+                        runOnUiThread {
+                            showLoading(false)
+                            binding.tvResult.text = "결과 조회 실패(${response.code}): ${bodyStr ?: "서버 응답 없음"}"
+                        }
+                        return
+                    }
+
+                    // 예상 응답:
+                    // {
+                    //   "status": "completed" | "processing" | "failed",
+                    //   "progress": 100,
+                    //   "result": "찰리와 초콜릿 공장"
+                    // }
+                    val (status, resultText) = try {
+                        val json = org.json.JSONObject(bodyStr ?: "{}")
+                        val s = json.optString("status", "")
+                        val r = json.optString("result", "")
+                        s to r
+                    } catch (e: Exception) {
+                        "failed" to ""
+                    }
+
+                    // 처리 중 → 폴링 재시도
+                    if (status == "processing") {
+                        if (attempt + 1 >= pollMaxAttempts) {
+                            runOnUiThread {
+                                showLoading(false)
+                                binding.tvResult.text = "처리가 지연되고 있습니다. 나중에 다시 확인해주세요. (task_id: $taskId)"
+                            }
+                        } else {
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                fetchOnlineResult(taskId, attempt + 1)
+                            }, pollIntervalMs)
+                        }
+                        return
+                    }
+
+                    // 완료 → result만 출력
+                    if (status == "completed") {
+                        runOnUiThread {
+                            showLoading(false)
+                            //result만 화면에 표시
+                            binding.tvResult.text = if (resultText.isNotBlank()) resultText else "결과 없음"
+                        }
+                        return
+                    }
+
+                    // 실패/알수없음
+                    runOnUiThread {
+                        showLoading(false)
+                        binding.tvResult.text = "오류가 발생했습니다. (status: $status)"
+                    }
+                }
+            })
+        }
     }
 }

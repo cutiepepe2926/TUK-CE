@@ -14,6 +14,9 @@
         tools:ignore="ScopedStorage,SelectedPhotoAccess" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
+    <!-- AndroidManifest.xml 상단에 추가 -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
 
     <queries>
         <package android:name="com.termux" />
