@@ -275,7 +275,8 @@ class PdfViewerActivity : AppCompatActivity() {
 
         btnZoom.setOnClickListener {
             if(!isZoomMode){
-                // 줌 모드 진입
+                // 줌 모드
+                isPenMode = false
                 isZoomMode = true
                 drawingView.setEraserEnabled(false)
                 drawingView.setDrawingEnabled(false)

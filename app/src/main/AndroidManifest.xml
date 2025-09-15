@@ -55,6 +55,7 @@
             android:exported="true" />
         <activity
             android:name=".PdfViewerActivity"
+
             android:exported="true" />
         <activity
             android:name=".MainActivity"
