@@ -34,17 +34,6 @@
 - **요약 / 번역 / STT 등 AI 학습 보조 기능**
 - **온라인 및 오프라인(네트워크 단절 환경) 모두 지원**
 
-<br>
-
-## 📸 데모 및 스크린샷
-> 💡 `docs/screenshots/` 폴더에 이미지를 추가한 뒤 아래 링크를 수정하세요.
-
-| 메인 화면 (노트 목록) | PDF 필기 화면 | OCR 및 요약 화면 | STT 오프라인 모드 |
-|:---:|:---:|:---:|:---:|
-| <img src="docs/screenshots/main.png" width="200"/> | <img src="docs/screenshots/note.png" width="200"/> | <img src="docs/screenshots/ocr.png" width="200"/> | <img src="docs/screenshots/stt.png" width="200"/> |
-
-<br>
-
 ## ✨ 주요 기능
 
 1. **📄 PDF 기반 필기/노트**
