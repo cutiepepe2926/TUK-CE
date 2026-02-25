@@ -1,0 +1,18 @@
+[0;1;31m×[0m gunicorn.service - Gunicorn daemon for OmniWrite
+     Loaded: loaded (]8;;file://juno-Default-string/etc/systemd/system/gunicorn.service/etc/systemd/system/gunicorn.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;31mfailed[0m (Result: exit-code) since Mon 2025-03-10 21:04:33 KST; 1s ago
+   Duration: 424ms
+    Process: 5162 ExecStart=/home/juno/omniwrite-env/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 omniwrite_project.wsgi [0;1;31m(code=exited, status=1/FAILURE)[0m
+   Main PID: 5162 (code=exited, status=1/FAILURE)
+        CPU: 759ms
+
+ 3월 10 21:04:33 juno-Default-string gunicorn[5162]:     self.stop()
+ 3월 10 21:04:33 juno-Default-string gunicorn[5162]:   File "/home/juno/omniwrite-env/lib/python3.12/site-packages/gunicorn/arbiter.py", line 395, in stop
+ 3월 10 21:04:33 juno-Default-string gunicorn[5162]:     time.sleep(0.1)
+ 3월 10 21:04:33 juno-Default-string gunicorn[5162]:   File "/home/juno/omniwrite-env/lib/python3.12/site-packages/gunicorn/arbiter.py", line 241, in handle_chld
+ 3월 10 21:04:33 juno-Default-string gunicorn[5162]:     self.reap_workers()
+ 3월 10 21:04:33 juno-Default-string gunicorn[5162]:   File "/home/juno/omniwrite-env/lib/python3.12/site-packages/gunicorn/arbiter.py", line 529, in reap_workers
+ 3월 10 21:04:33 juno-Default-string gunicorn[5162]:     raise HaltServer(reason, self.WORKER_BOOT_ERROR)
+ 3월 10 21:04:33 juno-Default-string gunicorn[5162]: gunicorn.errors.HaltServer: <HaltServer 'Worker failed to boot.' 3>
+ 3월 10 21:04:33 juno-Default-string systemd[1]: [0;1;39m[0;1;31m[0;1;39mgunicorn.service: Main process exited, code=exited, status=1/FAILURE[0m
+ 3월 10 21:04:33 juno-Default-string systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mgunicorn.service: Failed with result 'exit-code'.[0m
